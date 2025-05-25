@@ -1,5 +1,7 @@
 # steelseries_tray/app.py
 import sys
+import logging
+import os # For environment variable
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 
@@ -8,10 +10,23 @@ from . import headset_service as hs_svc
 from .ui import system_tray_icon as sti
 from . import app_config
 
+# Initialize logging
+log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
+log_level = getattr(logging, log_level_str, logging.INFO)
+
+logging.basicConfig(
+    level=log_level,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)] # Output to console
+)
+logger = logging.getLogger(app_config.APP_NAME)
+
+
 class SteelSeriesTrayApp:
     """Main application class for the SteelSeries Headset Tray Utility."""
 
     def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
         self.qt_app = QApplication(sys.argv)
         self.qt_app.setQuitOnLastWindowClosed(False) # Important for tray apps
 
@@ -28,7 +43,7 @@ class SteelSeriesTrayApp:
         self.headset_service = hs_svc.HeadsetService()
         
         if not self.headset_service.is_device_connected():
-            # Show a message if device not found on startup.
+            logger.warning("Headset not detected on startup by HeadsetService.")
             # QSystemTrayIcon.supportsMessages() can check if backend supports this.
             # For now, tooltip will indicate disconnected state.
             # print("Warning: Headset not detected on startup.")
@@ -49,5 +64,6 @@ class SteelSeriesTrayApp:
         return self.qt_app.exec()
 
     def quit_application(self):
+        logger.info("Application quitting.")
         self.headset_service.close() # Clean up HID connection
         self.qt_app.quit()

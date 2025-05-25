@@ -8,17 +8,20 @@ ORGANIZATION_NAME = "YourOrganization" # Optional: For QSettings
 
 # Headset USB Identifiers
 STEELSERIES_VID = 0x1038
+
 # Product IDs for Arctis Nova 7 variants
-# Using the generic wireless version as primary
-ARCTIS_NOVA_7_WIRELESS_PID = 0x12dd
+ARCTIS_NOVA_7_USER_PID = 0x2202 # From user's udev rule and logs
+ARCTIS_NOVA_7_WIRELESS_PID = 0x12dd # Generic wireless version
 ARCTIS_NOVA_7X_WIRELESS_PID = 0x12da # Xbox variant
 ARCTIS_NOVA_7P_WIRELESS_PID = 0x12db # PlayStation variant
 
-# List of PIDs to try connecting to
+
+# List of PIDs to try connecting to, user's PID prioritized
 TARGET_PIDS = [
-    ARCTIS_NOVA_7_WIRELESS_PID,
-    ARCTIS_NOVA_7X_WIRELESS_PID,
-    ARCTIS_NOVA_7P_WIRELESS_PID,
+    ARCTIS_NOVA_7_USER_PID,        # This is 0x2202 (decimal 8706)
+    ARCTIS_NOVA_7_WIRELESS_PID,    # This is 0x12dd (decimal 4829)
+    ARCTIS_NOVA_7X_WIRELESS_PID,   # This is 0x12da (decimal 4826)
+    ARCTIS_NOVA_7P_WIRELESS_PID,   # This is 0x12db (decimal 4827)
 ]
 
 # Configuration File
