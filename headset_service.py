@@ -4,7 +4,7 @@ import hid
 import logging 
 import re # For parsing battery from -b output
 import json # For parsing -o json output
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
 
 from . import app_config
 
@@ -122,6 +122,25 @@ class HeadsetService:
             logger.error(f"headsetcontrol error (stderr): {e.stderr.strip()}")
             return False, f"headsetcontrol error: {e.stderr.strip()}"
 
+    def _get_headset_device_json(self) -> Optional[Dict[str, Any]]:
+        """Gets the first device object from 'headsetcontrol -o json'."""
+        logger.debug("Trying CLI method for status ('headsetcontrol -o json').")
+        success_json, output_json = self._execute_headsetcontrol(['-o', 'json'])
+        if success_json:
+            try:
+                data = json.loads(output_json)
+                if "devices" in data and isinstance(data["devices"], list) and len(data["devices"]) > 0:
+                    # Assuming the first device is the target
+                    return data["devices"][0]
+                else:
+                    logger.warning(f"'devices' key missing, not list, or empty in JSON output: {data}")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON from headsetcontrol: {e}. Output was: {output_json}")
+        else:
+             logger.warning(f"Failed to get status from 'headsetcontrol -o json'. Success: {success_json}, Output: {output_json}")
+        return None
+
+
     def _write_hid_report(self, report_id: int, data: List[int], report_length: int = 64) -> bool:
         """
         Writes a report to the HID device.
@@ -173,101 +192,115 @@ class HeadsetService:
 
     def is_device_connected(self) -> bool:
         is_conn = self._ensure_hid_connection()
+        if is_conn:
+            success, _ = self._execute_headsetcontrol(['-V']) 
+            if not success:
+                 logger.warning("HID connected, but headsetcontrol -V failed. Device might not be fully responsive.")
+            else:
+                logger.debug("is_device_connected: HID connected and headsetcontrol -V successful.")
+
         logger.debug(f"is_device_connected returning: {is_conn}")
         return is_conn
+
 
     # --- Public API ---
 
     def get_battery_level(self) -> Optional[int]:
-        """Gets battery level. Prefers CLI."""
         logger.debug("Attempting to get battery level.")
-
-        # Try 'headsetcontrol -b' first and parse its specific output
         logger.debug("Trying CLI method for battery ('headsetcontrol -b').")
         success_b, output_b = self._execute_headsetcontrol(['-b'])
         if success_b:
-            # Example output: "Level: 75%"
             match = re.search(r"Level:\s*(\d+)%", output_b)
             if match:
-                battery_level_str = match.group(1)
-                if battery_level_str.isdigit():
-                    level = int(battery_level_str)
-                    logger.info(f"Battery level from CLI (-b, regex parse): {level}%")
-                    return level
+                level = int(match.group(1))
+                logger.info(f"Battery level from CLI (-b, regex parse): {level}%")
+                return level
+            elif output_b.isdigit(): 
+                logger.info(f"Battery level from CLI (-b, direct parse): {output_b}%")
+                return int(output_b)
             else:
-                # Fallback for older/simpler output that might just be a number
-                if output_b.isdigit():
-                    logger.info(f"Battery level from CLI (-b, direct parse): {output_b}%")
-                    return int(output_b)
                 logger.warning(f"Could not parse battery level from 'headsetcontrol -b' output: {output_b}")
-        else:
-            logger.warning(f"Failed to get battery from 'headsetcontrol -b'. Success: {success_b}, Output: {output_b}")
         
-        # Fallback to 'headsetcontrol -o json' if -b fails or parsing fails
-        logger.debug("Trying CLI method for battery ('headsetcontrol -o json') as fallback.")
-        success_json, output_json = self._execute_headsetcontrol(['-o', 'json'])
-        if success_json:
-            try:
-                data = json.loads(output_json)
-                if "devices" in data and isinstance(data["devices"], list) and len(data["devices"]) > 0:
-                    device_info = data["devices"][0]
-                    if "battery" in device_info and isinstance(device_info["battery"], dict):
-                        battery_info = device_info["battery"]
-                        if "level" in battery_info and isinstance(battery_info["level"], int):
-                            level = battery_info["level"]
-                            logger.info(f"Battery level from CLI (-o json): {level}%")
-                            return level
-                        else:
-                            logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
-                    else:
-                        logger.warning(f"'battery' key missing or not dict in device_info (JSON): {device_info}")
-                else:
-                    logger.warning(f"'devices' key missing, not list, or empty in JSON output: {data}")
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse JSON from headsetcontrol: {e}. Output was: {output_json}")
-        else:
-             logger.warning(f"Failed to get battery from 'headsetcontrol -o json'. Success: {success_json}, Output: {output_json}")
+        device_data = self._get_headset_device_json()
+        if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
+            battery_info = device_data["battery"]
+            if "level" in battery_info and isinstance(battery_info["level"], int):
+                level = battery_info["level"]
+                logger.info(f"Battery level from CLI (-o json): {level}%")
+                return level
+            else:
+                logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
         
         logger.error("Could not determine battery level after trying all methods.")
         return None
 
+    def get_chatmix_value(self) -> Optional[int]:
+        """Gets ChatMix value (0-128)."""
+        logger.debug("Attempting to get ChatMix value.")
+        device_data = self._get_headset_device_json()
+        if device_data and "chatmix" in device_data:
+            chatmix_val = device_data["chatmix"]
+            if isinstance(chatmix_val, (int, float)): 
+                chatmix_int = int(chatmix_val)
+                logger.info(f"ChatMix value from CLI (-o json): {chatmix_int}")
+                return chatmix_int
+            else:
+                logger.warning(f"'chatmix' value is not a number in device_data (JSON): {chatmix_val}")
+        else:
+            logger.warning(f"'chatmix' key missing in device_data (JSON) or device_data is None.")
+            
+        logger.error("Could not determine ChatMix value.")
+        return None
+
     def get_sidetone_level(self) -> Optional[int]:
-        """Gets current sidetone level via HID. (Requires HID implementation)"""
+        device_data = self._get_headset_device_json()
+        if device_data and "sidetone" in device_data: # Assuming 'sidetone' key exists at device level in JSON
+            sidetone_val = device_data["sidetone"]
+            if isinstance(sidetone_val, int):
+                logger.info(f"Sidetone level from CLI (-o json): {sidetone_val}")
+                return sidetone_val
+            else:
+                logger.warning(f"Sidetone value from JSON is not an int: {sidetone_val}")
+
         if not self.is_device_connected(): return None 
         logger.debug("Placeholder: HID get_sidetone_level() - requires specific report.")
         return None 
 
     def set_sidetone_level(self, level: int) -> bool:
-        """Sets sidetone level (0-128) via CLI."""
         logger.info(f"Setting sidetone level to {level}.")
-        level = max(0, min(128, level))
+        level = max(0, min(128, level)) 
         success, _ = self._execute_headsetcontrol(['-s', str(level)])
         if not success:
             logger.error(f"Failed to set sidetone level to {level}.")
         return success
 
     def get_inactive_timeout(self) -> Optional[int]:
-        """Gets current inactive timeout. (Requires HID or not supported by headsetcontrol)"""
+        device_data = self._get_headset_device_json()
+        if device_data and "inactive_time" in device_data: 
+            timeout_val = device_data["inactive_time"]
+            if isinstance(timeout_val, int):
+                logger.info(f"Inactive timeout from CLI (-o json): {timeout_val} minutes")
+                return timeout_val
+            else:
+                logger.warning(f"Inactive timeout from JSON is not an int: {timeout_val}")
+        
         logger.debug("Placeholder: HID get_inactive_timeout() - requires specific report.")
         return None 
 
     def set_inactive_timeout(self, minutes: int) -> bool:
-        """Sets inactive timeout (0-90 minutes) via CLI."""
         logger.info(f"Setting inactive timeout to {minutes} minutes.")
-        minutes = max(0, min(90, minutes))
+        minutes = max(0, min(90, minutes)) 
         success, _ = self._execute_headsetcontrol(['-i', str(minutes)])
         if not success:
             logger.error(f"Failed to set inactive timeout to {minutes}.")
         return success
 
     def get_current_eq_values(self) -> Optional[List[int]]:
-        """Gets current 10-band EQ values via HID. (Requires HID implementation)"""
         if not self.is_device_connected(): return None 
         logger.debug("Placeholder: HID get_current_eq_values() - requires specific report.")
         return None
 
     def set_eq_values(self, values: List[int]) -> bool:
-        """Sets 10-band EQ values (each -10 to 10) via CLI."""
         logger.info(f"Setting EQ values to: {values}")
         if not (isinstance(values, list) and len(values) == 10):
             logger.error(f"Invalid EQ values provided: {values}")
@@ -279,13 +312,21 @@ class HeadsetService:
         return success
 
     def get_current_eq_preset_id(self) -> Optional[int]:
-        """Gets currently active hardware EQ preset ID (0-3) via HID. (Requires HID implementation)"""
+        device_data = self._get_headset_device_json()
+        if device_data and "equalizer" in device_data and isinstance(device_data["equalizer"], dict):
+            eq_info = device_data["equalizer"]
+            if "preset" in eq_info and isinstance(eq_info["preset"], int):
+                preset_id = eq_info["preset"]
+                logger.info(f"Current HW EQ Preset ID from CLI (-o json): {preset_id}")
+                return preset_id
+            else:
+                logger.warning(f"'preset' key missing or not int in eq_info (JSON): {eq_info}")
+
         if not self.is_device_connected(): return None 
         logger.debug("Placeholder: HID get_current_eq_preset_id() - requires specific report.")
         return None
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
-        """Sets hardware EQ preset ID (0-3) via CLI."""
         logger.info(f"Setting HW EQ preset to ID: {preset_id}")
         if not (0 <= preset_id <= 3): 
             logger.error(f"Invalid HW EQ preset ID: {preset_id}")
