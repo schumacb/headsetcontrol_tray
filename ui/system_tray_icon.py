@@ -1,4 +1,3 @@
-# steelseries_tray/ui/system_tray_icon.py
 import logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
@@ -134,7 +133,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.context_menu.clear()
         self.sidetone_action_group.clear()
         self.timeout_action_group.clear()
-        self.unified_eq_action_group.clear() # Use the new unified group
+        self.unified_eq_action_group.clear()
 
         self.battery_action = QAction("Battery: Unknown", self.context_menu)
         self.battery_action.setEnabled(False)

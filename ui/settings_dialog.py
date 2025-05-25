@@ -1,8 +1,7 @@
-# steelseries_tray/ui/settings_dialog.py
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QDialogButtonBox,
     QRadioButton, QLabel, QButtonGroup, QSizePolicy, QMessageBox, QSlider, QSpacerItem,
-    QGroupBox # Added QGroupBox
+    QGroupBox
 )
 from PySide6.QtCore import Signal, Qt
 import logging
@@ -30,7 +29,6 @@ class SettingsDialog(QDialog):
         self.setMinimumWidth(600)
 
         main_layout = QVBoxLayout(self)
-        # main_layout.setSpacing(15) # GroupBox provides spacing
 
         # --- ChatMix Display ---
         self.chatmix_label = QLabel("ChatMix: N/A")
@@ -42,7 +40,7 @@ class SettingsDialog(QDialog):
 
         # --- Sidetone Settings (Slider in GroupBox) ---
         sidetone_groupbox = QGroupBox("Sidetone Level")
-        sidetone_group_layout = QVBoxLayout(sidetone_groupbox) # Use QVBoxLayout for group
+        sidetone_group_layout = QVBoxLayout(sidetone_groupbox)
         
         sidetone_control_layout = QHBoxLayout()
         self.sidetone_slider = QSlider(Qt.Orientation.Horizontal)
@@ -64,7 +62,7 @@ class SettingsDialog(QDialog):
 
         # --- Inactive Timeout Settings (in GroupBox) ---
         timeout_groupbox = QGroupBox("Inactive Timeout")
-        timeout_group_layout = QHBoxLayout(timeout_groupbox) # Use QHBoxLayout for group
+        timeout_group_layout = QHBoxLayout(timeout_groupbox)
         
         self.timeout_button_group = QButtonGroup(self)
         for idx, (text, minutes) in enumerate(app_config.INACTIVE_TIMEOUT_OPTIONS.items()):
@@ -77,7 +75,7 @@ class SettingsDialog(QDialog):
 
         # --- Equalizer Editor (in GroupBox) ---
         eq_groupbox = QGroupBox("Equalizer")
-        eq_group_layout = QVBoxLayout(eq_groupbox) # Use QVBoxLayout for group
+        eq_group_layout = QVBoxLayout(eq_groupbox)
 
         self.equalizer_widget = EqualizerEditorWidget(self.config_manager, self.headset_service, self)
         self.equalizer_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)

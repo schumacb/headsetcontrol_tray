@@ -1,10 +1,12 @@
-# steelseries_tray/config_manager.py
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 from . import app_config
+
+logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 class ConfigManager:
     """Manages application settings and custom EQ curves persistence."""
@@ -24,7 +26,7 @@ class ConfigManager:
                 with open(file_path, 'r') as f:
                     return json.load(f)
             except json.JSONDecodeError:
-                # print(f"Warning: Could not decode JSON from {file_path}. Using empty config.")
+                logger.warning(f"Could not decode JSON from {file_path}. Using empty config.")
                 return {}
         return {}
 
@@ -33,7 +35,7 @@ class ConfigManager:
             with open(file_path, 'w') as f:
                 json.dump(data, f, indent=4)
         except IOError:
-            # print(f"Error: Could not write to {file_path}.")
+            logger.error(f"Could not write to {file_path}.")
             pass
 
 

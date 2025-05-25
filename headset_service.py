@@ -1,9 +1,8 @@
-# steelseries_tray/headset_service.py
 import subprocess
 import hid 
 import logging 
-import re # For parsing battery from -b output
-import json # For parsing -o json output
+import re
+import json
 from typing import Optional, List, Tuple, Dict, Any
 
 from . import app_config

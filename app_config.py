@@ -1,4 +1,3 @@
-# steelseries_tray/app_config.py
 import os
 from pathlib import Path
 

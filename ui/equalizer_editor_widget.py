@@ -1,4 +1,3 @@
-# steelseries_tray/ui/equalizer_editor_widget.py
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QSlider, QLabel, QPushButton,
     QComboBox, QMessageBox, QGridLayout, QInputDialog

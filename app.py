@@ -1,7 +1,6 @@
-# steelseries_tray/app.py
 import sys
 import logging
-import os # For environment variable
+import os
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 
