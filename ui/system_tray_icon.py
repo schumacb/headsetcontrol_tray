@@ -1,9 +1,9 @@
 # steelseries_tray/ui/system_tray_icon.py
-import logging # For logging
+import logging 
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QWidgetAction, QSlider, QLabel, QHBoxLayout, QWidget
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor
+from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor 
 from PySide6.QtCore import Qt, QTimer, Slot
 from typing import Optional, List 
 
@@ -14,61 +14,7 @@ from .equalizer_editor_dialog import EqualizerEditorDialog
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
-class SidetoneSliderAction(QWidgetAction):
-    """Custom QWidgetAction for a sidetone slider in the menu."""
-    def __init__(self, parent, headset_service: hs_svc.HeadsetService, config_manager: cfg_mgr.ConfigManager):
-        super().__init__(parent)
-        self.headset_service = headset_service
-        self.config_manager = config_manager
-        
-        self.widget = QWidget()
-        layout = QHBoxLayout(self.widget)
-        layout.setContentsMargins(5,2,5,2) 
-
-        self.label = QLabel("Sidetone:")
-        layout.addWidget(self.label)
-
-        self.slider = QSlider(Qt.Orientation.Horizontal)
-        self.slider.setRange(0, 128)
-        self.slider.setTickInterval(16)
-        self.slider.setMinimumWidth(100) 
-        
-        initial_sidetone = config_manager.get_last_sidetone_level()
-        live_sidetone = self.headset_service.get_sidetone_level() 
-        if live_sidetone is not None:
-            initial_sidetone = live_sidetone
-        else:
-            logger.debug("Could not get live sidetone for slider init, using stored.")
-        self.slider.setValue(initial_sidetone)
-        
-        self.slider.valueChanged.connect(self._slider_value_changed_live)
-        self.slider.sliderReleased.connect(self._slider_released) 
-        layout.addWidget(self.slider)
-
-        self.value_label = QLabel(str(initial_sidetone))
-        self.value_label.setMinimumWidth(25) 
-        layout.addWidget(self.value_label)
-        
-        self.widget.setLayout(layout)
-        self.setDefaultWidget(self.widget)
-
-    def _slider_value_changed_live(self, value):
-        self.value_label.setText(str(value))
-
-    def _slider_released(self):
-        value = self.slider.value()
-        logger.debug(f"Sidetone slider released, new value: {value}")
-        self.headset_service.set_sidetone_level(value)
-        self.config_manager.set_last_sidetone_level(value)
-        self.value_label.setText(str(value)) 
-
-    def update_slider_value(self, value: int):
-        logger.debug(f"Updating sidetone slider value to {value}")
-        self.slider.blockSignals(True)
-        self.slider.setValue(value)
-        self.value_label.setText(str(value))
-        self.slider.blockSignals(False)
-
+# SidetoneSliderAction class is no longer needed and will be removed.
 
 class SystemTrayIcon(QSystemTrayIcon):
     """Manages the system tray icon and its context menu."""
@@ -96,7 +42,8 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 
         self.context_menu = QMenu()
-        self._sidetone_action: Optional[SidetoneSliderAction] = None
+        # Removed: self._sidetone_action: Optional[SidetoneSliderAction] = None
+        self.sidetone_action_group: List[QAction] = [] # For checkable sidetone actions
         self._populate_context_menu()
         self.setContextMenu(self.context_menu)
 
@@ -131,7 +78,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 self.setIcon(self._create_battery_icon(self.battery_level))
             else:
                 tooltip_parts.append("Battery: N/A (HID connected, battery not read)")
-                self.setIcon(self._create_battery_icon(None)) # Show '?' if connected but no battery
+                self.setIcon(self._create_battery_icon(None)) 
             
             if self.active_eq_type == "custom":
                 tooltip_parts.append(f"EQ: {self.current_custom_eq}")
@@ -150,20 +97,38 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _populate_context_menu(self):
         logger.debug("Populating context menu.")
         self.context_menu.clear()
+        self.sidetone_action_group.clear() # Clear previous sidetone actions
 
+        # Battery Level
         self.battery_action = QAction("Battery: Unknown", self.context_menu)
         self.battery_action.setEnabled(False) 
         self.context_menu.addAction(self.battery_action)
+        
+
+        # Sidetone Submenu
+        sidetone_menu = self.context_menu.addMenu("Sidetone")
+        current_sidetone = self.config_manager.get_last_sidetone_level()
+        
+        # Ensure SIDETONE_OPTIONS are iterated in a sensible order, e.g., by value
+        sorted_sidetone_options = sorted(app_config.SIDETONE_OPTIONS.items(), key=lambda item: item[1])
+
+        for text, level in sorted_sidetone_options:
+            action = QAction(text, sidetone_menu, checkable=True)
+            action.setData(level) # Store the level in the action's data
+            action.setChecked(level == current_sidetone)
+            action.triggered.connect(lambda checked, l=level: self._set_sidetone_from_menu(l))
+            sidetone_menu.addAction(action)
+            self.sidetone_action_group.append(action)
         self.context_menu.addSeparator()
 
-        self._sidetone_action = SidetoneSliderAction(self.context_menu, self.headset_service, self.config_manager)
-        self.context_menu.addAction(self._sidetone_action)
 
+        # Inactive Timeout
         timeout_menu = self.context_menu.addMenu("Inactive Timeout")
-        self.timeout_action_group = [] 
+        self.timeout_action_group: List[QAction] = [] # Ensure it's defined before use
         current_timeout = self.config_manager.get_last_inactive_timeout()
         for text, minutes in app_config.INACTIVE_TIMEOUT_OPTIONS.items():
             action = QAction(text, timeout_menu, checkable=True)
+            action.setData(minutes) # Store minutes in action's data
             action.setChecked(minutes == current_timeout)
             action.triggered.connect(lambda checked, m=minutes: self._set_inactive_timeout(m))
             timeout_menu.addAction(action)
@@ -171,25 +136,28 @@ class SystemTrayIcon(QSystemTrayIcon):
         
         self.context_menu.addSeparator()
 
+        # Equalizer Presets (Hardware)
         hw_eq_menu = self.context_menu.addMenu("Equalizer Presets (Hardware)")
-        self.hw_eq_action_group = []
+        self.hw_eq_action_group: List[QAction] = []
         current_hw_preset_id = self.config_manager.get_last_active_eq_preset_id()
         active_is_hw = self.active_eq_type == "hardware" 
 
         for preset_id, name in app_config.HARDWARE_EQ_PRESET_NAMES.items():
             action = QAction(name, hw_eq_menu, checkable=True)
+            action.setData(preset_id) # Store preset_id in action's data
             action.setChecked(active_is_hw and preset_id == current_hw_preset_id)
             action.triggered.connect(lambda checked, p_id=preset_id: self._apply_hw_eq_preset(p_id))
             hw_eq_menu.addAction(action)
             self.hw_eq_action_group.append(action)
 
+        # Tone Curves (Custom EQ)
         custom_eq_menu = self.context_menu.addMenu("Tone Curves (Custom EQ)")
-        self.custom_eq_action_group = []
+        self.custom_eq_action_group: List[QAction] = []
         all_custom_curves = self.config_manager.get_all_custom_eq_curves()
         current_custom_curve_name = self.config_manager.get_last_custom_eq_curve_name()
         active_is_custom = self.active_eq_type == "custom"
 
-        sorted_custom_names = sorted(all_custom_curves.keys())
+        sorted_custom_names = sorted(all_custom_curves.keys(), key=lambda x: (x not in app_config.DEFAULT_EQ_CURVES, x.lower()))
         for name in sorted_custom_names:
             action = QAction(name, custom_eq_menu, checkable=True)
             action.setChecked(active_is_custom and name == current_custom_curve_name)
@@ -199,16 +167,19 @@ class SystemTrayIcon(QSystemTrayIcon):
         
         self.context_menu.addSeparator()
 
+        # Open Equalizer Editor
         open_editor_action = QAction("Open Equalizer Editor...", self.context_menu)
         open_editor_action.triggered.connect(self._open_eq_editor)
         self.context_menu.addAction(open_editor_action)
 
         self.context_menu.addSeparator()
 
+        # Refresh
         refresh_action = QAction("Refresh Status", self.context_menu)
         refresh_action.triggered.connect(self.refresh_status)
         self.context_menu.addAction(refresh_action)
 
+        # Exit
         exit_action = QAction("Exit", self.context_menu)
         exit_action.triggered.connect(self.application_quit_fn)
         self.context_menu.addAction(exit_action)
@@ -218,27 +189,24 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _update_menu_checks(self):
         logger.debug("Updating menu checks.")
+        
+        # Update Sidetone checks
+        current_sidetone = self.config_manager.get_last_sidetone_level()
+        for action in self.sidetone_action_group:
+            action.setChecked(action.data() == current_sidetone)
+
+        # Update Inactive Timeout checks
         current_timeout = self.config_manager.get_last_inactive_timeout()
         for action in self.timeout_action_group:
-            action_minutes = None
-            for text, minutes_val in app_config.INACTIVE_TIMEOUT_OPTIONS.items():
-                if text == action.text():
-                    action_minutes = minutes_val
-                    break
-            if action_minutes is not None:
-                 action.setChecked(action_minutes == current_timeout)
+            action.setChecked(action.data() == current_timeout)
 
+        # Update HW EQ Preset checks
         current_hw_preset_id = self.config_manager.get_last_active_eq_preset_id()
         active_is_hw = self.active_eq_type == "hardware"
         for action in self.hw_eq_action_group:
-            action_preset_id = None
-            for pid, name_val in app_config.HARDWARE_EQ_PRESET_NAMES.items(): 
-                if name_val == action.text():
-                    action_preset_id = pid
-                    break
-            if action_preset_id is not None:
-                 action.setChecked(active_is_hw and action_preset_id == current_hw_preset_id)
+            action.setChecked(active_is_hw and action.data() == current_hw_preset_id)
 
+        # Update Custom EQ Curve checks
         current_custom_curve_name = self.config_manager.get_last_custom_eq_curve_name()
         active_is_custom = self.active_eq_type == "custom"
         for action in self.custom_eq_action_group:
@@ -264,15 +232,25 @@ class SystemTrayIcon(QSystemTrayIcon):
             logger.warning("SystemTray: Battery level is N/A after get_battery_level call.")
             if self.battery_action: self.battery_action.setText("Battery: N/A")
 
-        live_sidetone = self.headset_service.get_sidetone_level()
-        if live_sidetone is not None and self._sidetone_action:
-            logger.debug(f"SystemTray: Live sidetone {live_sidetone} obtained, updating slider.")
-            self._sidetone_action.update_slider_value(live_sidetone)
-            self.config_manager.set_last_sidetone_level(live_sidetone) 
+        # If HID get_sidetone_level were implemented, we could update from actual device state:
+        # live_sidetone = self.headset_service.get_sidetone_level()
+        # if live_sidetone is not None:
+        #     logger.debug(f"SystemTray: Live sidetone {live_sidetone} obtained.")
+        #     if live_sidetone != self.config_manager.get_last_sidetone_level():
+        #         self.config_manager.set_last_sidetone_level(live_sidetone)
         
         self._update_tooltip_and_icon()
-        self._update_menu_checks()
+        self._update_menu_checks() # This will update sidetone check based on config_manager
         logger.info("SystemTray: Refresh status complete.")
+
+    def _set_sidetone_from_menu(self, level: int):
+        logger.info(f"Setting sidetone to {level} via menu.")
+        if self.headset_service.set_sidetone_level(level):
+            self.config_manager.set_last_sidetone_level(level)
+            self.showMessage("Success", f"Sidetone set to {level}.", QSystemTrayIcon.MessageIcon.Information, 1500)
+        else:
+            self.showMessage("Error", "Failed to set sidetone.", QSystemTrayIcon.MessageIcon.Warning, 1500)
+        self._update_menu_checks() # Update checks for all sidetone actions
 
 
     def _set_inactive_timeout(self, minutes: int):
@@ -291,7 +269,8 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.active_eq_type = "hardware" 
             self.current_hw_eq_preset = preset_id
             self.config_manager.set_setting("active_eq_type", "hardware") 
-            self.showMessage("Success", f"Hardware EQ Preset {preset_id} applied.", QSystemTrayIcon.MessageIcon.Information, 1500)
+            preset_display_name = app_config.HARDWARE_EQ_PRESET_NAMES.get(preset_id, f"Preset {preset_id}")
+            self.showMessage("Success", f"Hardware EQ Preset '{preset_display_name}' applied.", QSystemTrayIcon.MessageIcon.Information, 1500)
         else:
             self.showMessage("Error", "Failed to apply hardware EQ preset.", QSystemTrayIcon.MessageIcon.Warning, 1500)
         self._update_menu_checks()
@@ -327,12 +306,21 @@ class SystemTrayIcon(QSystemTrayIcon):
             
     @Slot(str)
     def _handle_eq_editor_apply_custom(self, curve_name: str):
-        logger.info(f"EQ editor applied custom curve: '{curve_name}'")
-        self.current_custom_eq = curve_name
-        self.active_eq_type = "custom"
+        """Handles when an EQ is applied from the editor (either selection or slider change)."""
+        logger.info(f"SystemTray received eq_applied: '{curve_name}'")
+        self.current_custom_eq = curve_name 
+        
+        # Ensure app state reflects that a custom EQ is now primary
+        if self.active_eq_type != "custom" or self.config_manager.get_last_custom_eq_curve_name() != curve_name:
+             self.active_eq_type = "custom"
+             # The editor itself should be responsible for setting the 'last_custom_eq_curve_name'
+             # and 'active_eq_type' in config_manager when a curve is applied or saved.
+             # This handler primarily updates the tray's UI.
+             # self.config_manager.set_last_custom_eq_curve_name(curve_name)
+             # self.config_manager.set_setting("active_eq_type", "custom")
+
         self._update_menu_checks()
         self._update_tooltip_and_icon()
-        self._populate_context_menu() 
 
 
     def _on_eq_editor_closed(self, result):
@@ -343,7 +331,7 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _on_activated(self, reason):
         logger.debug(f"Tray icon activated, reason: {reason}")
         if reason == QSystemTrayIcon.ActivationReason.Trigger: 
-            self.context_menu.popup(self.geometry().center())
+            self.context_menu.popup(QCursor.pos()) 
         elif reason == QSystemTrayIcon.ActivationReason.Context: 
             pass
 
@@ -358,18 +346,17 @@ class SystemTrayIcon(QSystemTrayIcon):
         sidetone = self.config_manager.get_last_sidetone_level()
         logger.debug(f"Setting initial sidetone: {sidetone}")
         self.headset_service.set_sidetone_level(sidetone)
-        if self._sidetone_action:
-             self._sidetone_action.update_slider_value(sidetone)
+        # Sidetone UI check will be updated via _update_menu_checks in refresh_status
 
 
         timeout = self.config_manager.get_last_inactive_timeout()
         logger.debug(f"Setting initial inactive timeout: {timeout}")
         self.headset_service.set_inactive_timeout(timeout)
 
-        active_eq_type = self.config_manager.get_active_eq_type()
-        self.active_eq_type = active_eq_type 
-        logger.debug(f"Setting initial EQ. Type: {active_eq_type}")
-        if active_eq_type == "custom":
+        persisted_active_eq_type = self.config_manager.get_active_eq_type()
+        self.active_eq_type = persisted_active_eq_type 
+        logger.debug(f"Setting initial EQ. Type: {persisted_active_eq_type}")
+        if persisted_active_eq_type == "custom":
             curve_name = self.config_manager.get_last_custom_eq_curve_name()
             self.current_custom_eq = curve_name 
             logger.debug(f"  Custom curve name: '{curve_name}'")
@@ -381,10 +368,12 @@ class SystemTrayIcon(QSystemTrayIcon):
                 flat_values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0]*10)
                 self.headset_service.set_eq_values(flat_values)
                 self.config_manager.set_last_custom_eq_curve_name("Flat")
+                self.config_manager.set_setting("active_eq_type", "custom") 
                 self.current_custom_eq = "Flat"
+                self.active_eq_type = "custom"
 
 
-        elif active_eq_type == "hardware":
+        elif persisted_active_eq_type == "hardware":
             preset_id = self.config_manager.get_last_active_eq_preset_id()
             self.current_hw_eq_preset = preset_id 
             logger.debug(f"  Hardware preset ID: {preset_id}")
