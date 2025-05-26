@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # Application Details
-APP_NAME = "SteelSeriesHeadsetTray"
+APP_NAME = "SteelSeries Arctis Nova 7"
 ORGANIZATION_NAME = "YourOrganization" # Optional: For QSettings
 
 # Headset USB Identifiers
