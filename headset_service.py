@@ -192,11 +192,11 @@ class HeadsetService:
     def is_device_connected(self) -> bool:
         is_conn = self._ensure_hid_connection()
         if is_conn:
-            success, _ = self._execute_headsetcontrol(['-v']) # Changed from -V to -v
+            success, _ = self._execute_headsetcontrol(['--connected']) 
             if not success:
-                 logger.warning("HID connected, but headsetcontrol -v failed. Device might not be fully responsive.")
+                 logger.warning("HID connected, but headsetcontrol --connected failed. Device might not be fully responsive.")
             else:
-                logger.debug("is_device_connected: HID connected and headsetcontrol -v successful.")
+                logger.debug("is_device_connected: HID connected and headsetcontrol --connected successful.")
 
         logger.debug(f"is_device_connected returning: {is_conn}")
         return is_conn
