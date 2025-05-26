@@ -1,7 +1,7 @@
 # chatmix_manager.py
 import subprocess
 import json
-import logging
+import logging # Standard logging
 from typing import List, Dict, Optional, Tuple, Any
 
 # Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
@@ -148,7 +148,7 @@ class ChatMixManager:
         # However, just setting channelVolumes is usually supported for sink-inputs.
         json_payload_str = json.dumps({"channelVolumes": channel_volumes_payload})
 
-        logger.info(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {json_payload_str}")
+        logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {json_payload_str}")
         
         # Command: pw-cli set-param <object-id> <param-name> <param-json>
         success_str = self._run_pipewire_command(['pw-cli', 'set-param', str(stream_id), 'Props', json_payload_str])

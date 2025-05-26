@@ -1,5 +1,11 @@
 import sys
 import signal
+import logging
+import verboselogs
+
+# Install verboselogs custom levels into the standard logging module
+# This MUST be done before other application modules (that use logging) are imported.
+verboselogs.install()
 
 from .app import SteelSeriesTrayApp
 

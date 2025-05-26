@@ -1,6 +1,6 @@
 import subprocess
 import hid 
-import logging 
+import logging
 import re
 import json
 from typing import Optional, List, Tuple, Dict, Any
@@ -192,11 +192,11 @@ class HeadsetService:
     def is_device_connected(self) -> bool:
         is_conn = self._ensure_hid_connection()
         if is_conn:
-            success, _ = self._execute_headsetcontrol(['-V']) 
+            success, _ = self._execute_headsetcontrol(['-v']) # Changed from -V to -v
             if not success:
-                 logger.warning("HID connected, but headsetcontrol -V failed. Device might not be fully responsive.")
+                 logger.warning("HID connected, but headsetcontrol -v failed. Device might not be fully responsive.")
             else:
-                logger.debug("is_device_connected: HID connected and headsetcontrol -V successful.")
+                logger.debug("is_device_connected: HID connected and headsetcontrol -v successful.")
 
         logger.debug(f"is_device_connected returning: {is_conn}")
         return is_conn
@@ -212,10 +212,10 @@ class HeadsetService:
             match = re.search(r"Level:\s*(\d+)%", output_b)
             if match:
                 level = int(match.group(1))
-                logger.info(f"Battery level from CLI (-b, regex parse): {level}%")
+                logger.verbose(f"Battery level from CLI (-b, regex parse): {level}%")
                 return level
             elif output_b.isdigit(): 
-                logger.info(f"Battery level from CLI (-b, direct parse): {output_b}%")
+                logger.verbose(f"Battery level from CLI (-b, direct parse): {output_b}%")
                 return int(output_b)
             else:
                 logger.warning(f"Could not parse battery level from 'headsetcontrol -b' output: {output_b}")
@@ -225,7 +225,7 @@ class HeadsetService:
             battery_info = device_data["battery"]
             if "level" in battery_info and isinstance(battery_info["level"], int):
                 level = battery_info["level"]
-                logger.info(f"Battery level from CLI (-o json): {level}%")
+                logger.verbose(f"Battery level from CLI (-o json): {level}%")
                 return level
             else:
                 logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
@@ -241,7 +241,7 @@ class HeadsetService:
             chatmix_val = device_data["chatmix"]
             if isinstance(chatmix_val, (int, float)): 
                 chatmix_int = int(chatmix_val)
-                logger.info(f"ChatMix value from CLI (-o json): {chatmix_int}")
+                logger.verbose(f"ChatMix value from CLI (-o json): {chatmix_int}")
                 return chatmix_int
             else:
                 logger.warning(f"'chatmix' value is not a number in device_data (JSON): {chatmix_val}")
@@ -256,7 +256,7 @@ class HeadsetService:
         if device_data and "sidetone" in device_data: # Assuming 'sidetone' key exists at device level in JSON
             sidetone_val = device_data["sidetone"]
             if isinstance(sidetone_val, int):
-                logger.info(f"Sidetone level from CLI (-o json): {sidetone_val}")
+                logger.verbose(f"Sidetone level from CLI (-o json): {sidetone_val}")
                 return sidetone_val
             else:
                 logger.warning(f"Sidetone value from JSON is not an int: {sidetone_val}")
@@ -278,7 +278,7 @@ class HeadsetService:
         if device_data and "inactive_time" in device_data: 
             timeout_val = device_data["inactive_time"]
             if isinstance(timeout_val, int):
-                logger.info(f"Inactive timeout from CLI (-o json): {timeout_val} minutes")
+                logger.verbose(f"Inactive timeout from CLI (-o json): {timeout_val} minutes")
                 return timeout_val
             else:
                 logger.warning(f"Inactive timeout from JSON is not an int: {timeout_val}")
@@ -316,7 +316,7 @@ class HeadsetService:
             eq_info = device_data["equalizer"]
             if "preset" in eq_info and isinstance(eq_info["preset"], int):
                 preset_id = eq_info["preset"]
-                logger.info(f"Current HW EQ Preset ID from CLI (-o json): {preset_id}")
+                logger.verbose(f"Current HW EQ Preset ID from CLI (-o json): {preset_id}")
                 return preset_id
             else:
                 logger.warning(f"'preset' key missing or not int in eq_info (JSON): {eq_info}")

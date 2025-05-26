@@ -104,13 +104,16 @@ class SystemTrayIcon(QSystemTrayIcon):
         tooltip_parts = []
         is_connected = self.headset_service.is_device_connected()
 
+        current_icon = self.icon()
+        new_icon = None
+
         if is_connected:
             if self.battery_level is not None:
                 tooltip_parts.append(f"Battery: {self.battery_level}%")
-                self.setIcon(self._create_battery_icon(self.battery_level))
+                new_icon = self._create_battery_icon(self.battery_level)
             else:
                 tooltip_parts.append("Battery: N/A")
-                self.setIcon(self._create_battery_icon(None))
+                new_icon = self._create_battery_icon(None)
 
             chatmix_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             tooltip_parts.append(f"ChatMix: {chatmix_str}")
@@ -124,10 +127,14 @@ class SystemTrayIcon(QSystemTrayIcon):
                 tooltip_parts.append("EQ: Unknown")
         else:
             tooltip_parts.append("Headset disconnected")
-            self.setIcon(self._create_battery_icon(None))
+            new_icon = self._create_battery_icon(None)
 
+        if new_icon and (current_icon.cacheKey() != new_icon.cacheKey()):
+            self.setIcon(new_icon)
+        
         final_tooltip = "\n".join(tooltip_parts)
-        self.setToolTip(final_tooltip)
+        if self.toolTip() != final_tooltip:
+            self.setToolTip(final_tooltip)
         logger.debug(f"Tooltip set to: \"{final_tooltip.replace('\n', ' | ')}\"")
 
 
@@ -238,24 +245,32 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     @Slot()
     def refresh_status(self):
-        logger.info("SystemTray: Refreshing status...")
+        logger.debug("SystemTray: Refreshing status...")
         is_connected = self.headset_service.is_device_connected()
+
+        new_battery_text = ""
+        new_chatmix_text = ""
 
         if not is_connected:
             logger.warning("SystemTray: Device not connected during refresh.")
-            self.battery_level = None; self.chatmix_value = None
-            if self.battery_action: self.battery_action.setText("Battery: Disconnected")
-            if self.chatmix_action: self.chatmix_action.setText("ChatMix: Disconnected")
+            self.battery_level = None
+            self.chatmix_value = None
+            new_battery_text = "Battery: Disconnected"
+            new_chatmix_text = "ChatMix: Disconnected"
         else:
-            if self.battery_action: self.battery_action.setText("Battery: Updating...")
             self.battery_level = self.headset_service.get_battery_level()
-            if self.battery_action: self.battery_action.setText(f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A")
+            new_battery_text = f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A"
 
-            if self.chatmix_action: self.chatmix_action.setText("ChatMix: Updating...")
             self.chatmix_value = self.headset_service.get_chatmix_value()
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
-            if self.chatmix_action: self.chatmix_action.setText(f"ChatMix: {chatmix_display_str}")
+            new_chatmix_text = f"ChatMix: {chatmix_display_str}"
         
+        if self.battery_action and self.battery_action.text() != new_battery_text:
+            self.battery_action.setText(new_battery_text)
+        
+        if self.chatmix_action and self.chatmix_action.text() != new_chatmix_text:
+            self.chatmix_action.setText(new_chatmix_text)
+
         # Update PipeWire volumes based on ChatMix
         if self.chatmix_value is not None and is_connected: # Only update if connected and value is valid
             try:
@@ -271,15 +286,14 @@ class SystemTrayIcon(QSystemTrayIcon):
             hw_id = self.config_manager.get_last_active_eq_preset_id()
             self.current_hw_preset_name_for_tooltip = app_config.HARDWARE_EQ_PRESET_NAMES.get(hw_id, f"Preset {hw_id}")
 
-        self._update_menu_checks() # Update menu checks based on config
-        self._update_tooltip_and_icon() # Update tooltip based on internal state
+        self._update_menu_checks() 
+        self._update_tooltip_and_icon() 
         
         if self.settings_dialog and self.settings_dialog.isVisible():
             self.settings_dialog.refresh_chatmix_display()
-            # Crucially, refresh the EQ editor if the dialog is open, as tray actions might change EQ
             self.settings_dialog.equalizer_widget.refresh_view()
 
-        logger.info("SystemTray: Refresh status complete.")
+        logger.debug("SystemTray: Refresh status complete.")
 
     def _set_sidetone_from_menu(self, level: int):
         logger.info(f"Setting sidetone to {level} via menu.")
