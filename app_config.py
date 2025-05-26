@@ -83,7 +83,8 @@ HARDWARE_EQ_PRESET_NAMES = {
 # HID_CMD_GET_EQ = [0xEE, 0x00] # Example
 # HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
 
-# Update interval for tray data (milliseconds)
-REFRESH_INTERVAL_MS = 100
+# REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
+# Kept for potential other uses or if a fixed interval is ever needed again.
+REFRESH_INTERVAL_MS = 1000 
 
 DEFAULT_CHAT_APP_IDENTIFIERS = ["Discord"]

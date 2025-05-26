@@ -1,4 +1,4 @@
-import logging
+import logging # Standard logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
 )
@@ -20,6 +20,10 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 class SystemTrayIcon(QSystemTrayIcon):
     """Manages the system tray icon and its context menu."""
 
+    NORMAL_REFRESH_INTERVAL_MS = 1000
+    FAST_REFRESH_INTERVAL_MS = 100
+    FAST_POLL_NO_CHANGE_THRESHOLD = 3 # Number of fast polls with no change before reverting to normal
+
     def __init__(self, headset_service: hs_svc.HeadsetService,
                  config_manager: cfg_mgr.ConfigManager,
                  application_quit_fn, parent=None):
@@ -29,21 +33,26 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.config_manager = config_manager
         self.application_quit_fn = application_quit_fn
 
-         # Initialize ChatMixManager
         self.chatmix_manager = ChatMixManager(self.config_manager)
-
         self.settings_dialog: Optional[SettingsDialog] = None
 
         self._base_icon = QIcon.fromTheme("audio-headset", QIcon.fromTheme("multimedia-audio-player"))
         self.setIcon(self._base_icon)
         self.activated.connect(self._on_activated)
 
-        # These will be updated by refresh_status from config_manager
+        # State for adaptive polling and change detection
+        self.fast_poll_active = False
+        self.fast_poll_no_change_counter = 0
+        self.is_tray_view_connected = False # Tracks connection state as last seen by the tray
+        self.last_known_battery_level: Optional[int] = None
+        self.last_known_chatmix_value: Optional[int] = None
+        
+        # Variables to store current fetched values for tooltip/menu (updated in refresh_status)
         self.battery_level: Optional[int] = None
         self.chatmix_value: Optional[int] = None
-        self.current_custom_eq_name_for_tooltip: Optional[str] = None # Specific for tooltip
-        self.current_hw_preset_name_for_tooltip: Optional[str] = None # Specific for tooltip
-        self.active_eq_type_for_tooltip: Optional[str] = None # Specific for tooltip
+        self.current_custom_eq_name_for_tooltip: Optional[str] = None
+        self.current_hw_preset_name_for_tooltip: Optional[str] = None
+        self.active_eq_type_for_tooltip: Optional[str] = None
 
 
         self.context_menu = QMenu()
@@ -51,19 +60,19 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.chatmix_action: Optional[QAction] = None
         self.sidetone_action_group: List[QAction] = []
         self.timeout_action_group: List[QAction] = []
-        # The EQ action groups will now refer to items in the unified combo
         self.unified_eq_action_group: List[QAction] = []
 
 
-        self._populate_context_menu() # Initial population
+        self._populate_context_menu()
         self.setContextMenu(self.context_menu)
 
         self.refresh_timer = QTimer(self)
         self.refresh_timer.timeout.connect(self.refresh_status)
-        self.refresh_timer.start(app_config.REFRESH_INTERVAL_MS)
-        logger.info(f"Refresh timer started with interval {app_config.REFRESH_INTERVAL_MS}ms.")
+        self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS) # Start with normal interval
+        self.refresh_timer.start()
+        logger.info(f"Refresh timer started with initial interval {self.NORMAL_REFRESH_INTERVAL_MS}ms.")
 
-        self.refresh_status() # Initial full refresh
+        self.refresh_status()
 
 
     def _create_battery_icon(self, level: Optional[int]) -> QIcon:
@@ -102,12 +111,11 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _update_tooltip_and_icon(self):
         tooltip_parts = []
-        is_connected = self.headset_service.is_device_connected()
-
-        current_icon = self.icon()
+        # Use self.is_tray_view_connected which is updated reliably in refresh_status
+        current_icon = self.icon() 
         new_icon = None
 
-        if is_connected:
+        if self.is_tray_view_connected:
             if self.battery_level is not None:
                 tooltip_parts.append(f"Battery: {self.battery_level}%")
                 new_icon = self._create_battery_icon(self.battery_level)
@@ -118,7 +126,6 @@ class SystemTrayIcon(QSystemTrayIcon):
             chatmix_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             tooltip_parts.append(f"ChatMix: {chatmix_str}")
 
-            # Use the tooltip-specific state variables updated by refresh_status
             if self.active_eq_type_for_tooltip == EQ_TYPE_CUSTOM:
                 tooltip_parts.append(f"EQ: {self.current_custom_eq_name_for_tooltip}")
             elif self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
@@ -135,7 +142,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         final_tooltip = "\n".join(tooltip_parts)
         if self.toolTip() != final_tooltip:
             self.setToolTip(final_tooltip)
-        logger.debug(f"Tooltip set to: \"{final_tooltip.replace('\n', ' | ')}\"")
+        # logger.debug(f"Tooltip set to: \"{final_tooltip.replace('\n', ' | ')}\"") # Can be noisy
 
 
     def _populate_context_menu(self):
@@ -155,11 +162,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.context_menu.addSeparator()
 
         sidetone_menu = self.context_menu.addMenu("Sidetone")
-        # Sidetone options (from app_config.SIDETONE_OPTIONS) are still relevant for the menu
         current_sidetone_val_from_config = self.config_manager.get_last_sidetone_level()
         for text, level in sorted(app_config.SIDETONE_OPTIONS.items(), key=lambda item: item[1]):
             action = QAction(text, sidetone_menu, checkable=True)
-            action.setData(level) # Store level
+            action.setData(level) 
             action.setChecked(level == current_sidetone_val_from_config)
             action.triggered.connect(lambda checked, l=level: self._set_sidetone_from_menu(l))
             sidetone_menu.addAction(action)
@@ -176,20 +182,16 @@ class SystemTrayIcon(QSystemTrayIcon):
             timeout_menu.addAction(action)
             self.timeout_action_group.append(action)
 
-        # Unified Equalizer Menu
         eq_menu = self.context_menu.addMenu("Equalizer")
-        
-        # Get current active EQ from config manager to determine checks
         active_eq_type = self.config_manager.get_active_eq_type()
         active_custom_name = self.config_manager.get_last_custom_eq_curve_name()
         active_hw_id = self.config_manager.get_last_active_eq_preset_id()
 
-        # Add Custom EQ Curves
         custom_curves = self.config_manager.get_all_custom_eq_curves()
         sorted_custom_names = sorted(custom_curves.keys(), key=lambda x: (x not in app_config.DEFAULT_EQ_CURVES, x.lower()))
         for name in sorted_custom_names:
             action = QAction(name, eq_menu, checkable=True)
-            action.setData((EQ_TYPE_CUSTOM, name)) # Store type and name
+            action.setData((EQ_TYPE_CUSTOM, name)) 
             action.setChecked(active_eq_type == EQ_TYPE_CUSTOM and name == active_custom_name)
             action.triggered.connect(lambda checked, data=(EQ_TYPE_CUSTOM, name): self._apply_eq_from_menu(data))
             eq_menu.addAction(action)
@@ -198,11 +200,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         if custom_curves and app_config.HARDWARE_EQ_PRESET_NAMES:
             eq_menu.addSeparator()
 
-        # Add Hardware Presets
         for preset_id, name in app_config.HARDWARE_EQ_PRESET_NAMES.items():
             display_name = HW_PRESET_DISPLAY_PREFIX + name
             action = QAction(display_name, eq_menu, checkable=True)
-            action.setData((EQ_TYPE_HARDWARE, preset_id)) # Store type and ID
+            action.setData((EQ_TYPE_HARDWARE, preset_id)) 
             action.setChecked(active_eq_type == EQ_TYPE_HARDWARE and preset_id == active_hw_id)
             action.triggered.connect(lambda checked, data=(EQ_TYPE_HARDWARE, preset_id): self._apply_eq_from_menu(data))
             eq_menu.addAction(action)
@@ -214,12 +215,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.context_menu.addAction(open_settings_action)
         self.context_menu.addSeparator()
         refresh_action = QAction("Refresh Status", self.context_menu)
-        refresh_action.triggered.connect(self.refresh_status)
+        refresh_action.triggered.connect(self.refresh_status) # Manual refresh
         self.context_menu.addAction(refresh_action)
         exit_action = QAction("Exit", self.context_menu)
         exit_action.triggered.connect(self.application_quit_fn)
         self.context_menu.addAction(exit_action)
-        # No need to call _update_menu_checks here, refresh_status does it.
 
     def _update_menu_checks(self):
         logger.debug("Updating menu checks based on ConfigManager.")
@@ -245,40 +245,55 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     @Slot()
     def refresh_status(self):
-        logger.debug("SystemTray: Refreshing status...")
-        is_connected = self.headset_service.is_device_connected()
+        logger.debug(f"SystemTray: Refreshing status (Interval: {self.refresh_timer.interval()}ms)...")
+
+        # Store previous known state for change detection
+        prev_battery = self.last_known_battery_level
+        prev_chatmix = self.last_known_chatmix_value
+        prev_connection_state = self.is_tray_view_connected
+
+        current_is_connected = self.headset_service.is_device_connected()
+        self.is_tray_view_connected = current_is_connected # Update tray's view of connection
 
         new_battery_text = ""
         new_chatmix_text = ""
+        data_changed_while_connected = False
 
-        if not is_connected:
-            logger.warning("SystemTray: Device not connected during refresh.")
+        if not current_is_connected:
+            if prev_connection_state: # Was connected, now isn't
+                logger.info("SystemTray: Headset disconnected.")
             self.battery_level = None
             self.chatmix_value = None
             new_battery_text = "Battery: Disconnected"
             new_chatmix_text = "ChatMix: Disconnected"
-        else:
+        else: # Is connected
+            if not prev_connection_state: # Was disconnected, now is
+                logger.info("SystemTray: Headset connected.")
+            
             self.battery_level = self.headset_service.get_battery_level()
-            new_battery_text = f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A"
-
             self.chatmix_value = self.headset_service.get_chatmix_value()
+
+            new_battery_text = f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A"
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             new_chatmix_text = f"ChatMix: {chatmix_display_str}"
+
+            if self.battery_level != prev_battery: data_changed_while_connected = True
+            if self.chatmix_value != prev_chatmix: data_changed_while_connected = True
         
+        # Update menu item texts if they changed
         if self.battery_action and self.battery_action.text() != new_battery_text:
             self.battery_action.setText(new_battery_text)
-        
         if self.chatmix_action and self.chatmix_action.text() != new_chatmix_text:
             self.chatmix_action.setText(new_chatmix_text)
 
-        # Update PipeWire volumes based on ChatMix
-        if self.chatmix_value is not None and is_connected: # Only update if connected and value is valid
+        # Update PipeWire volumes if connected and chatmix is valid
+        if current_is_connected and self.chatmix_value is not None:
             try:
                 self.chatmix_manager.update_volumes(self.chatmix_value)
             except Exception as e:
                 logger.error(f"Error during chatmix_manager.update_volumes: {e}", exc_info=True)
 
-        # Update tooltip-specific state from ConfigManager
+        # Update tooltip state from ConfigManager (EQ settings)
         self.active_eq_type_for_tooltip = self.config_manager.get_active_eq_type()
         if self.active_eq_type_for_tooltip == EQ_TYPE_CUSTOM:
             self.current_custom_eq_name_for_tooltip = self.config_manager.get_last_custom_eq_curve_name()
@@ -293,31 +308,67 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.settings_dialog.refresh_chatmix_display()
             self.settings_dialog.equalizer_widget.refresh_view()
 
+        # Update last known state for next cycle's change detection
+        self.last_known_battery_level = self.battery_level
+        self.last_known_chatmix_value = self.chatmix_value
+
+        # Adaptive timer logic
+        connection_state_changed = (current_is_connected != prev_connection_state)
+        
+        if not current_is_connected:
+            if self.refresh_timer.interval() != self.NORMAL_REFRESH_INTERVAL_MS:
+                self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
+                logger.debug(f"Device disconnected. Switched to normal refresh interval ({self.NORMAL_REFRESH_INTERVAL_MS}ms).")
+            self.fast_poll_active = False
+            self.fast_poll_no_change_counter = 0
+        elif self.fast_poll_active: # Connected and was on fast poll
+            if not data_changed_while_connected:
+                self.fast_poll_no_change_counter += 1
+                if self.fast_poll_no_change_counter >= self.FAST_POLL_NO_CHANGE_THRESHOLD:
+                    self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
+                    self.fast_poll_active = False
+                    self.fast_poll_no_change_counter = 0
+                    logger.debug(f"No change threshold reached on fast poll. Switched to normal interval ({self.NORMAL_REFRESH_INTERVAL_MS}ms).")
+            else: # Data changed on fast poll
+                self.fast_poll_no_change_counter = 0 # Reset counter, stay fast
+        else: # Connected and was on normal poll
+            if data_changed_while_connected or connection_state_changed : # Switch to fast if data changed or just reconnected
+                self.refresh_timer.setInterval(self.FAST_REFRESH_INTERVAL_MS)
+                self.fast_poll_active = True
+                self.fast_poll_no_change_counter = 0
+                logger.debug(f"State change detected. Switched to fast refresh interval ({self.FAST_REFRESH_INTERVAL_MS}ms).")
+        
         logger.debug("SystemTray: Refresh status complete.")
+
 
     def _set_sidetone_from_menu(self, level: int):
         logger.info(f"Setting sidetone to {level} via menu.")
-        if self.headset_service.set_sidetone_level(level):
+        if self.headset_service.set_sidetone_level(level): # Checks connection internally
             self.config_manager.set_last_sidetone_level(level)
             self.showMessage("Success", f"Sidetone set.", QSystemTrayIcon.MessageIcon.Information, 1500)
             self.refresh_status() 
         else:
-            self.showMessage("Error", "Failed to set sidetone.", QSystemTrayIcon.MessageIcon.Warning, 1500)
-            self._update_menu_checks() # Revert check if failed
+            self.showMessage("Error", "Failed to set sidetone. Headset connected?", QSystemTrayIcon.MessageIcon.Warning, 2000)
+            self._update_menu_checks()
 
     def _set_inactive_timeout(self, minutes: int):
         logger.info(f"Setting inactive timeout to {minutes} minutes via menu.")
-        if self.headset_service.set_inactive_timeout(minutes):
+        if self.headset_service.set_inactive_timeout(minutes): # Checks connection internally
             self.config_manager.set_last_inactive_timeout(minutes)
             self.showMessage("Success", f"Inactive timeout set.", QSystemTrayIcon.MessageIcon.Information, 1500)
             self.refresh_status()
         else:
-            self.showMessage("Error", "Failed to set inactive timeout.", QSystemTrayIcon.MessageIcon.Warning, 1500)
-            self._update_menu_checks() # Revert check
+            self.showMessage("Error", "Failed to set inactive timeout. Headset connected?", QSystemTrayIcon.MessageIcon.Warning, 2000)
+            self._update_menu_checks()
 
     def _apply_eq_from_menu(self, eq_data: Tuple[str, any]):
         eq_type, identifier = eq_data
         logger.info(f"Applying EQ from menu: Type={eq_type}, ID/Name='{identifier}'")
+
+        if not self.headset_service.is_device_connected():
+            self.showMessage("Error", "Cannot apply EQ. Headset not connected.", QSystemTrayIcon.MessageIcon.Warning, 2000)
+            self._update_menu_checks() # Revert if user clicked something
+            return
 
         success = False
         message = ""
@@ -347,7 +398,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         else:
             self.showMessage("Error", message, QSystemTrayIcon.MessageIcon.Warning, 1500)
         
-        self.refresh_status() # This will update menu checks and tooltip
+        self.refresh_status()
 
 
     def _open_settings_dialog(self):
@@ -359,20 +410,18 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.settings_dialog.finished.connect(self._on_settings_dialog_closed)
             self.settings_dialog.show()
         else:
-            # If dialog is already open, ensure its EQ section is up-to-date with tray changes
-            self.settings_dialog.equalizer_widget.refresh_view() # Important!
+            self.settings_dialog.equalizer_widget.refresh_view()
         self.settings_dialog.activateWindow()
         self.settings_dialog.raise_()
 
     @Slot(str)
     def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str):
-        # This signal comes from EqualizerEditorWidget, which already updated ConfigManager
         logger.info(f"SystemTray received eq_applied signal from SettingsDialog: '{eq_identifier_signal_str}'")
-        self.refresh_status() # Refresh tray state from ConfigManager
+        self.refresh_status()
 
     def _on_settings_dialog_closed(self, result):
         logger.debug(f"Settings dialog closed with result: {result}")
-        self.refresh_status() # Ensure tray reflects any final changes
+        self.refresh_status()
 
     def _on_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger: self._open_settings_dialog()
@@ -383,6 +432,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         if not self.headset_service.is_device_connected():
             logger.warning("Cannot apply initial settings, device not connected."); return
 
+        # These calls now internally check for connection again, which is slightly redundant
+        # but safe. The main check in refresh_status is the primary gate.
         self.headset_service.set_sidetone_level(self.config_manager.get_last_sidetone_level())
         self.headset_service.set_inactive_timeout(self.config_manager.get_last_inactive_timeout())
 
@@ -390,13 +441,13 @@ class SystemTrayIcon(QSystemTrayIcon):
         if active_type == EQ_TYPE_CUSTOM:
             name = self.config_manager.get_last_custom_eq_curve_name()
             vals = self.config_manager.get_custom_eq_curve(name)
-            if not vals: # Fallback if stored curve name somehow invalid
+            if not vals: 
                 name = app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
                 vals = self.config_manager.get_custom_eq_curve(name) or app_config.DEFAULT_EQ_CURVES["Flat"]
-                self.config_manager.set_last_custom_eq_curve_name(name) # Persist fallback
+                self.config_manager.set_last_custom_eq_curve_name(name) 
             self.headset_service.set_eq_values(vals)
         elif active_type == EQ_TYPE_HARDWARE:
             self.headset_service.set_eq_preset_id(self.config_manager.get_last_active_eq_preset_id())
         
         logger.info("Initial headset settings applied.")
-        self.refresh_status() # Full update of tray state after initial apply
+        self.refresh_status()
