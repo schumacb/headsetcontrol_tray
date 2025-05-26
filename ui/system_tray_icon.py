@@ -214,9 +214,6 @@ class SystemTrayIcon(QSystemTrayIcon):
         open_settings_action.triggered.connect(self._open_settings_dialog)
         self.context_menu.addAction(open_settings_action)
         self.context_menu.addSeparator()
-        refresh_action = QAction("Refresh Status", self.context_menu)
-        refresh_action.triggered.connect(self.refresh_status) # Manual refresh
-        self.context_menu.addAction(refresh_action)
         exit_action = QAction("Exit", self.context_menu)
         exit_action.triggered.connect(self.application_quit_fn)
         self.context_menu.addAction(exit_action)
