@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QDialogButtonBox,
     QRadioButton, QLabel, QButtonGroup, QSizePolicy, QMessageBox, QSlider, QSpacerItem,
-    QGroupBox
+    QGroupBox, QLineEdit
 )
 from PySide6.QtCore import Signal, Qt
 import logging
@@ -37,6 +37,22 @@ class SettingsDialog(QDialog):
         font.setPointSize(font.pointSize() + 1)
         self.chatmix_label.setFont(font)
         main_layout.addWidget(self.chatmix_label)
+
+        chat_apps_groupbox = QGroupBox("Chat Application Identifiers")
+        chat_apps_layout = QVBoxLayout(chat_apps_groupbox)
+
+        chat_apps_label_info = QLabel("Enter parts of application names or process binaries to identify chat apps (comma-separated, case-insensitive). E.g., Discord, Teamspeak")
+        chat_apps_label_info.setWordWrap(True)
+        chat_apps_layout.addWidget(chat_apps_label_info)
+
+        self.chat_apps_line_edit = QLineEdit()
+        chat_apps_layout.addWidget(self.chat_apps_line_edit)
+
+        # You might want a save button specifically for this or tie it to a general apply/OK
+        # For now, let's assume changes here will also emit settings_changed
+        self.chat_apps_line_edit.editingFinished.connect(self._save_chat_app_identifiers)
+
+        main_layout.addWidget(chat_apps_groupbox)
 
         # --- Sidetone Settings (Slider in GroupBox) ---
         sidetone_groupbox = QGroupBox("Sidetone Level")
@@ -103,6 +119,9 @@ class SettingsDialog(QDialog):
         timeout_button_to_check = self.timeout_button_group.button(current_timeout)
         if timeout_button_to_check:
             timeout_button_to_check.setChecked(True)
+
+        chat_ids_list = self.config_manager.get_setting("chat_app_identifiers", ["Discord"])
+        self.chat_apps_line_edit.setText(", ".join(chat_ids_list))
         
         self.refresh_chatmix_display()
 
@@ -147,3 +166,15 @@ class SettingsDialog(QDialog):
         super().showEvent(event)
         self._load_initial_settings() 
         self.equalizer_widget.refresh_view()
+
+    def _save_chat_app_identifiers(self):
+        current_text = self.chat_apps_line_edit.text().strip()
+        new_identifiers = [ident.strip() for ident in current_text.split(',') if ident.strip()]
+        
+        # Get old identifiers to see if they actually changed
+        old_identifiers_str = ", ".join(self.config_manager.get_setting("chat_app_identifiers", []))
+
+        if current_text != old_identifiers_str: # Check if text actually changed to avoid unnecessary saves/signals
+            self.config_manager.set_setting("chat_app_identifiers", new_identifiers)
+            logger.info(f"Chat application identifiers updated to: {new_identifiers}")
+            self.settings_changed.emit() # This will trigger SystemTrayIcon.refresh_status

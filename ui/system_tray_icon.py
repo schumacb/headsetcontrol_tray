@@ -12,7 +12,7 @@ from .. import app_config
 from .settings_dialog import SettingsDialog
 # Ensure EqualizerEditorWidget constants are accessible if needed, or rely on string parsing
 from .equalizer_editor_widget import EQ_TYPE_CUSTOM, EQ_TYPE_HARDWARE, HW_PRESET_DISPLAY_PREFIX
-
+from .chatmix_manager import ChatMixManager
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
@@ -28,6 +28,9 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.headset_service = headset_service
         self.config_manager = config_manager
         self.application_quit_fn = application_quit_fn
+
+         # Initialize ChatMixManager
+        self.chatmix_manager = ChatMixManager(self.config_manager)
 
         self.settings_dialog: Optional[SettingsDialog] = None
 
@@ -253,6 +256,13 @@ class SystemTrayIcon(QSystemTrayIcon):
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             if self.chatmix_action: self.chatmix_action.setText(f"ChatMix: {chatmix_display_str}")
         
+        # Update PipeWire volumes based on ChatMix
+        if self.chatmix_value is not None and is_connected: # Only update if connected and value is valid
+            try:
+                self.chatmix_manager.update_volumes(self.chatmix_value)
+            except Exception as e:
+                logger.error(f"Error during chatmix_manager.update_volumes: {e}", exc_info=True)
+
         # Update tooltip-specific state from ConfigManager
         self.active_eq_type_for_tooltip = self.config_manager.get_active_eq_type()
         if self.active_eq_type_for_tooltip == EQ_TYPE_CUSTOM:

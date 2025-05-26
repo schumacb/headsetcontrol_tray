@@ -84,4 +84,6 @@ HARDWARE_EQ_PRESET_NAMES = {
 # HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
 
 # Update interval for tray data (milliseconds)
-REFRESH_INTERVAL_MS = 30000  # 30 seconds for battery/status
+REFRESH_INTERVAL_MS = 300  # 30 seconds for battery/status
+
+DEFAULT_CHAT_APP_IDENTIFIERS = ["Discord"]
