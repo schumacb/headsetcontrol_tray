@@ -2,8 +2,8 @@ import logging # Standard logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor
-from PySide6.QtCore import Qt, QTimer, Slot
+from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics
+from PySide6.QtCore import Qt, QTimer, Slot, QRect
 from typing import Optional, List, Tuple
 
 from .. import headset_service as hs_svc
@@ -76,27 +76,46 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 
     def _create_battery_icon(self, level: Optional[int]) -> QIcon:
-        if level is None:
-            pixmap = self._base_icon.pixmap(32, 32).copy()
-            painter = QPainter(pixmap)
-            painter.setPen(QColor(Qt.GlobalColor.red))
-            font = painter.font(); font.setBold(True); font.setPointSize(font.pointSize() + 4)
-            painter.setFont(font)
-            rect = pixmap.rect()
-            painter.drawText(rect.adjusted(2,2,-2,-2), Qt.AlignmentFlag.AlignCenter, "?")
-            painter.end()
-            return QIcon(pixmap)
+        ICON_SIZE = 64
+        BATTERY_WIDTH = 24
+        BATTERY_HEIGHT = 14
+        BATTERY_MARGIN = 4
 
-        pixmap = self._base_icon.pixmap(32, 32).copy()
+        pixmap = self._base_icon.pixmap(ICON_SIZE, ICON_SIZE).copy()
         painter = QPainter(pixmap)
-        if level > 70: color = QColor(Qt.GlobalColor.green)
-        elif level > 30: color = QColor(Qt.GlobalColor.yellow)
-        else: color = QColor(Qt.GlobalColor.red)
-        painter.setPen(color)
-        font = painter.font(); font.setPointSize(font.pointSize() - 2)
-        painter.setFont(font)
-        text_rect = pixmap.rect().adjusted(pixmap.width() // 2, pixmap.height() // 2, 0, 0)
-        painter.drawText(text_rect, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight, str(level))
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Battery position (bottom right)
+        x = ICON_SIZE - BATTERY_WIDTH - BATTERY_MARGIN
+        y = ICON_SIZE - BATTERY_HEIGHT - BATTERY_MARGIN
+        battery_rect = QRect(x, y, BATTERY_WIDTH, BATTERY_HEIGHT)
+
+        # Battery cap
+        cap_width = 2
+        cap_height = BATTERY_HEIGHT // 2
+        cap_rect = QRect(battery_rect.right(), battery_rect.top() + (BATTERY_HEIGHT - cap_height) // 2, cap_width, cap_height)
+
+        # Draw battery frame
+        painter.setPen(QColor("black"))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawRect(battery_rect)
+        painter.drawRect(cap_rect)
+
+        if level:
+            # Fill level color
+            if level > 70:
+                fill_color = QColor("green")
+            elif level > 30:
+                fill_color = QColor("yellow")
+            else:
+                fill_color = QColor("red")
+
+            # Compute fill width (1 to BATTERY_WIDTH - 2)
+            fill_width = max(1, int((BATTERY_WIDTH - 2) * level / 100))
+            fill_rect = QRect(battery_rect.left() + 1, battery_rect.top() + 1, fill_width, BATTERY_HEIGHT - 2)
+
+            painter.fillRect(fill_rect, fill_color)
+
         painter.end()
         return QIcon(pixmap)
 
