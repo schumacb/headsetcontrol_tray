@@ -68,7 +68,8 @@ class HeadsetService:
                 
                 self.hid_device = h_temp
                 self.device_path = dev_info_to_try['path']
-                logger.info(f"HID device connected: {dev_info_to_try.get('product_string', 'N/A')} "
+                # This log indicates a low-level HID path was opened, not necessarily full headset function.
+                logger.debug(f"Low-level HID device path opened: {dev_info_to_try.get('product_string', 'N/A')} "
                             f"on interface {dev_info_to_try.get('interface_number', -1)} "
                             f"path {dev_info_to_try['path'].decode('utf-8', errors='replace')}")
                 return True
