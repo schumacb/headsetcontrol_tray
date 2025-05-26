@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QLineEdit
 )
 from PySide6.QtCore import Signal, Qt
-import logging
+import logging # Standard logging
 from typing import Dict, Optional
 
 from .equalizer_editor_widget import EqualizerEditorWidget
@@ -26,39 +26,69 @@ class SettingsDialog(QDialog):
         self.headset_service = headset_service
 
         self.setWindowTitle(f"{app_config.APP_NAME} - Settings")
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(600) 
 
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(15) 
+        main_layout.setContentsMargins(10, 10, 10, 10) 
 
-        # --- ChatMix Display ---
-        self.chatmix_label = QLabel("ChatMix: N/A")
-        self.chatmix_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = self.chatmix_label.font()
-        font.setPointSize(font.pointSize() + 1)
-        self.chatmix_label.setFont(font)
-        main_layout.addWidget(self.chatmix_label)
+        # --- ChatMix Group ---
+        chatmix_main_groupbox = QGroupBox("ChatMix")
+        chatmix_main_layout = QVBoxLayout(chatmix_main_groupbox)
+        chatmix_main_layout.setSpacing(10)
 
-        chat_apps_groupbox = QGroupBox("Chat Application Identifiers")
-        chat_apps_layout = QVBoxLayout(chat_apps_groupbox)
+        # --- ChatMix Visual Display (Slider as Bar) ---
+        chatmix_visual_layout = QHBoxLayout()
+        chatmix_visual_layout.setContentsMargins(5, 5, 5, 5)
 
-        chat_apps_label_info = QLabel("Enter parts of application names or process binaries to identify chat apps (comma-separated, case-insensitive). E.g., Discord, Teamspeak")
+        self.chat_label_indicator = QLabel("Chat")
+        chatmix_visual_layout.addWidget(self.chat_label_indicator)
+
+        self.chatmix_slider_bar = QSlider(Qt.Orientation.Horizontal)
+        self.chatmix_slider_bar.setRange(0, 128)
+        self.chatmix_slider_bar.setValue(64) # Default to balanced visually
+        self.chatmix_slider_bar.setEnabled(False) # Non-interactive, for display only
+        self.chatmix_slider_bar.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.chatmix_slider_bar.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.chatmix_slider_bar.setTickInterval(64) # Ticks at 0 (Chat), 64 (Balanced), 128 (Game)
+        chatmix_visual_layout.addWidget(self.chatmix_slider_bar, 1) # Give slider stretch factor
+
+        self.game_label_indicator = QLabel("Game")
+        chatmix_visual_layout.addWidget(self.game_label_indicator)
+        
+        chatmix_main_layout.addLayout(chatmix_visual_layout)
+        # Add a small label below the slider for "Balanced" text
+        balanced_label_indicator = QLabel("Balanced")
+        balanced_label_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font_balanced = balanced_label_indicator.font()
+        font_balanced.setPointSize(font_balanced.pointSize() -1)
+        balanced_label_indicator.setFont(font_balanced)
+        chatmix_main_layout.addWidget(balanced_label_indicator)
+
+
+        # --- Chat Application Identifiers (still part of ChatMix group) ---
+        chat_apps_config_layout = QVBoxLayout()
+        chat_apps_config_layout.setSpacing(5)
+        chat_apps_config_layout.setContentsMargins(0, 10, 0, 0) # Add some top margin
+
+        chat_apps_label_info = QLabel("Chat Application Identifiers (comma-separated, case-insensitive):")
         chat_apps_label_info.setWordWrap(True)
-        chat_apps_layout.addWidget(chat_apps_label_info)
+        chat_apps_config_layout.addWidget(chat_apps_label_info)
 
         self.chat_apps_line_edit = QLineEdit()
-        chat_apps_layout.addWidget(self.chat_apps_line_edit)
-
-        # You might want a save button specifically for this or tie it to a general apply/OK
-        # For now, let's assume changes here will also emit settings_changed
+        self.chat_apps_line_edit.setPlaceholderText("E.g., Discord, Teamspeak")
+        chat_apps_config_layout.addWidget(self.chat_apps_line_edit)
         self.chat_apps_line_edit.editingFinished.connect(self._save_chat_app_identifiers)
+        
+        chatmix_main_layout.addLayout(chat_apps_config_layout)
+        main_layout.addWidget(chatmix_main_groupbox)
 
-        main_layout.addWidget(chat_apps_groupbox)
 
         # --- Sidetone Settings (Slider in GroupBox) ---
         sidetone_groupbox = QGroupBox("Sidetone Level")
-        sidetone_group_layout = QVBoxLayout(sidetone_groupbox)
+        sidetone_group_layout = QVBoxLayout(sidetone_groupbox) 
         
-        sidetone_control_layout = QHBoxLayout()
+        sidetone_control_layout = QHBoxLayout() 
         self.sidetone_slider = QSlider(Qt.Orientation.Horizontal)
         self.sidetone_slider.setRange(0, 128) 
         self.sidetone_slider.setTickInterval(16) 
@@ -66,7 +96,7 @@ class SettingsDialog(QDialog):
         sidetone_control_layout.addWidget(self.sidetone_slider)
         
         self.sidetone_value_label = QLabel("0") 
-        self.sidetone_value_label.setMinimumWidth(30) 
+        self.sidetone_value_label.setMinimumWidth(35) 
         self.sidetone_value_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         sidetone_control_layout.addWidget(self.sidetone_value_label)
         sidetone_group_layout.addLayout(sidetone_control_layout)
@@ -94,7 +124,7 @@ class SettingsDialog(QDialog):
         eq_group_layout = QVBoxLayout(eq_groupbox)
 
         self.equalizer_widget = EqualizerEditorWidget(self.config_manager, self.headset_service, self)
-        self.equalizer_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.equalizer_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred) 
         eq_group_layout.addWidget(self.equalizer_widget)
         main_layout.addWidget(eq_groupbox)
         
@@ -104,7 +134,8 @@ class SettingsDialog(QDialog):
 
         # --- Dialog buttons ---
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        self.button_box.rejected.connect(self.reject)
+        self.button_box.rejected.connect(self.reject) 
+        self.button_box.accepted.connect(self.accept) 
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
@@ -120,23 +151,31 @@ class SettingsDialog(QDialog):
         if timeout_button_to_check:
             timeout_button_to_check.setChecked(True)
 
-        chat_ids_list = self.config_manager.get_setting("chat_app_identifiers", ["Discord"])
+        chat_ids_list = self.config_manager.get_setting("chat_app_identifiers", app_config.DEFAULT_CHAT_APP_IDENTIFIERS)
         self.chat_apps_line_edit.setText(", ".join(chat_ids_list))
         
         self.refresh_chatmix_display()
 
-    def get_chatmix_display_string(self, chatmix_val: Optional[int]) -> str:
-        if chatmix_val is None: return "N/A"
+    def get_chatmix_tooltip_string(self, chatmix_val: Optional[int]) -> str:
+        if chatmix_val is None: return "ChatMix: N/A (Headset disconnected?)"
         percentage = round((chatmix_val / 128) * 100)
-        if chatmix_val == 0: return f"Full Chat ({percentage}%)"
-        elif chatmix_val == 64: return f"Balanced ({percentage}%)"
-        elif chatmix_val == 128: return f"Full Game ({percentage}%)"
-        else: return f"{chatmix_val} ({percentage}%)"
+        if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
+        elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+        elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+        else: return f"ChatMix: Custom Mix ({percentage}%)" 
 
     def refresh_chatmix_display(self):
         chatmix_val = self.headset_service.get_chatmix_value()
-        display_str = self.get_chatmix_display_string(chatmix_val)
-        self.chatmix_label.setText(f"ChatMix: {display_str}")
+        tooltip_str = self.get_chatmix_tooltip_string(chatmix_val)
+        self.chatmix_slider_bar.setToolTip(tooltip_str)
+
+        if chatmix_val is not None:
+            self.chatmix_slider_bar.setValue(chatmix_val)
+            self.chatmix_slider_bar.setEnabled(False) # Ensure it remains visually disabled
+        else:
+            self.chatmix_slider_bar.setValue(64) # Default visual to balanced if no value
+            self.chatmix_slider_bar.setEnabled(False)
+
 
     def _on_sidetone_slider_value_changed(self, value: int):
         self.sidetone_value_label.setText(str(value))
@@ -148,10 +187,10 @@ class SettingsDialog(QDialog):
             self.config_manager.set_last_sidetone_level(level)
             self.settings_changed.emit()
         else:
-            QMessageBox.warning(self, "Error", "Failed to set sidetone level.")
+            QMessageBox.warning(self, "Error", "Failed to set sidetone level. Is the headset connected?")
             current_sidetone = self.config_manager.get_last_sidetone_level()
-            self.sidetone_slider.setValue(current_sidetone) # Revert slider
-            self.sidetone_value_label.setText(str(current_sidetone)) # Revert label
+            self.sidetone_slider.setValue(current_sidetone) 
+            self.sidetone_value_label.setText(str(current_sidetone))
 
     def _on_inactive_timeout_changed(self, minutes_id: int):
         logger.info(f"SettingsDialog: Inactive timeout changed to ID {minutes_id}")
@@ -159,8 +198,8 @@ class SettingsDialog(QDialog):
             self.config_manager.set_last_inactive_timeout(minutes_id)
             self.settings_changed.emit()
         else:
-            QMessageBox.warning(self, "Error", "Failed to set inactive timeout.")
-            self._load_initial_settings() # Revert radio button selection
+            QMessageBox.warning(self, "Error", "Failed to set inactive timeout. Is the headset connected?")
+            self._load_initial_settings() 
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -171,10 +210,9 @@ class SettingsDialog(QDialog):
         current_text = self.chat_apps_line_edit.text().strip()
         new_identifiers = [ident.strip() for ident in current_text.split(',') if ident.strip()]
         
-        # Get old identifiers to see if they actually changed
-        old_identifiers_str = ", ".join(self.config_manager.get_setting("chat_app_identifiers", []))
+        old_identifiers = self.config_manager.get_setting("chat_app_identifiers", app_config.DEFAULT_CHAT_APP_IDENTIFIERS)
 
-        if current_text != old_identifiers_str: # Check if text actually changed to avoid unnecessary saves/signals
+        if set(new_identifiers) != set(old_identifiers): 
             self.config_manager.set_setting("chat_app_identifiers", new_identifiers)
             logger.info(f"Chat application identifiers updated to: {new_identifiers}")
-            self.settings_changed.emit() # This will trigger SystemTrayIcon.refresh_status
+            self.settings_changed.emit()
