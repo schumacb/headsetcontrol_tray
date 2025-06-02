@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QLineEdit
 )
 from PySide6.QtCore import Signal, Qt
-import logging # Standard logging
+import logging
 from typing import Dict, Optional
 
 from .equalizer_editor_widget import EqualizerEditorWidget

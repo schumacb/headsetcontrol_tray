@@ -1,8 +1,8 @@
-import logging # Standard logging
+import logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics
+from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha # Added qGray, qAlpha
 from PySide6.QtCore import Qt, QTimer, Slot, QRect
 from typing import Optional, List, Tuple
 
@@ -23,6 +23,7 @@ class SystemTrayIcon(QSystemTrayIcon):
     NORMAL_REFRESH_INTERVAL_MS = 1000
     FAST_REFRESH_INTERVAL_MS = 100
     FAST_POLL_NO_CHANGE_THRESHOLD = 3 # Number of fast polls with no change before reverting to normal
+    ICON_DRAW_SIZE = 32 # The size we'll use for generating our pixmap
 
     def __init__(self, headset_service: hs_svc.HeadsetService,
                  config_manager: cfg_mgr.ConfigManager,
@@ -37,7 +38,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.settings_dialog: Optional[SettingsDialog] = None
 
         self._base_icon = QIcon.fromTheme("audio-headset", QIcon.fromTheme("multimedia-audio-player"))
-        self.setIcon(self._base_icon)
+        
         self.activated.connect(self._on_activated)
 
         # State for adaptive polling and change detection
@@ -54,14 +55,12 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.current_hw_preset_name_for_tooltip: Optional[str] = None
         self.active_eq_type_for_tooltip: Optional[str] = None
 
-
         self.context_menu = QMenu()
         self.battery_action: Optional[QAction] = None
         self.chatmix_action: Optional[QAction] = None
         self.sidetone_action_group: List[QAction] = []
         self.timeout_action_group: List[QAction] = []
         self.unified_eq_action_group: List[QAction] = []
-
 
         self._populate_context_menu()
         self.setContextMenu(self.context_menu)
@@ -75,47 +74,85 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.refresh_status()
 
 
-    def _create_battery_icon(self, level: Optional[int]) -> QIcon:
-        ICON_SIZE = 64
-        BATTERY_WIDTH = 24
-        BATTERY_HEIGHT = 14
-        BATTERY_MARGIN = 4
-
-        pixmap = self._base_icon.pixmap(ICON_SIZE, ICON_SIZE).copy()
+    def _create_status_icon(self) -> QIcon:
+        # Base pixmap from the theme icon
+        pixmap = self._base_icon.pixmap(self.ICON_DRAW_SIZE, self.ICON_DRAW_SIZE).copy()
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Battery position (bottom right)
-        x = ICON_SIZE - BATTERY_WIDTH - BATTERY_MARGIN
-        y = ICON_SIZE - BATTERY_HEIGHT - BATTERY_MARGIN
-        battery_rect = QRect(x, y, BATTERY_WIDTH, BATTERY_HEIGHT)
+        if not self.is_tray_view_connected:
+            # Draw red '/'
+            pen = QPen(QColor(Qt.GlobalColor.red))
+            pen.setWidth(self.ICON_DRAW_SIZE // 16 or 1) # Make / line width proportional
+            painter.setPen(pen)
+            margin = self.ICON_DRAW_SIZE // 10 
+            painter.drawLine(self.ICON_DRAW_SIZE - margin, margin, margin, self.ICON_DRAW_SIZE - margin)
+        else: # Connected
+            # --- Battery Indicator (Bottom Right) ---
+            # Define dimensions for the small battery symbol relative to ICON_DRAW_SIZE
+            # These numbers are tuned for a 32x32 icon, adjust if ICON_DRAW_SIZE changes.
+            BATTERY_AREA_SIZE_W = self.ICON_DRAW_SIZE // 2 
+            BATTERY_AREA_SIZE_H = self.ICON_DRAW_SIZE // 3 
+            BATTERY_MARGIN_X = 2
+            BATTERY_MARGIN_Y = 2
+            
+            battery_outer_rect_x = self.ICON_DRAW_SIZE - BATTERY_AREA_SIZE_W - BATTERY_MARGIN_X
+            battery_outer_rect_y = self.ICON_DRAW_SIZE - BATTERY_AREA_SIZE_H - BATTERY_MARGIN_Y
+            battery_outer_rect = QRect(battery_outer_rect_x, battery_outer_rect_y, BATTERY_AREA_SIZE_W, BATTERY_AREA_SIZE_H)
 
-        # Battery cap
-        cap_width = 2
-        cap_height = BATTERY_HEIGHT // 2
-        cap_rect = QRect(battery_rect.right(), battery_rect.top() + (BATTERY_HEIGHT - cap_height) // 2, cap_width, cap_height)
+            # Actual battery body dimensions, smaller than its designated area
+            body_width = int(battery_outer_rect.width() * 0.75)
+            body_height = int(battery_outer_rect.height() * 0.70)
+            body_x = battery_outer_rect.left() + (battery_outer_rect.width() - body_width) // 2
+            body_y = battery_outer_rect.top() + (battery_outer_rect.height() - body_height) // 2
+            battery_body_rect = QRect(body_x, body_y, body_width, body_height)
 
-        # Draw battery frame
-        painter.setPen(QColor("black"))
-        painter.setBrush(Qt.NoBrush)
-        painter.drawRect(battery_rect)
-        painter.drawRect(cap_rect)
+            # Battery cap
+            cap_width = max(1, body_width // 8) 
+            cap_height = max(2, body_height // 2)
+            cap_rect = QRect(battery_body_rect.right(), 
+                             battery_body_rect.top() + (battery_body_rect.height() - cap_height) // 2,
+                             cap_width, cap_height)
 
-        if level:
-            # Fill level color
-            if level > 70:
-                fill_color = QColor("green")
-            elif level > 30:
-                fill_color = QColor("yellow")
-            else:
-                fill_color = QColor("red")
+            painter.setPen(QColor(Qt.GlobalColor.black))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(battery_body_rect)
+            painter.drawRect(cap_rect)
 
-            # Compute fill width (1 to BATTERY_WIDTH - 2)
-            fill_width = max(1, int((BATTERY_WIDTH - 2) * level / 100))
-            fill_rect = QRect(battery_rect.left() + 1, battery_rect.top() + 1, fill_width, BATTERY_HEIGHT - 2)
-
-            painter.fillRect(fill_rect, fill_color)
-
+            if self.battery_level is not None:
+                fill_color = QColor(Qt.GlobalColor.gray)
+                if self.battery_level > 70: fill_color = QColor(Qt.GlobalColor.green)
+                elif self.battery_level > 25: fill_color = QColor(Qt.GlobalColor.yellow) # Changed from 30 to 25 for critical
+                else: fill_color = QColor(Qt.GlobalColor.red)
+                
+                border_thickness = 1 
+                fill_max_width = battery_body_rect.width() - (2 * border_thickness)
+                if fill_max_width > 0: # Ensure positive width
+                    fill_width = max(0, int(fill_max_width * (self.battery_level / 100.0)))
+                    fill_rect = QRect(battery_body_rect.left() + border_thickness,
+                                    battery_body_rect.top() + border_thickness,
+                                    fill_width,
+                                    battery_body_rect.height() - (2 * border_thickness))
+                    painter.fillRect(fill_rect, fill_color)
+            
+            # --- ChatMix Indicator (Top-Right) ---
+            # Show only if battery is not critically low (<=25%)
+            if not (self.battery_level is not None and self.battery_level <= 25):
+                if self.chatmix_value is not None and self.chatmix_value != 64:
+                    dot_radius = self.ICON_DRAW_SIZE // 10 or 2 # Proportional dot size
+                    dot_margin = self.ICON_DRAW_SIZE // 10 or 2
+                    
+                    chatmix_indicator_color = QColor(Qt.GlobalColor.gray) # Default
+                    if self.chatmix_value < 64: # Towards Chat
+                        chatmix_indicator_color = QColor(Qt.GlobalColor.cyan)
+                    else: # Towards Game
+                        chatmix_indicator_color = QColor(Qt.GlobalColor.green) 
+                    
+                    painter.setBrush(chatmix_indicator_color)
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawEllipse(self.ICON_DRAW_SIZE - (2 * dot_radius) - dot_margin, 
+                                        dot_margin,
+                                        2 * dot_radius, 2 * dot_radius)
         painter.end()
         return QIcon(pixmap)
 
@@ -130,17 +167,12 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _update_tooltip_and_icon(self):
         tooltip_parts = []
-        # Use self.is_tray_view_connected which is updated reliably in refresh_status
-        current_icon = self.icon() 
-        new_icon = None
-
+        
         if self.is_tray_view_connected:
             if self.battery_level is not None:
                 tooltip_parts.append(f"Battery: {self.battery_level}%")
-                new_icon = self._create_battery_icon(self.battery_level)
             else:
                 tooltip_parts.append("Battery: N/A")
-                new_icon = self._create_battery_icon(None)
 
             chatmix_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             tooltip_parts.append(f"ChatMix: {chatmix_str}")
@@ -153,15 +185,17 @@ class SystemTrayIcon(QSystemTrayIcon):
                 tooltip_parts.append("EQ: Unknown")
         else:
             tooltip_parts.append("Headset disconnected")
-            new_icon = self._create_battery_icon(None)
 
-        if new_icon and (current_icon.cacheKey() != new_icon.cacheKey()):
+        new_icon = self._create_status_icon()
+        current_icon_key = self.icon().cacheKey()
+        new_icon_key = new_icon.cacheKey()
+
+        if current_icon_key != new_icon_key:
             self.setIcon(new_icon)
         
         final_tooltip = "\n".join(tooltip_parts)
         if self.toolTip() != final_tooltip:
             self.setToolTip(final_tooltip)
-        # logger.debug(f"Tooltip set to: \"{final_tooltip.replace('\n', ' | ')}\"") # Can be noisy
 
 
     def _populate_context_menu(self):
@@ -448,8 +482,6 @@ class SystemTrayIcon(QSystemTrayIcon):
         if not self.headset_service.is_device_connected():
             logger.warning("Cannot apply initial settings, device not connected."); return
 
-        # These calls now internally check for connection again, which is slightly redundant
-        # but safe. The main check in refresh_status is the primary gate.
         self.headset_service.set_sidetone_level(self.config_manager.get_last_sidetone_level())
         self.headset_service.set_inactive_timeout(self.config_manager.get_last_inactive_timeout())
 
