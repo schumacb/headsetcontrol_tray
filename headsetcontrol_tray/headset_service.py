@@ -48,10 +48,22 @@ class HeadsetService:
             return False
 
         def sort_key(d_info):
+            # Special handling for Arctis Nova 7 (0x2202) - prioritize interface 0
+            # and potentially other PIDs that exhibit similar behavior when charging.
+            # For Arctis Nova 7, PID is 0x2202.
+            if d_info.get('product_id') == 0x2202 and d_info.get('interface_number') == 0:
+                logger.debug(f"  SortKey: Prioritizing interface 0 for PID 0x{d_info.get('product_id'):04x}")
+                return -1 # Highest priority for specific PID and interface 0
+
+            # Existing general prioritization
             if d_info.get('interface_number') == 3: 
+                logger.debug(f"  SortKey: Prioritizing interface 3 for PID 0x{d_info.get('product_id'):04x}")
                 return 0  
             if d_info.get('usage_page') == 0xFFC0: 
+                logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 for PID 0x{d_info.get('product_id'):04x}")
                 return 1  
+            
+            logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, Interface {d_info.get('interface_number', 'N/A')}, UsagePage 0x{d_info.get('usage_page',0):04x}")
             return 2      
 
         potential_devices_to_try.sort(key=sort_key)
@@ -205,21 +217,26 @@ class HeadsetService:
 
     def is_device_connected(self) -> bool:
         # Step 1: Ensure a basic HID interface is openable.
-        # This might succeed even if the headset is off but the dongle is plugged in.
+        # This is important because other functions (like set_sidetone, etc.) might rely on an open HID path.
         if not self._ensure_hid_connection():
             logger.debug("is_device_connected: _ensure_hid_connection failed (no HID path/cannot open).")
-            return False # No HID device path or couldn't open.
+            return False
 
-        # Step 2: Use headsetcontrol --connected to verify functional connection.
-        hc_connected_success, _ = self._execute_headsetcontrol(['--connected'])
-        if not hc_connected_success:
-            # headsetcontrol cannot communicate or confirms disconnection.
-            # The HID handle we have might be for the dongle but the headset itself is off/unresponsive.
-            logger.debug("is_device_connected: headsetcontrol --connected reported failure. Closing HID handle.")
-            self.close() # Close the potentially stale/unusable HID handle.
+        # Step 2: Use headsetcontrol -o json to verify functional connection.
+        # This is considered more reliable, especially for USB-C connected devices where '--connected' might
+        # give false negatives after a while.
+        device_info = self._get_headset_device_json() # This method already logs errors internally
+        
+        if device_info is None:
+            # _get_headset_device_json() failed to get device info (e.g., headsetcontrol -o json failed,
+            # returned empty/invalid JSON, or no devices were found).
+            logger.debug("is_device_connected: _get_headset_device_json() returned None. Closing HID handle.")
+            self.close() # Close the HID handle as we can't confirm a functional device.
             return False
         
-        logger.debug("is_device_connected: HID present and headsetcontrol --connected successful.")
+        # If device_info is not None, it means headsetcontrol -o json found and parsed a device.
+        # This implies the headset is functionally connected.
+        logger.debug("is_device_connected: HID present and _get_headset_device_json() successful.")
         return True
 
 
