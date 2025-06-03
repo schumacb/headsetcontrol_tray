@@ -2,7 +2,7 @@ import logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha # Added qGray, qAlpha
+from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha, QPainterPath
 from PySide6.QtCore import Qt, QTimer, Slot, QRect
 from typing import Optional, List, Tuple
 
@@ -47,9 +47,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.is_tray_view_connected = False # Tracks connection state as last seen by the tray
         self.last_known_battery_level: Optional[int] = None
         self.last_known_chatmix_value: Optional[int] = None
+        self.last_known_battery_status_text: Optional[str] = None # For change detection
         
         # Variables to store current fetched values for tooltip/menu (updated in refresh_status)
         self.battery_level: Optional[int] = None
+        self.battery_status_text: Optional[str] = None # e.g. "BATTERY_CHARGING"
         self.chatmix_value: Optional[int] = None
         self.current_custom_eq_name_for_tooltip: Optional[str] = None
         self.current_hw_preset_name_for_tooltip: Optional[str] = None
@@ -134,7 +136,32 @@ class SystemTrayIcon(QSystemTrayIcon):
                                     fill_width,
                                     battery_body_rect.height() - (2 * border_thickness))
                     painter.fillRect(fill_rect, fill_color)
-            
+
+            # --- Charging Indicator (Lightning Bolt on top of battery body) ---
+            if self.battery_status_text == "BATTERY_CHARGING":
+                painter.setPen(QColor(Qt.GlobalColor.yellow))
+                painter.setBrush(QColor(Qt.GlobalColor.yellow))
+
+                # Define lightning bolt path relative to battery_body_rect center
+                # These points are for a small, simple bolt.
+                bolt_path = QPainterPath()
+                cx = battery_body_rect.center().x() + cap_width // 2 # Shift slightly right due to cap
+                cy = battery_body_rect.center().y()
+                bolt_h = battery_body_rect.height() * 0.7
+                bolt_w_half = battery_body_rect.width() * 0.15
+
+                # A simple zig-zag path for the lightning bolt
+                # Start point slightly above center for better visual balance
+                bolt_path.moveTo(cx - bolt_w_half, cy - bolt_h * 0.4)  # Top-leftish
+                bolt_path.lineTo(cx + bolt_w_half, cy - bolt_h * 0.1)  # Mid-rightish
+                bolt_path.lineTo(cx - bolt_w_half * 0.5, cy + bolt_h * 0.1) # Bottom-leftish point of upper part
+                bolt_path.lineTo(cx + bolt_w_half, cy + bolt_h * 0.4) # Bottom-most point
+                bolt_path.lineTo(cx - bolt_w_half, cy + bolt_h * 0.1)  # Mid-leftish
+                bolt_path.lineTo(cx + bolt_w_half * 0.5, cy - bolt_h * 0.1) # Top-rightish point of lower part
+                bolt_path.closeSubpath()
+
+                painter.drawPath(bolt_path)
+
             # --- ChatMix Indicator (Top-Right) ---
             # Show only if battery is not critically low (<=25%)
             if not (self.battery_level is not None and self.battery_level <= 25):
@@ -169,9 +196,18 @@ class SystemTrayIcon(QSystemTrayIcon):
         tooltip_parts = []
         
         if self.is_tray_view_connected:
+            # Construct battery string for tooltip based on level and status
             if self.battery_level is not None:
-                tooltip_parts.append(f"Battery: {self.battery_level}%")
-            else:
+                level_text = f"{self.battery_level}%"
+                if self.battery_status_text == "BATTERY_CHARGING":
+                    tooltip_parts.append(f"Battery: {level_text} (Charging)")
+                elif self.battery_status_text == "BATTERY_FULL":
+                    tooltip_parts.append(f"Battery: {level_text} (Full)")
+                else: # BATTERY_AVAILABLE or other
+                    tooltip_parts.append(f"Battery: {level_text}")
+            elif self.battery_status_text == "BATTERY_UNAVAILABLE": # Explicitly unavailable
+                 tooltip_parts.append("Battery: Unavailable")
+            else: # General N/A
                 tooltip_parts.append("Battery: N/A")
 
             chatmix_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
@@ -182,7 +218,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             elif self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
                 tooltip_parts.append(f"EQ: {self.current_hw_preset_name_for_tooltip}")
             else:
-                tooltip_parts.append("EQ: Unknown")
+                tooltip_parts.append("EQ: Unknown") # Should ideally not happen if logic is correct
         else:
             tooltip_parts.append("Headset disconnected")
 
@@ -298,8 +334,9 @@ class SystemTrayIcon(QSystemTrayIcon):
         logger.debug(f"SystemTray: Refreshing status (Interval: {self.refresh_timer.interval()}ms)...")
 
         # Store previous known state for change detection
-        prev_battery = self.last_known_battery_level
-        prev_chatmix = self.last_known_chatmix_value
+        prev_battery_level = self.last_known_battery_level
+        prev_battery_status_text = self.last_known_battery_status_text
+        prev_chatmix_value = self.last_known_chatmix_value
         prev_connection_state = self.is_tray_view_connected
 
         current_is_connected = self.headset_service.is_device_connected()
@@ -313,6 +350,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             if prev_connection_state: # Was connected, now isn't
                 logger.info("SystemTray: Headset disconnected.")
             self.battery_level = None
+            self.battery_status_text = None
             self.chatmix_value = None
             new_battery_text = "Battery: Disconnected"
             new_chatmix_text = "ChatMix: Disconnected"
@@ -320,15 +358,35 @@ class SystemTrayIcon(QSystemTrayIcon):
             if not prev_connection_state: # Was disconnected, now is
                 logger.info("SystemTray: Headset connected.")
             
-            self.battery_level = self.headset_service.get_battery_level()
+            battery_details = self.headset_service.get_battery_details()
+            if battery_details:
+                self.battery_level = battery_details.get('level')
+                self.battery_status_text = battery_details.get('status_text')
+            else:
+                self.battery_level = None # Explicitly set if details are None
+                self.battery_status_text = None
+
             self.chatmix_value = self.headset_service.get_chatmix_value()
 
-            new_battery_text = f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A"
+            if self.battery_level is not None:
+                level_text = f"{self.battery_level}%"
+                if self.battery_status_text == "BATTERY_CHARGING":
+                    new_battery_text = f"Battery: {level_text} (Charging)"
+                elif self.battery_status_text == "BATTERY_FULL": # Assuming this status exists for fully charged
+                    new_battery_text = f"Battery: {level_text} (Full)"
+                else: # BATTERY_AVAILABLE or other
+                    new_battery_text = f"Battery: {level_text}"
+            elif self.battery_status_text == "BATTERY_UNAVAILABLE": # Explicitly unavailable
+                 new_battery_text = "Battery: Unavailable"
+            else: # General N/A if no level and no specific "unavailable" status
+                new_battery_text = "Battery: N/A"
+
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             new_chatmix_text = f"ChatMix: {chatmix_display_str}"
 
-            if self.battery_level != prev_battery: data_changed_while_connected = True
-            if self.chatmix_value != prev_chatmix: data_changed_while_connected = True
+            if self.battery_level != prev_battery_level: data_changed_while_connected = True
+            if self.battery_status_text != prev_battery_status_text: data_changed_while_connected = True
+            if self.chatmix_value != prev_chatmix_value: data_changed_while_connected = True
         
         # Update menu item texts if they changed
         if self.battery_action and self.battery_action.text() != new_battery_text:
@@ -360,6 +418,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         # Update last known state for next cycle's change detection
         self.last_known_battery_level = self.battery_level
+        self.last_known_battery_status_text = self.battery_status_text
         self.last_known_chatmix_value = self.chatmix_value
 
         # Adaptive timer logic
