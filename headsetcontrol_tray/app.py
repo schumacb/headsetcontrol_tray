@@ -57,7 +57,7 @@ class SteelSeriesTrayApp:
 
             informative_text_string = f"""A rule file has been prepared at: {temp_file}
 
-You can install these rules automatically, or follow these manual steps in a terminal:
+To resolve this, you can use the 'Install Automatically' button, or follow these manual steps in a terminal:
 1. Copy the rule file:
    sudo cp "{temp_file}" "{final_file}"
 2. Reload udev rules:
@@ -69,8 +69,8 @@ Without these rules, the application might not be able to detect or control your
             dialog.setInformativeText(informative_text_string.strip())
 
             auto_button = dialog.addButton("Install Automatically", QMessageBox.AcceptRole)
-            manual_button = dialog.addButton("Show Manual Instructions Only", QMessageBox.ActionRole)
-            _ = dialog.addButton(QMessageBox.Close) # Standard close button, result not needed for this one
+            # manual_button removed
+            _ = dialog.addButton(QMessageBox.Close) # Standard close button
 
             dialog.setDefaultButton(auto_button)
             dialog.exec()
@@ -147,10 +147,10 @@ Without these rules, the application might not be able to detect or control your
                         # Also fine to use a static call for unexpected critical errors.
                         QMessageBox.critical(None, "Error", f"An unexpected error occurred while trying to run the helper script:\n{e}")
 
-            elif clicked_button_role == manual_button:
-                logger.info("User chose to view manual udev rules instructions.")
-            else: # Includes clicking Close button or pressing Esc
-                logger.info("User closed or cancelled the udev rules dialog.")
+            # elif clicked_button_role == manual_button: # This button is removed
+            #     logger.info("User chose to view manual udev rules instructions.")
+            else: # Includes clicking Close button or if auto_button was not the one clicked
+                logger.info("User closed or cancelled the udev rules dialog, or did not choose automatic install.")
         
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on startup by HeadsetService.")

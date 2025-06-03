@@ -46,36 +46,41 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_dialog_instance = MockQMessageBoxClass.return_value
 
-        # Simulate user closing the first dialog (e.g., clicking a "Close" button)
-        # This requires that one of the buttons added will be designated as the "Close" button
-        # and clickedButton will return it.
+        # Simulate user closing the first dialog (e.g., clicking the "Close" button)
         close_button_mock = MagicMock(spec=QMessageBox.StandardButton)
 
-        # Store all buttons added to find the close_button
         added_buttons_initial = []
+        # This side effect will capture buttons as they are added to the dialog instance
         def side_effect_add_button_initial(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
-            if isinstance(text_or_button, QMessageBox.StandardButton): # Handles addButton(QMessageBox.Close)
-                 button.standard_button_enum = text_or_button # Store the enum
-            else:
+            # If an enum like QMessageBox.Close is passed, store it to identify the button
+            if isinstance(text_or_button, QMessageBox.StandardButton):
+                 button.standard_button_enum = text_or_button
+            else: # If text is passed, store the text
                 button.text = text_or_button
 
+            # Store the mock button and its properties for later identification
             added_buttons_initial.append({"button": button, "role": role, "text_or_enum": text_or_button})
             return button
 
         mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
 
-        def set_clicked_button_close(*args, **kwargs):
+        # This side effect for exec() will determine what clickedButton() returns
+        def set_clicked_button_to_close_equivalent(*args, **kwargs):
             found_close_button = None
             for b_info in added_buttons_initial:
+                # The actual "Close" button is added via `_ = dialog.addButton(QMessageBox.Close)`
+                # So we look for the button that was added with that enum.
                 if b_info.get("text_or_enum") == QMessageBox.Close:
                     found_close_button = b_info["button"]
                     break
-            if not found_close_button: # Fallback if specific close button not easily identifiable
-                 found_close_button = MagicMock(spec=QMessageBox.StandardButton) # Generic mock if needed
+            if not found_close_button:
+                 # If, for some reason, the specific close button wasn't identified,
+                 # fall back to a generic mock to ensure clickedButton() returns a mock.
+                 found_close_button = MagicMock(spec=QMessageBox.StandardButton)
             mock_dialog_instance.clickedButton.return_value = found_close_button
 
-        mock_dialog_instance.exec.side_effect = set_clicked_button_close
+        mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
 
         tray_app_instance = SteelSeriesTrayApp()
 
@@ -83,7 +88,13 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_dialog_instance.exec.assert_called_once()
         mock_dialog_instance.setWindowTitle.assert_called_with("Headset Permissions Setup Required")
         self.assertIn("Your SteelSeries headset may not work correctly", mock_dialog_instance.setText.call_args[0][0])
-        self.assertIn(self.sample_details["temp_file_path"], mock_dialog_instance.setInformativeText.call_args[0][0])
+
+        # Verify the updated informative text
+        informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
+        self.assertIn("To resolve this, you can use the 'Install Automatically' button", informative_text_call_args)
+        self.assertIn(self.sample_details["temp_file_path"], informative_text_call_args)
+        self.assertNotIn("Show Manual Instructions Only", informative_text_call_args) # Ensure old text is gone
+
 
     @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
     @patch('headsetcontrol_tray.app.QMessageBox')
@@ -107,33 +118,32 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_os_path_exists.return_value = True
 
-        # --- Mock the initial dialog to select "Install Automatically" ---
         mock_initial_dialog_instance = MockQMessageBoxClass.return_value
 
-        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
-        added_buttons = []
-        def side_effect_add_button(text_or_button, role=None):
+        # Simulate clicking "Install Automatically"
+        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton) # This will be the button for AcceptRole
+
+        # This side effect captures buttons added to the initial dialog
+        def side_effect_add_button_for_pkexec(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
-            button.text = str(text_or_button) # Store text for identification
-            added_buttons.append({"button": button, "role": role})
-            if role == QMessageBox.AcceptRole: # "Install Automatically"
-                # Ensure this specific mock is returned for the auto_button
-                nonlocal auto_button_mock
+            button.text = str(text_or_button)
+            # If this is the "Install Automatically" button, assign its mock to auto_button_mock
+            if role == QMessageBox.AcceptRole:
+                nonlocal auto_button_mock # Allow modification of auto_button_mock from outer scope
                 auto_button_mock = button
             return button
 
-        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button
-        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock # Pre-set, exec will make it effective
+        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_for_pkexec
+        # Ensure that when clickedButton() is called on the initial dialog, it returns the auto_button_mock
+        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
 
-        # Configure subprocess.run mock
         mock_subprocess_run.return_value = subprocess.CompletedProcess(
             args=["pkexec", self.expected_helper_script_path, self.sample_details["temp_file_path"], self.sample_details["final_file_path"]],
             returncode=pkexec_returncode, stdout=pkexec_stdout, stderr=pkexec_stderr
         )
 
-        # Reset QMessageBoxClass mock before SteelSeriesTrayApp to capture the *feedback* dialog
-        MockQMessageBoxClass.reset_mock()
-        mock_feedback_dialog_instance = MockQMessageBoxClass.return_value # This will be the feedback dialog
+        MockQMessageBoxClass.reset_mock() # Reset for the feedback dialog
+        mock_feedback_dialog_instance = MockQMessageBoxClass.return_value
 
         tray_app_instance = SteelSeriesTrayApp()
 
@@ -144,13 +154,13 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertEqual(cmd_called[2], self.sample_details["temp_file_path"])
         self.assertEqual(cmd_called[3], self.sample_details["final_file_path"])
 
-        MockQMessageBoxClass.assert_called_once() # For the feedback dialog
+        MockQMessageBoxClass.assert_called_once()
         mock_feedback_dialog_instance.setIcon.assert_called_with(expected_icon)
         mock_feedback_dialog_instance.setWindowTitle.assert_called_with(expected_title)
         mock_feedback_dialog_instance.setText.assert_called_with(expected_text)
         if isinstance(expected_informative_text_contains, str):
              self.assertIn(expected_informative_text_contains, mock_feedback_dialog_instance.setInformativeText.call_args[0][0])
-        else: # List of strings
+        else:
             for item in expected_informative_text_contains:
                  self.assertIn(item, mock_feedback_dialog_instance.setInformativeText.call_args[0][0])
         mock_feedback_dialog_instance.exec.assert_called_once()
@@ -160,7 +170,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch('headsetcontrol_tray.app.QMessageBox')
     @patch('headsetcontrol_tray.app.os.path.exists')
     @patch('headsetcontrol_tray.app.subprocess.run')
-    def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MH svc, MSTIcon):
+    def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
         self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
                                   pkexec_returncode=0, pkexec_stdout="Success", pkexec_stderr="",
                                   expected_icon=QMessageBox.Information,
@@ -224,23 +234,23 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_initial_dialog_instance = MockQMessageBoxClass.return_value
         auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
-        added_buttons = []
-        def side_effect_add_button(text_or_button, role=None): # Simplified for this test's focus
+        # Simplified addButton side_effect for this test as we only need to ensure AcceptRole button is identified
+        def side_effect_add_button_script_not_found(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
             if role == QMessageBox.AcceptRole: nonlocal auto_button_mock; auto_button_mock = button
             return button
-        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button
-        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
+        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
+        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock # Simulate clicking "Install Automatically"
 
         MockQMessageBoxClass.reset_mock()
 
         tray_app_instance = SteelSeriesTrayApp()
 
         mock_subprocess_run.assert_not_called()
-        MockQMessageBoxClass.critical.assert_called_once() # Static critical for this case
+        MockQMessageBoxClass.critical.assert_called_once()
         args, _ = MockQMessageBoxClass.critical.call_args
-        self.assertEqual(args[0], None) # Parent
-        self.assertIn("Error", args[1]) # Title
+        self.assertEqual(args[0], None)
+        self.assertIn("Error", args[1])
         self.assertIn("Installation script not found", args[2])
         self.assertIn(self.expected_helper_script_path, args[2])
 
