@@ -1,13 +1,27 @@
 import subprocess
 import hid 
-import logging # Standard logging
+import logging
 import re
 import json
+
+import os
+import tempfile
 from typing import Optional, List, Tuple, Dict, Any, TypedDict
 
+
 from . import app_config
+from .app_config import STEELSERIES_VID, TARGET_PIDS
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
+
+# Format VID and PIDs as 4-digit lowercase hex strings
+VID_HEX = f"{STEELSERIES_VID:04x}"
+RULE_LINES = [
+    f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"'
+    for pid in TARGET_PIDS
+]
+UDEV_RULE_CONTENT = "\n".join(RULE_LINES)
+UDEV_RULE_FILENAME = "99-steelseries-headsets.rules"
 
 # Define BatteryDetails TypedDict
 class BatteryDetails(TypedDict):
@@ -21,18 +35,62 @@ class HeadsetService:
     def __init__(self):
         self.hid_device: Optional[hid.Device] = None 
         self.device_path: Optional[bytes] = None
+        self.udev_setup_details = None # Initialize details for udev rule setup
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
 
+    # _check_udev_rules method removed
+
+    def _create_udev_rules(self) -> bool:
+        """
+        Creates the udev rule file in a temporary location and instructs the user.
+        Stores information about the created temporary file if successful.
+        """
+        final_rules_path_str = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
+        logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path_str}")
+        self.udev_setup_details = None # Reset in case of prior failure
+
+        try:
+            # Create a temporary file
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="headsetcontrol_") as tmp_file:
+                temp_file_name = tmp_file.name
+                tmp_file.write(UDEV_RULE_CONTENT + "\n") # Add a newline for good measure
+
+            # Store details
+            self.udev_setup_details = {
+                "temp_file_path": temp_file_name,
+                "final_file_path": final_rules_path_str,
+                "rule_filename": UDEV_RULE_FILENAME
+            }
+            logger.info(f"Successfully wrote udev rule content to temporary file: {temp_file_name}")
+            logger.info("--------------------------------------------------------------------------------")
+            logger.info("ACTION REQUIRED: To complete headset setup, please run the following commands:")
+            logger.info(f"1. Copy the rule file: sudo cp \"{temp_file_name}\" \"{final_rules_path_str}\"")
+            logger.info("2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger")
+            logger.info("3. Replug your SteelSeries headset.")
+            logger.info(f"(The temporary file {temp_file_name} can be deleted after copying.)")
+            logger.info("--------------------------------------------------------------------------------")
+            return True
+        except IOError as e:
+            logger.error(f"Could not write temporary udev rule file: {e}")
+            self.udev_setup_details = None # Ensure it's None on failure
+            return False
+        except Exception as e_global: # Catch any other unexpected errors during temp file handling
+            logger.error(f"An unexpected error occurred during temporary udev rule file creation: {e_global}")
+            self.udev_setup_details = None # Ensure it's None on failure
+            return False
+
     def _connect_hid_device(self) -> bool:
         """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # Udev check removed from here
+
         if self.hid_device: 
             logger.debug("_connect_hid_device: Already connected.")
             return True
         
         logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
         try:
-            devices_enum = hid.enumerate(app_config.STEELSERIES_VID, 0)
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
             logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
         except Exception as e_enum: 
             logger.error(f"Error enumerating HID devices: {e_enum}")
@@ -44,7 +102,7 @@ class HeadsetService:
                          f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
                          f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
                          f"Product='{dev_info.get('product_string', 'N/A')}'")
-            if dev_info['product_id'] in app_config.TARGET_PIDS:
+            if dev_info['product_id'] in TARGET_PIDS: # Use imported TARGET_PIDS
                 logger.debug(f"    Device matches target PID 0x{dev_info['product_id']:04x}. Adding to potential list.")
                 potential_devices_to_try.append(dev_info)
 
@@ -101,7 +159,14 @@ class HeadsetService:
         
         self.hid_device = None 
         self.device_path = None
-        logger.debug("_connect_hid_device: No suitable HID device interface found or all attempts to open failed.")
+
+        # If loop finishes and hid_device is still None, no device was connected.
+        # This is where we now trigger the udev rule creation if needed.
+        if self.hid_device is None:
+            logger.warning("Failed to connect to any suitable HID interface for the headset. Udev rules might be missing or incorrect.")
+            self._create_udev_rules() # Prepare instructions and populate self.udev_setup_details
+
+        logger.debug("_connect_hid_device: No suitable HID device interface found or all attempts to open failed (if hid_device is None).")
         return False
 
     def _ensure_hid_connection(self) -> bool:
