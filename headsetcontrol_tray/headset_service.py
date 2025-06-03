@@ -28,6 +28,7 @@ class HeadsetService:
     def __init__(self):
         self.hid_device: Optional[hid.Device] = None 
         self.device_path: Optional[bytes] = None
+        self.udev_setup_details = None # Initialize details for udev rule setup
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
 
@@ -68,33 +69,40 @@ class HeadsetService:
     def _create_udev_rules(self) -> bool:
         """
         Creates the udev rule file in a temporary location and instructs the user.
+        Stores information about the created temporary file if successful.
         """
-        final_rules_path = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
-        logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path}")
+        final_rules_path_str = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
+        logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path_str}")
+        self.udev_setup_details = None # Reset in case of prior failure
 
         try:
             # Create a temporary file
-            # tempfile.NamedTemporaryFile creates files in a secure manner.
-            # We use delete=False because the user needs to copy it.
-            # The 'w' mode is text mode. UDEV_RULE_CONTENT is a string.
             with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="headsetcontrol_") as tmp_file:
-                tmp_file_path = tmp_file.name
+                temp_file_name = tmp_file.name
                 tmp_file.write(UDEV_RULE_CONTENT + "\n") # Add a newline for good measure
 
-            logger.info(f"Successfully wrote udev rule content to temporary file: {tmp_file_path}")
+            # Store details
+            self.udev_setup_details = {
+                "temp_file_path": temp_file_name,
+                "final_file_path": final_rules_path_str,
+                "rule_filename": UDEV_RULE_FILENAME
+            }
+            logger.info(f"Successfully wrote udev rule content to temporary file: {temp_file_name}")
             logger.info("--------------------------------------------------------------------------------")
             logger.info("ACTION REQUIRED: To complete headset setup, please run the following commands:")
-            logger.info(f"1. Copy the rule file: sudo cp \"{tmp_file_path}\" \"{final_rules_path}\"")
+            logger.info(f"1. Copy the rule file: sudo cp \"{temp_file_name}\" \"{final_rules_path_str}\"")
             logger.info("2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger")
             logger.info("3. Replug your SteelSeries headset.")
-            logger.info(f"(The temporary file {tmp_file_path} can be deleted after copying.)")
+            logger.info(f"(The temporary file {temp_file_name} can be deleted after copying.)")
             logger.info("--------------------------------------------------------------------------------")
             return True
         except IOError as e:
             logger.error(f"Could not write temporary udev rule file: {e}")
+            self.udev_setup_details = None # Ensure it's None on failure
             return False
         except Exception as e_global: # Catch any other unexpected errors during temp file handling
             logger.error(f"An unexpected error occurred during temporary udev rule file creation: {e_global}")
+            self.udev_setup_details = None # Ensure it's None on failure
             return False
 
     def _connect_hid_device(self) -> bool:
