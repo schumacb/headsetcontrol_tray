@@ -167,8 +167,12 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _update_tooltip_and_icon(self):
         tooltip_parts = []
-        
-        if self.is_tray_view_connected:
+
+        if not self.headset_service.is_headsetcontrol_available():
+            tooltip_parts = ["headsetcontrol not found. Please install it."]
+            # self.is_tray_view_connected will likely be False here if headsetcontrol is unavailable,
+            # leading to the disconnected icon, which is the desired behavior.
+        elif self.is_tray_view_connected:
             if self.battery_level is not None:
                 tooltip_parts.append(f"Battery: {self.battery_level}%")
             else:
@@ -204,6 +208,18 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.sidetone_action_group.clear()
         self.timeout_action_group.clear()
         self.unified_eq_action_group.clear()
+
+        if not self.headset_service.is_headsetcontrol_available():
+            logger.warning("headsetcontrol not available. Populating minimal menu.")
+            hc_not_found_action = QAction("headsetcontrol not found. Please install it.", self.context_menu)
+            hc_not_found_action.setEnabled(False)
+            self.context_menu.addAction(hc_not_found_action)
+            self.context_menu.addSeparator()
+            # Add only Exit action
+            exit_action = QAction("Exit", self.context_menu)
+            exit_action.triggered.connect(self.application_quit_fn)
+            self.context_menu.addAction(exit_action)
+            return
 
         self.battery_action = QAction("Battery: Unknown", self.context_menu)
         self.battery_action.setEnabled(False)
