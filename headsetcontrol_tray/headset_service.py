@@ -54,13 +54,36 @@ class HeadsetService:
                 logger.info(f"Udev rule file found and content matches: {rules_path}")
                 return True
             else:
+                # (inside the else block for content_lines != expected_lines)
                 logger.warning(f"Udev rule file found but content MISMATCH: {rules_path}")
-                # For debugging, log the differences
-                logger.warning(f"  Expected (sorted):\n{chr(10).join(expected_lines)}")
-                logger.warning(f"  Actual (sorted):\n{chr(10).join(content_lines)}")
-                # Log differences in a way that's easier to parse if complex
-                # diff = difflib.unified_diff(expected_lines, content_lines, fromfile='expected', tofile='actual', lineterm='')
-                # logger.warning("Detailed diff:\n" + '\n'.join(diff))
+                logger.warning(f"  Expected {len(expected_lines)} processed lines, Got {len(content_lines)} processed lines from file.")
+
+                # Using repr to make whitespace/control characters visible.
+                # These logs are for debugging and might be verbose, so consider DEBUG level.
+                # For now, use WARNING to ensure visibility if the problem occurs for the user.
+                logger.warning(f"  Expected (processed, sorted, repr): {[repr(line) for line in expected_lines]}")
+                logger.warning(f"  Actual (processed, sorted, repr): {[repr(line) for line in content_lines]}")
+
+                # Find and log the first differing pair of lines
+                mismatch_found = False
+                for i in range(min(len(expected_lines), len(content_lines))):
+                    if expected_lines[i] != content_lines[i]:
+                        logger.warning(f"  First mismatch at line index {i} (after processing & sorting):")
+                        logger.warning(f"    Expected line {i+1}: {repr(expected_lines[i])}")
+                        logger.warning(f"    Actual line {i+1}:   {repr(content_lines[i])}")
+                        mismatch_found = True
+                        break
+
+                if not mismatch_found: # One list is a prefix of the other, but lengths differ
+                    if len(expected_lines) > len(content_lines):
+                        logger.warning(f"  File content is a subset of expected content.")
+                        if len(content_lines) < len(expected_lines): # Ensure index is valid
+                             logger.warning(f"  Next expected line would be: {repr(expected_lines[len(content_lines)])}")
+                    elif len(content_lines) > len(expected_lines):
+                        logger.warning(f"  File content has more lines than expected.")
+                        if len(expected_lines) < len(content_lines): # Ensure index is valid
+                            logger.warning(f"  Next actual line in file is: {repr(content_lines[len(expected_lines)])}")
+
                 return False
         except IOError as e:
             logger.error(f"Error reading udev rule file {rules_path}: {e}")
