@@ -14,6 +14,39 @@ from .app_config import STEELSERIES_VID, TARGET_PIDS
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
+# --- Notes on HID Report Implementation (based on HID_RESEARCH.md) ---
+# For Arctis Nova 7, most commands on the primary HID interface (interface 3, usage page 0xffc0, usage 0x0001)
+# appear to start with a 0x00 byte when sent via hid_write in HeadsetControl.
+# This 0x00 could be:
+#   1. The Report ID for reports on this interface. If so, `_write_hid_report` should be called
+#      with `report_id=0x00` and `data` being the rest of the command bytes.
+#      `_read_hid_report` might also expect input reports to start with `0x00` if it's a Report ID,
+#      and may need to strip it.
+#   2. Part of an "unnumbered" report's data payload. In this case, `_write_hid_report`
+#      might be called with `report_id=0` (or a convention for unnumbered) and `data` including the 0x00.
+#
+# The `python-hid` library's `device.write(data)` method:
+#   - If the HID device uses numbered reports, `data[0]` is the Report ID.
+#   - If it uses unnumbered reports, `data[0]` is the first byte of the actual data.
+#
+# Current `_write_hid_report(self, report_id: int, data: List[int], report_length: int = 64)`:
+#   - If `report_id > 0`, it prepends it.
+#   - If `report_id == 0` (as used in placeholder calls), it sends `data` as-is.
+#
+# This means:
+#   - If `app_config.HID_REPORT_FIXED_FIRST_BYTE` (0x00) IS the report ID, calls should be:
+#     `self._write_hid_report(app_config.HID_REPORT_FIXED_FIRST_BYTE, actual_command_bytes_after_0x00, ...)`
+#   - If `0x00` is part of the data for an unnumbered report (or report ID 0 is implicit):
+#     `self._write_hid_report(0, command_bytes_including_0x00, ...)`
+#
+# The HeadsetControl C code directly calls `hid_write(device_handle, buffer, size)` where `buffer` often starts with `0x00`.
+# This suggests the second case is more likely for most commands (0x00 is part of the data, sent as unnumbered or report_id=0).
+# The `HID_CMD_SAVE_SETTINGS = [0x06, 0x09]` is an exception and likely uses Report ID 0x06.
+#
+# The placeholder implementations below will generally assume `report_id=0` for `_write_hid_report`
+# when the command from `app_config` already starts with `HID_REPORT_FIXED_FIRST_BYTE`.
+# For `HID_CMD_SAVE_SETTINGS`, `report_id=0x06` would be used.
+
 # Format VID and PIDs as 4-digit lowercase hex strings
 VID_HEX = f"{STEELSERIES_VID:04x}"
 RULE_LINES = [
@@ -111,23 +144,31 @@ class HeadsetService:
             return False
 
         def sort_key(d_info):
-            # Special handling for Arctis Nova 7 (0x2202) - prioritize interface 0
-            # and potentially other PIDs that exhibit similar behavior when charging.
-            # For Arctis Nova 7, PID is 0x2202.
-            if d_info.get('product_id') == 0x2202 and d_info.get('interface_number') == 0:
-                logger.debug(f"  SortKey: Prioritizing interface 0 for PID 0x{d_info.get('product_id'):04x}")
-                return -1 # Highest priority for specific PID and interface 0
+            # Prioritize exact match for Arctis Nova 7 communication interface
+            if d_info['vendor_id'] == app_config.STEELSERIES_VID and \
+               d_info['product_id'] in app_config.TARGET_PIDS and \
+               d_info.get('interface_number') == app_config.HID_REPORT_INTERFACE and \
+               d_info.get('usage_page') == app_config.HID_REPORT_USAGE_PAGE and \
+               d_info.get('usage') == app_config.HID_REPORT_USAGE_ID:
+                logger.debug(f"  SortKey: Prioritizing exact Arctis Nova 7 interface (0) for PID 0x{d_info.get('product_id'):04x}")
+                return -2 # Highest priority
 
-            # Existing general prioritization
-            if d_info.get('interface_number') == 3: 
-                logger.debug(f"  SortKey: Prioritizing interface 3 for PID 0x{d_info.get('product_id'):04x}")
-                return 0  
-            if d_info.get('usage_page') == 0xFFC0: 
-                logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 for PID 0x{d_info.get('product_id'):04x}")
+            # Original Arctis Nova 7 (0x2202) interface 0 prioritization (keep as fallback)
+            if d_info.get('product_id') == 0x2202 and d_info.get('interface_number') == 0:
+                logger.debug(f"  SortKey: Prioritizing interface 0 for PID 0x{d_info.get('product_id'):04x} (-1)")
+                return -1
+
+            # Existing general prioritization (adjust their return values to be lower priority)
+            if d_info.get('interface_number') == 3: # This was interface 3, which matches our specific one.
+                                                    # The above exact match is more specific if usage page/id also match.
+                logger.debug(f"  SortKey: Prioritizing interface 3 (generic) for PID 0x{d_info.get('product_id'):04x} (0)")
+                return 0
+            if d_info.get('usage_page') == 0xFFC0: # This was usage page 0xFFC0
+                logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 (generic) for PID 0x{d_info.get('product_id'):04x} (1)")
                 return 1  
 
             logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, Interface {d_info.get('interface_number', 'N/A')}, UsagePage 0x{d_info.get('usage_page',0):04x}")
-            return 2      
+            return 2
 
         potential_devices_to_try.sort(key=sort_key)
         logger.debug(f"Sorted potential devices to try: {[(d['path'].decode('utf-8', errors='replace'), d.get('interface_number','N/A'), d.get('usage_page',0)) for d in potential_devices_to_try]}")
@@ -421,56 +462,131 @@ class HeadsetService:
 
     # --- Hypothetical HID-based methods (for future implementation) ---
 
-    def get_battery_level_hid(self) -> Optional[int]:
+    def _get_parsed_status_hid(self) -> Optional[Dict[str, Any]]:
         """
-        Hypothetical: Gets battery level via direct HID communication.
-        This method is NOT FUNCTIONAL and serves as a template.
-        Requires app_config.HID_CMD_GET_BATTERY and related HID constants
-        to be correctly defined.
+        Hypothetical: Gets and parses the combined status report (battery, chatmix)
+        via direct HID communication.
+        This method is a template and requires app_config HID constants to be correct.
+        It would be called by public methods like get_battery_level_hid() etc.
         """
-        logger.info("Attempting get_battery_level_hid (currently non-functional placeholder).")
+        # This function would replace the commented-out logic in the previous get_battery_level_hid
+        logger.info("Attempting _get_parsed_status_hid (currently non-functional placeholder).")
         if not self._ensure_hid_connection() or not self.hid_device:
-            logger.warning("get_battery_level_hid: No HID device connected.")
+            logger.warning("_get_parsed_status_hid: No HID device connected.")
             return None
 
-        # 1. Prepare the command (example from app_config placeholders)
-        # Ensure app_config.HID_REPORT_ID_COMMAND_OUTPUT and app_config.HID_CMD_GET_BATTERY are defined.
-        # command_to_send = app_config.HID_CMD_GET_BATTERY
-        # report_id_output = app_config.HID_REPORT_ID_COMMAND_OUTPUT
-        # report_length = app_config.HID_REPORT_LENGTH
+        # 1. Prepare and send the status request command
+        # Report ID for write: The python-hid library expects the report ID as the first byte
+        # of the data buffer if reports are numbered. If app_config.HID_CMD_GET_STATUS starts
+        # with a byte that IS the report ID (e.g. 0x00), it's fine.
+        # If the reports are unnumbered for this endpoint, the first byte should be the command itself.
+        # HeadsetControl C code writes `app_config.HID_CMD_GET_STATUS` directly.
+        # Assuming _write_hid_report correctly handles prepending a report ID if one is specified separately,
+        # or sends the data as-is if report_id is 0 or None.
+        # For HID_CMD_GET_STATUS = [0x00, 0xb0], if 0x00 is the report ID, _write_hid_report(0x00, [0xb0])
+        # If 0x00 is part of an unnumbered report, _write_hid_report(None or 0, [0x00, 0xb0])
 
-        # logger.debug(f"get_battery_level_hid: Sending command {command_to_send} with report ID {report_id_output}")
-        # success_write = self._write_hid_report(report_id_output, command_to_send, report_length)
+        # Let's assume _write_hid_report takes the full command including the conventional first byte.
+        # The `report_id` argument to _write_hid_report could be used if a *separate* report ID needs prefixing.
+        # Since HID_CMD_GET_STATUS includes 0x00, we might not need a separate report_id here.
 
-        # if not success_write:
-        #     logger.warning("get_battery_level_hid: Failed to write HID command.")
-        #     return None
+        command_to_send = bytes(app_config.HID_CMD_GET_STATUS)
+        # The _write_hid_report expects a list of ints for data, so keep it as list
+        # The actual report_id to pass to _write_hid_report depends on whether HID_REPORT_FIXED_FIRST_BYTE
+        # is THE report ID or part of the command payload for an unnumbered report.
+        # For now, let's assume HID_REPORT_FIXED_FIRST_BYTE is the report_id for this interface.
 
-        # 2. Read the response (example)
-        # Ensure app_config.HID_REPORT_ID_DATA_INPUT is defined.
-        # report_id_input = app_config.HID_REPORT_ID_DATA_INPUT # Or None if not expecting a specific ID prefix
-        # response_data = self._read_hid_report(report_id_to_request=report_id_input,
-        #                                       report_length=report_length,
-        #                                       timeout_ms=1000)
+        # success_write = self._write_hid_report(
+        # report_id=app_config.HID_REPORT_FIXED_FIRST_BYTE, # This is 0x00
+        # data=app_config.HID_CMD_GET_STATUS[1:], # Send data after the first byte (0xb0)
+        # report_length=len(app_config.HID_CMD_GET_STATUS) # Or full 64 for padding
+        # )
+        # More likely, based on headsetcontrol C code:
+        success_write = self._write_hid_report(0, app_config.HID_CMD_GET_STATUS, report_length=len(app_config.HID_CMD_GET_STATUS))
 
-        # if not response_data:
-        #     logger.warning("get_battery_level_hid: No response from HID device.")
-        #     return None
 
-        # 3. Parse the response (highly speculative)
-        # Example: Assuming battery level is in the Nth byte, after the (optional) report ID.
-        # response_offset = 0 # if report_id_input was None or _read_hid_report strips it
-        # if response_data and len(response_data) > app_config.HID_RESPONSE_BATTERY_BYTE_INDEX + response_offset:
-        #     battery_level = response_data[app_config.HID_RESPONSE_BATTERY_BYTE_INDEX + response_offset]
-        #     # Optionally, parse charging status from another byte/bit
-        #     # charging_status_byte = response_data[app_config.HID_RESPONSE_BATTERY_CHARGING_BYTE_INDEX + response_offset]
-        #     # is_charging = (charging_status_byte & app_config.HID_RESPONSE_BATTERY_CHARGING_BIT) != 0
-        #     logger.info(f"get_battery_level_hid: Parsed battery level (hypothetical): {battery_level}%")
-        #     return battery_level
-        # else:
-        #    logger.warning(f"get_battery_level_hid: Invalid or too short response: {response_data}")
+        if not success_write:
+            logger.warning("_get_parsed_status_hd: Failed to write HID status request command.")
+            return None
 
-        logger.warning("get_battery_level_hid: Logic is placeholder and not implemented.")
+        # 2. Read the response
+        # The response is an 8-byte input report.
+        # _read_hid_report might need adjustment if the input report also starts with a report ID that needs stripping.
+        # For now, assume it returns the raw 8 bytes.
+        response_data = self._read_hid_report(
+            report_id_to_request=None, # Not requesting a feature report by ID, but reading an input report
+            report_length=app_config.HID_INPUT_REPORT_LENGTH_STATUS,
+            timeout_ms=1000
+        )
+
+        if not response_data or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
+            logger.warning(f"_get_parsed_status_hid: No/incomplete response from HID device. Got: {response_data}")
+            return None
+
+        # 3. Parse the response
+        parsed_status = {}
+
+        # Battery Level
+        raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
+        # Mapping logic from headsetcontrol: 0->0, 1->25, 2->50, 3->75, 4->100 (approx)
+        if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
+        elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
+        elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+        elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
+        elif raw_battery_level == 0x04: parsed_status['battery_percent'] = 100
+        else: parsed_status['battery_percent'] = None # Unknown raw value
+
+        # Battery Status
+        raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
+        if raw_battery_status == 0x00: # Offline / Not connected
+            logger.warning("_get_parsed_status_hid: Headset reported offline.")
+            # This might indicate a problem, perhaps return None earlier or handle differently
+            parsed_status['battery_charging'] = None
+            parsed_status['headset_online'] = False
+        elif raw_battery_status == 0x01: # Charging
+            parsed_status['battery_charging'] = True
+            parsed_status['headset_online'] = True
+        else: # Discharging / Available (e.g., 0x02 or higher)
+            parsed_status['battery_charging'] = False
+            parsed_status['headset_online'] = True
+
+        # ChatMix
+        raw_game = response_data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE]
+        raw_chat = response_data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE]
+
+        # Mapping from headsetcontrol: map(value, 0, 100, 0, 64) for game, map(value, 0, 100, 0, -64) for chat
+        # Approximate linear map: (val / 100) * 64
+        mapped_game = int((raw_game / 100.0) * 64.0)
+        mapped_chat = int((raw_chat / 100.0) * -64.0) # chat part is negative in formula
+        chatmix_value = 64 - (mapped_chat + mapped_game) # Range 0-128
+        parsed_status['chatmix'] = chatmix_value
+
+        logger.info(f"_get_parsed_status_hid: Parsed status (hypothetical): {parsed_status}")
+        return parsed_status
+
+    # Add example public methods that would use _get_parsed_status_hid()
+    def get_battery_level_hid(self) -> Optional[int]:
+        logger.debug("get_battery_level_hid: Attempting to get battery via direct HID.")
+        status = self._get_parsed_status_hid()
+        if status and status.get('headset_online') and status.get('battery_percent') is not None:
+            return status['battery_percent']
+        logger.warning("get_battery_level_hid: Could not retrieve battery level via HID.")
+        return None
+
+    def get_chatmix_hid(self) -> Optional[int]:
+        logger.debug("get_chatmix_hid: Attempting to get chatmix via direct HID.")
+        status = self._get_parsed_status_hid()
+        if status and status.get('headset_online') and status.get('chatmix') is not None:
+            return status['chatmix']
+        logger.warning("get_chatmix_hid: Could not retrieve chatmix via HID.")
+        return None
+
+    def is_charging_hid(self) -> Optional[bool]:
+        logger.debug("is_charging_hid: Attempting to get charging status via direct HID.")
+        status = self._get_parsed_status_hid()
+        if status and status.get('headset_online') and status.get('battery_charging') is not None:
+            return status['battery_charging']
+        logger.warning("is_charging_hid: Could not retrieve charging status via HID.")
         return None
 
     def get_chatmix_value(self) -> Optional[int]:
@@ -559,6 +675,42 @@ class HeadsetService:
         success, _ = self._execute_headsetcontrol(['-s', str(level)])
         if not success:
             logger.error(f"Failed to set sidetone level to {level}.")
+        return success
+
+    def set_sidetone_level_hid(self, level: int) -> bool:
+        """
+        Hypothetical: Sets sidetone level via direct HID communication.
+        This method is a template.
+        """
+        logger.info(f"Attempting set_sidetone_level_hid to {level} (currently non-functional placeholder).")
+        if not self._ensure_hid_connection() or not self.hid_device:
+            logger.warning("set_sidetone_level_hid: No HID device connected.")
+            return False
+
+        # 1. Map the level (0-128) to hardware value (0-3)
+        mapped_value = 0
+        if level < 26: mapped_value = 0x00
+        elif level < 51: mapped_value = 0x01
+        elif level < 76: mapped_value = 0x02
+        else: mapped_value = 0x03
+
+        # 2. Prepare the command
+        command_data = list(app_config.HID_CMD_SET_SIDETONE_PREFIX) # Creates a mutable copy
+        command_data.append(mapped_value)
+
+        # report_id = app_config.HID_REPORT_FIXED_FIRST_BYTE (which is the first byte of HID_CMD_SET_SIDETONE_PREFIX)
+        # data_to_send = command_data[1:] # Data after the report ID
+        # success = self._write_hid_report(report_id, data_to_send, report_length=len(command_data))
+        # OR, if _write_hid_report handles the first byte as report_id if specified, or part of data if report_id=0
+        success = self._write_hid_report(0, command_data, report_length=len(command_data))
+
+
+        if success:
+            logger.info(f"set_sidetone_level_hid: Successfully sent command for level {level} (mapped: {mapped_value}).")
+            # Optional: A save command might be needed for some settings.
+            # For sidetone on Arctis Nova 7, headsetcontrol source doesn't show an explicit save command after this.
+        else:
+            logger.warning(f"set_sidetone_level_hid: Failed to send command for level {level}.")
         return success
 
     def get_inactive_timeout(self) -> Optional[int]:
