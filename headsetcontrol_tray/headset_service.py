@@ -3,11 +3,16 @@ import hid
 import logging # Standard logging
 import re
 import json
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Tuple, Dict, Any, TypedDict
 
 from . import app_config
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
+
+# Define BatteryDetails TypedDict
+class BatteryDetails(TypedDict):
+    level: Optional[int]
+    status_text: Optional[str]
 
 class HeadsetService:
     """
@@ -62,7 +67,7 @@ class HeadsetService:
             if d_info.get('usage_page') == 0xFFC0: 
                 logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 for PID 0x{d_info.get('product_id'):04x}")
                 return 1  
-            
+
             logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, Interface {d_info.get('interface_number', 'N/A')}, UsagePage 0x{d_info.get('usage_page',0):04x}")
             return 2      
 
@@ -233,52 +238,75 @@ class HeadsetService:
             logger.debug("is_device_connected: _get_headset_device_json() returned None. Closing HID handle.")
             self.close() # Close the HID handle as we can't confirm a functional device.
             return False
-        
-        # If device_info is not None, it means headsetcontrol -o json found and parsed a device.
-        # This implies the headset is functionally connected.
-        logger.debug("is_device_connected: HID present and _get_headset_device_json() successful.")
+
+        # NEW: Check for BATTERY_UNAVAILABLE as an indicator that the headset is off or not truly connected.
+        # The .get("battery", {}) provides a default empty dict if "battery" key is missing,
+        # and .get("status") on that will return None if "status" is missing.
+        battery_status = device_info.get("battery", {}).get("status")
+        if battery_status == "BATTERY_UNAVAILABLE":
+            logger.debug("is_device_connected: Device JSON found, but battery status is UNAVAILABLE. "
+                         "Considering headset off/disconnected. Closing HID handle.")
+            self.close() # Close the HID handle as the headset is not functionally available.
+            return False
+
+        # If device_info is not None, and battery is not UNAVAILABLE,
+        # it means headsetcontrol -o json found a device and it appears to be operational.
+        logger.debug("is_device_connected: HID present and _get_headset_device_json() successful with available battery status.")
         return True
 
 
     # --- Public API ---
 
     def get_battery_level(self) -> Optional[int]:
-        # This explicit check is somewhat redundant if SystemTrayIcon calls is_device_connected first,
-        # but makes the method safer if called directly.
-        if not self.is_device_connected(): # Verifies functional connection
-            logger.debug("get_battery_level: Device not connected, skipping.")
+        """
+        Retrieves the battery percentage level.
+        It first tries to get detailed battery info (which uses JSON) and extracts the level.
+        If that fails, it falls back to the 'headsetcontrol -b' command.
+        """
+        logger.debug("get_battery_level: Attempting to get battery level.")
+
+        # Primary attempt: Use get_battery_details (JSON based)
+        details = self.get_battery_details()
+        if details:
+            # If status is UNAVAILABLE, level will be None from get_battery_details
+            if details['status_text'] == "BATTERY_UNAVAILABLE":
+                 logger.debug("get_battery_level: Level is None because battery status is UNAVAILABLE (from details).")
+                 return None
+            if details['level'] is not None:
+                logger.verbose(f"Battery level from get_battery_details: {details['level']}%")
+                return details['level']
+            # If level is None but status was not UNAVAILABLE, it's a bit ambiguous from details alone.
+            # Proceed to -b fallback for robustness, as -b might give a direct level.
+            logger.debug("get_battery_level: Level was None from details, but status not UNAVAILABLE. Trying -b fallback.")
+
+        # Fallback: Try headsetcontrol -b (if get_battery_details failed to provide a definitive level)
+        # Ensure device is still considered connected before trying -b, as get_battery_details might have closed the handle.
+        if not self.is_device_connected():
+            logger.debug("get_battery_level: Device not connected for -b fallback, skipping.")
             return None
 
-        logger.debug("Attempting to get battery level.")
+        logger.debug("get_battery_level: Falling back to 'headsetcontrol -b'.")
         success_b, output_b = self._execute_headsetcontrol(['-b'])
+
         if success_b:
+            if "BATTERY_UNAVAILABLE" in output_b:
+                logger.debug("Battery status is UNAVAILABLE via headsetcontrol -b fallback.")
+                return None
+
             match = re.search(r"Level:\s*(\d+)%", output_b)
             if match:
                 level = int(match.group(1))
-                logger.verbose(f"Battery level from CLI (-b, regex parse): {level}%")
+                logger.verbose(f"Battery level from CLI (-b fallback, regex parse): {level}%")
                 return level
             elif output_b.isdigit(): 
-                logger.verbose(f"Battery level from CLI (-b, direct parse): {output_b}%")
-                return int(output_b)
-            else: # Output changed, e.g. "Status: BATTERY_UNAVAILABLE"
-                logger.warning(f"Could not parse battery level from 'headsetcontrol -b' output: {output_b}")
-        
-        # Fallback to JSON if direct -b fails to parse, but only if device is still seen as connected
-        # (which it should be if we reached here, unless -b itself caused a disconnect detection not yet reflected)
-        if self.is_device_connected(): # Re-check as -b might have issues if device just went off
-            device_data = self._get_headset_device_json()
-            if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
-                battery_info = device_data["battery"]
-                if "level" in battery_info and isinstance(battery_info["level"], int):
-                    level = battery_info["level"]
-                    logger.verbose(f"Battery level from CLI (-o json): {level}%")
-                    return level
-                else:
-                    logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
-            elif not device_data:
-                 logger.warning("get_battery_level: Could not get device_data for JSON fallback.")
-        
-        # logger.error("Could not determine battery level after trying all methods.") # Too strong if just unavailable
+                level = int(output_b)
+                logger.verbose(f"Battery level from CLI (-b fallback, direct parse): {level}%")
+                return level
+            else:
+                logger.warning(f"Could not parse battery level from 'headsetcontrol -b' fallback output: {output_b}")
+        else:
+            logger.warning(f"Failed to execute 'headsetcontrol -b' during fallback.")
+
         return None
 
     def get_chatmix_value(self) -> Optional[int]:
@@ -299,6 +327,45 @@ class HeadsetService:
              logger.warning("get_chatmix_value: Could not get device_data for JSON.")
             
         # logger.error("Could not determine ChatMix value.") # Too strong if unavailable
+        return None
+
+    def get_battery_details(self) -> Optional[BatteryDetails]:
+        """
+        Retrieves detailed battery information (level and status string) from the headset.
+        Primarily uses 'headsetcontrol -o json'.
+        """
+        if not self.is_device_connected():
+            logger.debug("get_battery_details: Device not connected, skipping.")
+            return None
+
+        logger.debug("Attempting to get detailed battery status via JSON.")
+        device_data = self._get_headset_device_json()
+
+        if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
+            battery_info = device_data["battery"]
+            level = battery_info.get("level")
+            status_text = battery_info.get("status")
+
+            # Ensure level is int or None
+            if level is not None and not isinstance(level, int):
+                logger.warning(f"Battery level from JSON is not an int: {level}. Setting to None.")
+                level = None
+
+            # Ensure status_text is str or None
+            if status_text is not None and not isinstance(status_text, str):
+                logger.warning(f"Battery status_text from JSON is not a str: {status_text}. Setting to None.")
+                status_text = None
+
+            # If status is BATTERY_UNAVAILABLE, level might be absent or nonsensical, often -1 from headsetcontrol.
+            # Explicitly set level to None if status is BATTERY_UNAVAILABLE, as level is irrelevant.
+            if status_text == "BATTERY_UNAVAILABLE":
+                logger.debug("get_battery_details: Battery status is UNAVAILABLE, ensuring level is None.")
+                level = None
+
+            logger.verbose(f"Battery details from JSON: Level={level}, Status='{status_text}'")
+            return BatteryDetails(level=level, status_text=status_text)
+
+        logger.warning("get_battery_details: Could not retrieve or parse battery information from JSON.")
         return None
 
     def get_sidetone_level(self) -> Optional[int]:

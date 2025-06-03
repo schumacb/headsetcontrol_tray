@@ -2,7 +2,7 @@ import logging
 from PySide6.QtWidgets import (
     QSystemTrayIcon, QMenu, QMessageBox
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha # Added qGray, qAlpha
+from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha, QPainterPath
 from PySide6.QtCore import Qt, QTimer, Slot, QRect
 from typing import Optional, List, Tuple
 
@@ -47,9 +47,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.is_tray_view_connected = False # Tracks connection state as last seen by the tray
         self.last_known_battery_level: Optional[int] = None
         self.last_known_chatmix_value: Optional[int] = None
+        self.last_known_battery_status_text: Optional[str] = None # For change detection
         
         # Variables to store current fetched values for tooltip/menu (updated in refresh_status)
         self.battery_level: Optional[int] = None
+        self.battery_status_text: Optional[str] = None # e.g. "BATTERY_CHARGING"
         self.chatmix_value: Optional[int] = None
         self.current_custom_eq_name_for_tooltip: Optional[str] = None
         self.current_hw_preset_name_for_tooltip: Optional[str] = None
@@ -134,7 +136,111 @@ class SystemTrayIcon(QSystemTrayIcon):
                                     fill_width,
                                     battery_body_rect.height() - (2 * border_thickness))
                     painter.fillRect(fill_rect, fill_color)
-            
+
+            # --- Charging Indicator (Lightning Bolt on top of battery body) ---
+            if self.is_tray_view_connected and self.battery_status_text == "BATTERY_CHARGING":
+                logger.debug(f"_create_status_icon: Attempting to draw charging indicator. Status: {self.battery_status_text}, Level: {self.battery_level}")
+
+                # Explicitly set pen and brush for the bolt
+                bolt_pen_color = QColor(Qt.GlobalColor.black) # Black outline for bolt
+                bolt_fill_color = QColor(Qt.GlobalColor.yellow)
+
+                painter.setPen(bolt_pen_color) # Use a pen for outline
+                painter.pen().setWidth(1) # Thin outline
+                painter.setBrush(bolt_fill_color) # Yellow fill
+
+                bolt_path = QPainterPath()
+                # Center bolt within the battery body, not considering the cap for bolt's own centering
+                cx = battery_body_rect.center().x()
+                cy = battery_body_rect.center().y()
+
+                # Make bolt dimensions more robust, ensuring minimum sizes
+                bolt_total_h = max(4, int(battery_body_rect.height() * 0.6)) # Ensure at least 4px high
+                bolt_segment_h = bolt_total_h / 3
+
+                # Width of the zig-zag points from center line
+                bolt_point_offset_x = max(1, int(battery_body_rect.width() * 0.20)) # Ensure at least 1px offset for width
+
+                # Define a simpler, more standard lightning bolt shape (7 points)
+                #   P1
+                #  /  \
+                # P2--P3
+                #     /
+                #    P4
+                #   /  \
+                #  P5--P6
+                #     /
+                #    P7
+
+                p1y = cy - bolt_total_h / 2
+                p7y = cy + bolt_total_h / 2
+
+                bolt_path.moveTo(cx, p1y)                                    # P1 (Top point)
+                bolt_path.lineTo(cx - bolt_point_offset_x, p1y + bolt_segment_h) # P2
+                bolt_path.lineTo(cx + bolt_point_offset_x, p1y + bolt_segment_h) # P3
+                bolt_path.lineTo(cx, p1y + 2 * bolt_segment_h)               # P4 (Middle point)
+                bolt_path.lineTo(cx + bolt_point_offset_x, p1y + 2 * bolt_segment_h) # P5 (Shifted for typical bolt shape)
+                bolt_path.lineTo(cx - bolt_point_offset_x, p7y)                  # P6
+                bolt_path.lineTo(cx, p7y) # Back to center line bottom P7 (original was P7y, this closes it better)
+                # Corrected path to make it look more like a bolt, P5, P6, P7 sequence.
+                # Let's try a slightly different common path structure:
+                # Top -> Left-Mid -> Right-Top-Mid -> Center-Mid -> Left-Bottom-Mid -> Right-Mid -> Bottom
+                bolt_path.clear() # Clear previous attempt
+                bolt_path.moveTo(cx, cy - bolt_total_h / 2) # Top point
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy) # Left-mid point
+                bolt_path.lineTo(cx + bolt_point_offset_x / 2 , cy) # Right-mid (slightly inwards)
+                bolt_path.lineTo(cx, cy + bolt_total_h / 2) # Bottom point
+                # This is a very simplified 4-point path. Let's refine.
+
+                # Standard 7-point bolt:
+                bolt_path.clear()
+                y_offset = bolt_total_h * 0.1 # Start slightly offset from true center for P4
+                bolt_path.moveTo(cx + bolt_point_offset_x, cy - bolt_total_h*0.5) # P1 - Top Right
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy + y_offset)         # P2 - Mid Left
+                bolt_path.lineTo(cx, cy + y_offset)                              # P3 - Mid Center (towards right)
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy + y_offset + bolt_total_h*0.05 ) #P3.5 to give thickness
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy + bolt_total_h*0.5) # P4 - Bottom Left
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy - y_offset)         # P5 - Mid Right
+                bolt_path.lineTo(cx, cy - y_offset)                              # P6 - Mid Center (towards left)
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy -y_offset - bolt_total_h*0.05) #P6.5 to give thickness
+                bolt_path.closeSubpath() # Close path from P6.5 to P1
+
+                # The previous closeSubpath one was complex. Let's use an even simpler one from an example:
+                # A very simple bolt: top-center, middle-left, middle-right, bottom-center
+                bolt_path.clear();
+                bolt_path.moveTo(cx, battery_body_rect.top() + 1) # Top of battery body
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy )
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy )
+                bolt_path.lineTo(cx, battery_body_rect.bottom() -1 )
+                bolt_path.closeSubpath() # This will make a triangle if not careful.
+
+                # Simpler path based on typical representations:
+                # Points: (0, -h/2), (-w, 0), (0,0), (w,0), (0, h/2), (-w/2, h/2*0.8) ... this is getting too complex.
+
+                # Let's use the test rectangle approach first if this path is problematic.
+                # For now, will try the 7-point bolt from before but ensure it's drawn.
+                # The previous one was:
+                # bolt_path.moveTo(cx - bolt_w_half, cy - bolt_h * 0.4)  # Top-leftish
+                # bolt_path.lineTo(cx + bolt_w_half, cy - bolt_h * 0.1)  # Mid-rightish
+                # bolt_path.lineTo(cx - bolt_w_half * 0.5, cy + bolt_h * 0.1) # Bottom-leftish point of upper part
+                # bolt_path.lineTo(cx + bolt_w_half, cy + bolt_h * 0.4) # Bottom-most point
+                # bolt_path.lineTo(cx - bolt_w_half, cy + bolt_h * 0.1)  # Mid-leftish
+                # bolt_path.lineTo(cx + bolt_w_half * 0.5, cy - bolt_h * 0.1) # Top-rightish point of lower part
+                # bolt_path.closeSubpath()
+                # This path uses bolt_w_half which was very small. Using new bolt_point_offset_x and bolt_total_h
+
+                bolt_path.clear()
+                bolt_path.moveTo(cx - bolt_point_offset_x, cy - bolt_total_h * 0.2)  # P1
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy - bolt_total_h * 0.1)  # P2
+                bolt_path.lineTo(cx, cy + bolt_total_h * 0.5)                       # P3 (Bottom point)
+                bolt_path.lineTo(cx - bolt_point_offset_x / 2, cy - bolt_total_h * 0.15) # P4 (Inner point to P1)
+                bolt_path.closeSubpath()
+
+
+                painter.drawPath(bolt_path)
+                logger.debug(f"Path drawn. Bounds: {bolt_path.boundingRect()}")
+
+
             # --- ChatMix Indicator (Top-Right) ---
             # Show only if battery is not critically low (<=25%)
             if not (self.battery_level is not None and self.battery_level <= 25):
@@ -169,9 +275,18 @@ class SystemTrayIcon(QSystemTrayIcon):
         tooltip_parts = []
         
         if self.is_tray_view_connected:
+            # Construct battery string for tooltip based on level and status
             if self.battery_level is not None:
-                tooltip_parts.append(f"Battery: {self.battery_level}%")
-            else:
+                level_text = f"{self.battery_level}%"
+                if self.battery_status_text == "BATTERY_CHARGING":
+                    tooltip_parts.append(f"Battery: {level_text} (Charging)")
+                elif self.battery_status_text == "BATTERY_FULL":
+                    tooltip_parts.append(f"Battery: {level_text} (Full)")
+                else: # BATTERY_AVAILABLE or other
+                    tooltip_parts.append(f"Battery: {level_text}")
+            elif self.battery_status_text == "BATTERY_UNAVAILABLE": # Explicitly unavailable
+                 tooltip_parts.append("Battery: Unavailable")
+            else: # General N/A
                 tooltip_parts.append("Battery: N/A")
 
             chatmix_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
@@ -182,7 +297,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             elif self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
                 tooltip_parts.append(f"EQ: {self.current_hw_preset_name_for_tooltip}")
             else:
-                tooltip_parts.append("EQ: Unknown")
+                tooltip_parts.append("EQ: Unknown") # Should ideally not happen if logic is correct
         else:
             tooltip_parts.append("Headset disconnected")
 
@@ -298,8 +413,9 @@ class SystemTrayIcon(QSystemTrayIcon):
         logger.debug(f"SystemTray: Refreshing status (Interval: {self.refresh_timer.interval()}ms)...")
 
         # Store previous known state for change detection
-        prev_battery = self.last_known_battery_level
-        prev_chatmix = self.last_known_chatmix_value
+        prev_battery_level = self.last_known_battery_level
+        prev_battery_status_text = self.last_known_battery_status_text
+        prev_chatmix_value = self.last_known_chatmix_value
         prev_connection_state = self.is_tray_view_connected
 
         current_is_connected = self.headset_service.is_device_connected()
@@ -313,6 +429,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             if prev_connection_state: # Was connected, now isn't
                 logger.info("SystemTray: Headset disconnected.")
             self.battery_level = None
+            self.battery_status_text = None
             self.chatmix_value = None
             new_battery_text = "Battery: Disconnected"
             new_chatmix_text = "ChatMix: Disconnected"
@@ -320,15 +437,35 @@ class SystemTrayIcon(QSystemTrayIcon):
             if not prev_connection_state: # Was disconnected, now is
                 logger.info("SystemTray: Headset connected.")
             
-            self.battery_level = self.headset_service.get_battery_level()
+            battery_details = self.headset_service.get_battery_details()
+            if battery_details:
+                self.battery_level = battery_details.get('level')
+                self.battery_status_text = battery_details.get('status_text')
+            else:
+                self.battery_level = None # Explicitly set if details are None
+                self.battery_status_text = None
+
             self.chatmix_value = self.headset_service.get_chatmix_value()
 
-            new_battery_text = f"Battery: {self.battery_level}%" if self.battery_level is not None else "Battery: N/A"
+            if self.battery_level is not None:
+                level_text = f"{self.battery_level}%"
+                if self.battery_status_text == "BATTERY_CHARGING":
+                    new_battery_text = f"Battery: {level_text} (Charging)"
+                elif self.battery_status_text == "BATTERY_FULL": # Assuming this status exists for fully charged
+                    new_battery_text = f"Battery: {level_text} (Full)"
+                else: # BATTERY_AVAILABLE or other
+                    new_battery_text = f"Battery: {level_text}"
+            elif self.battery_status_text == "BATTERY_UNAVAILABLE": # Explicitly unavailable
+                 new_battery_text = "Battery: Unavailable"
+            else: # General N/A if no level and no specific "unavailable" status
+                new_battery_text = "Battery: N/A"
+
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
             new_chatmix_text = f"ChatMix: {chatmix_display_str}"
 
-            if self.battery_level != prev_battery: data_changed_while_connected = True
-            if self.chatmix_value != prev_chatmix: data_changed_while_connected = True
+            if self.battery_level != prev_battery_level: data_changed_while_connected = True
+            if self.battery_status_text != prev_battery_status_text: data_changed_while_connected = True
+            if self.chatmix_value != prev_chatmix_value: data_changed_while_connected = True
         
         # Update menu item texts if they changed
         if self.battery_action and self.battery_action.text() != new_battery_text:
@@ -360,6 +497,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         # Update last known state for next cycle's change detection
         self.last_known_battery_level = self.battery_level
+        self.last_known_battery_status_text = self.battery_status_text
         self.last_known_chatmix_value = self.chatmix_value
 
         # Adaptive timer logic
