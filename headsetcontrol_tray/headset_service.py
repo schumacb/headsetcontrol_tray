@@ -32,62 +32,7 @@ class HeadsetService:
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
 
-    def _check_udev_rules(self) -> bool:
-        """Checks for the presence and content of the udev rule file."""
-        rules_path = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
-        logger.debug(f"Checking for udev rule file at: {rules_path}")
-
-        if not os.path.exists(rules_path):
-            logger.warning(f"Udev rule file missing: {rules_path}")
-            return False
-
-        try:
-            with open(rules_path, "r") as f:
-                # Read all lines, strip whitespace from each, and filter out empty lines
-                # Then join them for comparison, assuming order doesn't strictly matter
-                # or that they are written in a consistent order by us.
-                # For a more robust check, one might parse each rule and compare sets of rules.
-                content_lines = sorted([line.strip() for line in f if line.strip()])
-                expected_lines = sorted([line.strip() for line in UDEV_RULE_CONTENT.split('\n') if line.strip()])
-
-            if content_lines == expected_lines:
-                logger.info(f"Udev rule file found and content matches: {rules_path}")
-                return True
-            else:
-                # (inside the else block for content_lines != expected_lines)
-                logger.warning(f"Udev rule file found but content MISMATCH: {rules_path}")
-                logger.warning(f"  Expected {len(expected_lines)} processed lines, Got {len(content_lines)} processed lines from file.")
-
-                # Using repr to make whitespace/control characters visible.
-                # These logs are for debugging and might be verbose, so consider DEBUG level.
-                # For now, use WARNING to ensure visibility if the problem occurs for the user.
-                logger.warning(f"  Expected (processed, sorted, repr): {[repr(line) for line in expected_lines]}")
-                logger.warning(f"  Actual (processed, sorted, repr): {[repr(line) for line in content_lines]}")
-
-                # Find and log the first differing pair of lines
-                mismatch_found = False
-                for i in range(min(len(expected_lines), len(content_lines))):
-                    if expected_lines[i] != content_lines[i]:
-                        logger.warning(f"  First mismatch at line index {i} (after processing & sorting):")
-                        logger.warning(f"    Expected line {i+1}: {repr(expected_lines[i])}")
-                        logger.warning(f"    Actual line {i+1}:   {repr(content_lines[i])}")
-                        mismatch_found = True
-                        break
-
-                if not mismatch_found: # One list is a prefix of the other, but lengths differ
-                    if len(expected_lines) > len(content_lines):
-                        logger.warning(f"  File content is a subset of expected content.")
-                        if len(content_lines) < len(expected_lines): # Ensure index is valid
-                             logger.warning(f"  Next expected line would be: {repr(expected_lines[len(content_lines)])}")
-                    elif len(content_lines) > len(expected_lines):
-                        logger.warning(f"  File content has more lines than expected.")
-                        if len(expected_lines) < len(content_lines): # Ensure index is valid
-                            logger.warning(f"  Next actual line in file is: {repr(content_lines[len(expected_lines)])}")
-
-                return False
-        except IOError as e:
-            logger.error(f"Error reading udev rule file {rules_path}: {e}")
-            return False
+    # _check_udev_rules method removed
 
     def _create_udev_rules(self) -> bool:
         """
@@ -130,20 +75,7 @@ class HeadsetService:
 
     def _connect_hid_device(self) -> bool:
         """Attempts to connect to the headset via HID by trying suitable interfaces."""
-        # First, check udev rules.
-        if not self._check_udev_rules():
-            logger.warning("Udev rules check failed. Attempting to guide user for creation.")
-            self._create_udev_rules() # This will log instructions for the user.
-            # Log a clear message that user action is required.
-            logger.warning("Udev rules were missing or incorrect. "
-                           "Instructions have been provided in the logs. "
-                           "Please follow them (copy rule file, reload udev, replug headset) "
-                           "for the headset to be detected and managed correctly. "
-                           "The application may not find the headset until this is done.")
-            # We don't necessarily return False here immediately,
-            # as some systems might allow access even without the rule,
-            # or the user might fix it and retry without restarting the app.
-            # However, enumeration will likely fail or yield unusable devices.
+        # Udev check removed from here
 
         if self.hid_device: 
             logger.debug("_connect_hid_device: Already connected.")
@@ -220,7 +152,14 @@ class HeadsetService:
         
         self.hid_device = None 
         self.device_path = None
-        logger.debug("_connect_hid_device: No suitable HID device interface found or all attempts to open failed.")
+
+        # If loop finishes and hid_device is still None, no device was connected.
+        # This is where we now trigger the udev rule creation if needed.
+        if self.hid_device is None:
+            logger.warning("Failed to connect to any suitable HID interface for the headset. Udev rules might be missing or incorrect.")
+            self._create_udev_rules() # Prepare instructions and populate self.udev_setup_details
+
+        logger.debug("_connect_hid_device: No suitable HID device interface found or all attempts to open failed (if hid_device is None).")
         return False
 
     def _ensure_hid_connection(self) -> bool:

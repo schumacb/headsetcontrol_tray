@@ -53,7 +53,7 @@ class SteelSeriesTrayApp:
             dialog = QMessageBox()
             dialog.setWindowTitle("Headset Permissions Setup Required")
             dialog.setIcon(QMessageBox.Information) # Or QMessageBox.Warning
-            dialog.setText("Your SteelSeries headset may not work correctly without the proper udev rules.")
+            dialog.setText("Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).")
 
             informative_text_string = f"""A rule file has been prepared at: {temp_file}
 
