@@ -138,29 +138,108 @@ class SystemTrayIcon(QSystemTrayIcon):
                     painter.fillRect(fill_rect, fill_color)
 
             # --- Charging Indicator (Lightning Bolt on top of battery body) ---
-            if self.battery_status_text == "BATTERY_CHARGING":
-                painter.setPen(QColor(Qt.GlobalColor.yellow))
-                painter.setBrush(QColor(Qt.GlobalColor.yellow))
+            if self.is_tray_view_connected and self.battery_status_text == "BATTERY_CHARGING":
+                logger.debug(f"_create_status_icon: Attempting to draw charging indicator. Status: {self.battery_status_text}, Level: {self.battery_level}")
 
-                # Define lightning bolt path relative to battery_body_rect center
-                # These points are for a small, simple bolt.
+                # Explicitly set pen and brush for the bolt
+                bolt_pen_color = QColor(Qt.GlobalColor.black) # Black outline for bolt
+                bolt_fill_color = QColor(Qt.GlobalColor.yellow)
+
+                painter.setPen(bolt_pen_color) # Use a pen for outline
+                painter.pen().setWidth(1) # Thin outline
+                painter.setBrush(bolt_fill_color) # Yellow fill
+
                 bolt_path = QPainterPath()
-                cx = battery_body_rect.center().x() + cap_width // 2 # Shift slightly right due to cap
+                # Center bolt within the battery body, not considering the cap for bolt's own centering
+                cx = battery_body_rect.center().x()
                 cy = battery_body_rect.center().y()
-                bolt_h = battery_body_rect.height() * 0.7
-                bolt_w_half = battery_body_rect.width() * 0.15
 
-                # A simple zig-zag path for the lightning bolt
-                # Start point slightly above center for better visual balance
-                bolt_path.moveTo(cx - bolt_w_half, cy - bolt_h * 0.4)  # Top-leftish
-                bolt_path.lineTo(cx + bolt_w_half, cy - bolt_h * 0.1)  # Mid-rightish
-                bolt_path.lineTo(cx - bolt_w_half * 0.5, cy + bolt_h * 0.1) # Bottom-leftish point of upper part
-                bolt_path.lineTo(cx + bolt_w_half, cy + bolt_h * 0.4) # Bottom-most point
-                bolt_path.lineTo(cx - bolt_w_half, cy + bolt_h * 0.1)  # Mid-leftish
-                bolt_path.lineTo(cx + bolt_w_half * 0.5, cy - bolt_h * 0.1) # Top-rightish point of lower part
+                # Make bolt dimensions more robust, ensuring minimum sizes
+                bolt_total_h = max(4, int(battery_body_rect.height() * 0.6)) # Ensure at least 4px high
+                bolt_segment_h = bolt_total_h / 3
+
+                # Width of the zig-zag points from center line
+                bolt_point_offset_x = max(1, int(battery_body_rect.width() * 0.20)) # Ensure at least 1px offset for width
+
+                # Define a simpler, more standard lightning bolt shape (7 points)
+                #   P1
+                #  /  \
+                # P2--P3
+                #     /
+                #    P4
+                #   /  \
+                #  P5--P6
+                #     /
+                #    P7
+
+                p1y = cy - bolt_total_h / 2
+                p7y = cy + bolt_total_h / 2
+
+                bolt_path.moveTo(cx, p1y)                                    # P1 (Top point)
+                bolt_path.lineTo(cx - bolt_point_offset_x, p1y + bolt_segment_h) # P2
+                bolt_path.lineTo(cx + bolt_point_offset_x, p1y + bolt_segment_h) # P3
+                bolt_path.lineTo(cx, p1y + 2 * bolt_segment_h)               # P4 (Middle point)
+                bolt_path.lineTo(cx + bolt_point_offset_x, p1y + 2 * bolt_segment_h) # P5 (Shifted for typical bolt shape)
+                bolt_path.lineTo(cx - bolt_point_offset_x, p7y)                  # P6
+                bolt_path.lineTo(cx, p7y) # Back to center line bottom P7 (original was P7y, this closes it better)
+                # Corrected path to make it look more like a bolt, P5, P6, P7 sequence.
+                # Let's try a slightly different common path structure:
+                # Top -> Left-Mid -> Right-Top-Mid -> Center-Mid -> Left-Bottom-Mid -> Right-Mid -> Bottom
+                bolt_path.clear() # Clear previous attempt
+                bolt_path.moveTo(cx, cy - bolt_total_h / 2) # Top point
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy) # Left-mid point
+                bolt_path.lineTo(cx + bolt_point_offset_x / 2 , cy) # Right-mid (slightly inwards)
+                bolt_path.lineTo(cx, cy + bolt_total_h / 2) # Bottom point
+                # This is a very simplified 4-point path. Let's refine.
+
+                # Standard 7-point bolt:
+                bolt_path.clear()
+                y_offset = bolt_total_h * 0.1 # Start slightly offset from true center for P4
+                bolt_path.moveTo(cx + bolt_point_offset_x, cy - bolt_total_h*0.5) # P1 - Top Right
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy + y_offset)         # P2 - Mid Left
+                bolt_path.lineTo(cx, cy + y_offset)                              # P3 - Mid Center (towards right)
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy + y_offset + bolt_total_h*0.05 ) #P3.5 to give thickness
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy + bolt_total_h*0.5) # P4 - Bottom Left
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy - y_offset)         # P5 - Mid Right
+                bolt_path.lineTo(cx, cy - y_offset)                              # P6 - Mid Center (towards left)
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy -y_offset - bolt_total_h*0.05) #P6.5 to give thickness
+                bolt_path.closeSubpath() # Close path from P6.5 to P1
+
+                # The previous closeSubpath one was complex. Let's use an even simpler one from an example:
+                # A very simple bolt: top-center, middle-left, middle-right, bottom-center
+                bolt_path.clear();
+                bolt_path.moveTo(cx, battery_body_rect.top() + 1) # Top of battery body
+                bolt_path.lineTo(cx - bolt_point_offset_x, cy )
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy )
+                bolt_path.lineTo(cx, battery_body_rect.bottom() -1 )
+                bolt_path.closeSubpath() # This will make a triangle if not careful.
+
+                # Simpler path based on typical representations:
+                # Points: (0, -h/2), (-w, 0), (0,0), (w,0), (0, h/2), (-w/2, h/2*0.8) ... this is getting too complex.
+
+                # Let's use the test rectangle approach first if this path is problematic.
+                # For now, will try the 7-point bolt from before but ensure it's drawn.
+                # The previous one was:
+                # bolt_path.moveTo(cx - bolt_w_half, cy - bolt_h * 0.4)  # Top-leftish
+                # bolt_path.lineTo(cx + bolt_w_half, cy - bolt_h * 0.1)  # Mid-rightish
+                # bolt_path.lineTo(cx - bolt_w_half * 0.5, cy + bolt_h * 0.1) # Bottom-leftish point of upper part
+                # bolt_path.lineTo(cx + bolt_w_half, cy + bolt_h * 0.4) # Bottom-most point
+                # bolt_path.lineTo(cx - bolt_w_half, cy + bolt_h * 0.1)  # Mid-leftish
+                # bolt_path.lineTo(cx + bolt_w_half * 0.5, cy - bolt_h * 0.1) # Top-rightish point of lower part
+                # bolt_path.closeSubpath()
+                # This path uses bolt_w_half which was very small. Using new bolt_point_offset_x and bolt_total_h
+
+                bolt_path.clear()
+                bolt_path.moveTo(cx - bolt_point_offset_x, cy - bolt_total_h * 0.2)  # P1
+                bolt_path.lineTo(cx + bolt_point_offset_x, cy - bolt_total_h * 0.1)  # P2
+                bolt_path.lineTo(cx, cy + bolt_total_h * 0.5)                       # P3 (Bottom point)
+                bolt_path.lineTo(cx - bolt_point_offset_x / 2, cy - bolt_total_h * 0.15) # P4 (Inner point to P1)
                 bolt_path.closeSubpath()
 
+
                 painter.drawPath(bolt_path)
+                logger.debug(f"Path drawn. Bounds: {bolt_path.boundingRect()}")
+
 
             # --- ChatMix Indicator (Top-Right) ---
             # Show only if battery is not critically low (<=25%)
