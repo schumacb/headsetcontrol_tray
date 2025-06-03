@@ -3,11 +3,23 @@ import hid
 import logging # Standard logging
 import re
 import json
+import os # Added for os.path.exists
+import tempfile # Added for temporary file creation
 from typing import Optional, List, Tuple, Dict, Any
 
 from . import app_config
+from .app_config import STEELSERIES_VID, TARGET_PIDS # Added import
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
+
+# Format VID and PIDs as 4-digit lowercase hex strings
+VID_HEX = f"{STEELSERIES_VID:04x}"
+RULE_LINES = [
+    f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"'
+    for pid in TARGET_PIDS
+]
+UDEV_RULE_CONTENT = "\n".join(RULE_LINES)
+UDEV_RULE_FILENAME = "99-steelseries-headsets.rules"
 
 class HeadsetService:
     """
@@ -19,15 +31,96 @@ class HeadsetService:
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
 
+    def _check_udev_rules(self) -> bool:
+        """Checks for the presence and content of the udev rule file."""
+        rules_path = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
+        logger.debug(f"Checking for udev rule file at: {rules_path}")
+
+        if not os.path.exists(rules_path):
+            logger.warning(f"Udev rule file missing: {rules_path}")
+            return False
+
+        try:
+            with open(rules_path, "r") as f:
+                # Read all lines, strip whitespace from each, and filter out empty lines
+                # Then join them for comparison, assuming order doesn't strictly matter
+                # or that they are written in a consistent order by us.
+                # For a more robust check, one might parse each rule and compare sets of rules.
+                content_lines = sorted([line.strip() for line in f if line.strip()])
+                expected_lines = sorted([line.strip() for line in UDEV_RULE_CONTENT.split('\n') if line.strip()])
+
+            if content_lines == expected_lines:
+                logger.info(f"Udev rule file found and content matches: {rules_path}")
+                return True
+            else:
+                logger.warning(f"Udev rule file found but content MISMATCH: {rules_path}")
+                # For debugging, log the differences
+                logger.warning(f"  Expected (sorted):\n{chr(10).join(expected_lines)}")
+                logger.warning(f"  Actual (sorted):\n{chr(10).join(content_lines)}")
+                # Log differences in a way that's easier to parse if complex
+                # diff = difflib.unified_diff(expected_lines, content_lines, fromfile='expected', tofile='actual', lineterm='')
+                # logger.warning("Detailed diff:\n" + '\n'.join(diff))
+                return False
+        except IOError as e:
+            logger.error(f"Error reading udev rule file {rules_path}: {e}")
+            return False
+
+    def _create_udev_rules(self) -> bool:
+        """
+        Creates the udev rule file in a temporary location and instructs the user.
+        """
+        final_rules_path = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
+        logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path}")
+
+        try:
+            # Create a temporary file
+            # tempfile.NamedTemporaryFile creates files in a secure manner.
+            # We use delete=False because the user needs to copy it.
+            # The 'w' mode is text mode. UDEV_RULE_CONTENT is a string.
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="headsetcontrol_") as tmp_file:
+                tmp_file_path = tmp_file.name
+                tmp_file.write(UDEV_RULE_CONTENT + "\n") # Add a newline for good measure
+
+            logger.info(f"Successfully wrote udev rule content to temporary file: {tmp_file_path}")
+            logger.info("--------------------------------------------------------------------------------")
+            logger.info("ACTION REQUIRED: To complete headset setup, please run the following commands:")
+            logger.info(f"1. Copy the rule file: sudo cp \"{tmp_file_path}\" \"{final_rules_path}\"")
+            logger.info("2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger")
+            logger.info("3. Replug your SteelSeries headset.")
+            logger.info(f"(The temporary file {tmp_file_path} can be deleted after copying.)")
+            logger.info("--------------------------------------------------------------------------------")
+            return True
+        except IOError as e:
+            logger.error(f"Could not write temporary udev rule file: {e}")
+            return False
+        except Exception as e_global: # Catch any other unexpected errors during temp file handling
+            logger.error(f"An unexpected error occurred during temporary udev rule file creation: {e_global}")
+            return False
+
     def _connect_hid_device(self) -> bool:
         """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # First, check udev rules.
+        if not self._check_udev_rules():
+            logger.warning("Udev rules check failed. Attempting to guide user for creation.")
+            self._create_udev_rules() # This will log instructions for the user.
+            # Log a clear message that user action is required.
+            logger.warning("Udev rules were missing or incorrect. "
+                           "Instructions have been provided in the logs. "
+                           "Please follow them (copy rule file, reload udev, replug headset) "
+                           "for the headset to be detected and managed correctly. "
+                           "The application may not find the headset until this is done.")
+            # We don't necessarily return False here immediately,
+            # as some systems might allow access even without the rule,
+            # or the user might fix it and retry without restarting the app.
+            # However, enumeration will likely fail or yield unusable devices.
+
         if self.hid_device: 
             logger.debug("_connect_hid_device: Already connected.")
             return True
         
         logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
         try:
-            devices_enum = hid.enumerate(app_config.STEELSERIES_VID, 0)
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
             logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
         except Exception as e_enum: 
             logger.error(f"Error enumerating HID devices: {e_enum}")
@@ -39,7 +132,7 @@ class HeadsetService:
                          f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
                          f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
                          f"Product='{dev_info.get('product_string', 'N/A')}'")
-            if dev_info['product_id'] in app_config.TARGET_PIDS:
+            if dev_info['product_id'] in TARGET_PIDS: # Use imported TARGET_PIDS
                 logger.debug(f"    Device matches target PID 0x{dev_info['product_id']:04x}. Adding to potential list.")
                 potential_devices_to_try.append(dev_info)
 
