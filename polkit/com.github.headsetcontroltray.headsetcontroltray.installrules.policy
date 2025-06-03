@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+<policyconfig>
+  <action id="com.github.headsetcontroltray.headsetcontroltray.installrules">
+    <description>Install udev rules for SteelSeries headsets</description>
+    <message>Authentication is required to install udev rules for your SteelSeries headset. This allows the application to access the device.</message>
+    <icon_name>audio-headset</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/headsetcontrol-tray/install-udev-rules.sh</annotate>
+  </action>
+</policyconfig>

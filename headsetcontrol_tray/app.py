@@ -1,7 +1,8 @@
 import sys
 import logging
 import os
-from PySide6.QtWidgets import QApplication, QMessageBox # Added QMessageBox
+import subprocess # Added for pkexec
+from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtGui import QIcon
 
 from . import config_manager as cfg_mgr
@@ -44,19 +45,19 @@ class SteelSeriesTrayApp:
         # Check if udev rule setup instructions were generated
         if self.headset_service.udev_setup_details:
             details = self.headset_service.udev_setup_details
+            details = self.headset_service.udev_setup_details
             temp_file = details["temp_file_path"]
             final_file = details["final_file_path"]
             # rule_filename = details["rule_filename"] # Available if needed
 
-            message_title = "Headset Permissions Setup Required"
-            message_string = f"""
-Headset Permissions Setup Required
+            dialog = QMessageBox()
+            dialog.setWindowTitle("Headset Permissions Setup Required")
+            dialog.setIcon(QMessageBox.Information) # Or QMessageBox.Warning
+            dialog.setText("Your SteelSeries headset may not work correctly without the proper udev rules.")
 
-The necessary udev rules for your SteelSeries headset are missing or incorrect.
-A rule file has been prepared for you at:
-{temp_file}
+            informative_text_string = f"""A rule file has been prepared at: {temp_file}
 
-Please perform the following steps in a terminal:
+You can install these rules automatically, or follow these manual steps in a terminal:
 1. Copy the rule file:
    sudo cp "{temp_file}" "{final_file}"
 2. Reload udev rules:
@@ -64,8 +65,78 @@ Please perform the following steps in a terminal:
 3. Replug your headset.
 
 Without these rules, the application might not be able to detect or control your headset.
-            """.strip()
-            QMessageBox.information(None, message_title, message_string)
+"""
+            dialog.setInformativeText(informative_text_string.strip())
+
+            auto_button = dialog.addButton("Install Automatically", QMessageBox.AcceptRole)
+            manual_button = dialog.addButton("Show Manual Instructions Only", QMessageBox.ActionRole)
+            _ = dialog.addButton(QMessageBox.Close) # Standard close button, result not needed for this one
+
+            dialog.setDefaultButton(auto_button)
+            dialog.exec()
+
+            clicked_button_role = dialog.clickedButton()
+            if clicked_button_role == auto_button:
+                logger.info("User chose to install udev rules automatically.")
+                temp_file_path = details["temp_file_path"]
+                final_file_path = details["final_file_path"]
+
+                # Determine path to the helper script
+                # __file__ is headsetcontrol_tray/app.py
+                # We want scripts/install-udev-rules.sh from the repo root
+                current_script_dir = os.path.dirname(__file__)
+                repo_root = os.path.abspath(os.path.join(current_script_dir, ".."))
+                helper_script_path = os.path.join(repo_root, "scripts", "install-udev-rules.sh")
+
+                if not os.path.exists(helper_script_path):
+                    logger.error(f"Helper script not found at {helper_script_path}")
+                    # Fallback: show error to user, perhaps another QMessageBox
+                    QMessageBox.critical(None, "Error", f"Installation script not found at:\n{helper_script_path}\n\nPlease report this issue.")
+                else:
+                    cmd = ["pkexec", helper_script_path, temp_file_path, final_file_path]
+                    logger.info(f"Attempting to execute: {' '.join(cmd)}")
+                    try:
+                        result = subprocess.run(cmd, capture_output=True, text=True, check=False) # check=False to inspect manually
+                        logger.info(f"pkexec process completed. Return code: {result.returncode}")
+                        if result.stdout:
+                            logger.info(f"pkexec stdout:\n{result.stdout.strip()}")
+                        if result.stderr:
+                            # Stderr from pkexec itself might indicate auth failure,
+                            # or stderr from the script if it failed.
+                            logger.warning(f"pkexec stderr:\n{result.stderr.strip()}")
+
+                        if result.returncode == 0:
+                            logger.info("pkexec script executed successfully.")
+                            QMessageBox.information(None, "Success",
+                                                    "Udev rules installed successfully.",
+                                                    "Please replug your headset for the changes to take effect.")
+                        elif result.returncode == 126: # User cancelled pkexec authentication
+                            logger.warning("User cancelled pkexec authentication.")
+                            QMessageBox.warning(None, "Authentication Cancelled",
+                                                "Udev rule installation was cancelled.",
+                                                "Authentication was not provided. The udev rules have not been installed. You can try again or use the manual instructions.")
+                        elif result.returncode == 127: # pkexec authorization failure (e.g. command not in PATH for root, policy issue)
+                            logger.error(f"pkexec authorization failed or error. stderr: {result.stderr.strip()}")
+                            QMessageBox.critical(None, "Authorization Error",
+                                                 "Failed to install udev rules due to an authorization error.",
+                                                 f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges or contact support. You can also try the manual instructions.")
+                        else: # Other non-zero return codes from the helper script
+                            logger.error(f"pkexec helper script failed with code {result.returncode}. stderr: {result.stderr.strip()}")
+                            QMessageBox.critical(None, "Installation Failed",
+                                                 "The udev rule installation script failed.",
+                                                 f"Error (code {result.returncode}): {result.stderr.strip()}\n\nPlease check the output and try the manual instructions, or contact support.")
+
+                    except FileNotFoundError:
+                        logger.error("pkexec command not found. Please ensure PolicyKit agent and pkexec are installed.")
+                        QMessageBox.critical(None, "Error", "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.")
+                    except Exception as e:
+                        logger.error(f"An unexpected error occurred during pkexec execution: {e}")
+                        QMessageBox.critical(None, "Error", f"An unexpected error occurred while trying to run the helper script:\n{e}")
+
+            elif clicked_button_role == manual_button:
+                logger.info("User chose to view manual udev rules instructions.")
+            else: # Includes clicking Close button or pressing Esc
+                logger.info("User closed or cancelled the udev rules dialog.")
         
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on startup by HeadsetService.")
