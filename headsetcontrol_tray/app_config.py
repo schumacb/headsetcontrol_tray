@@ -72,16 +72,74 @@ HARDWARE_EQ_PRESET_NAMES = {
     3: "Preset 4"
 }
 
-# HID Report details (Placeholders - these need to be accurately determined for Arctis Nova 7)
-# These are highly speculative and need verification via USB sniffing or documentation.
-# Report ID for sending commands might be specific.
-# Common report length for SteelSeries devices is 64 bytes or 32 bytes.
-# Example:
-# HID_REPORT_ID_COMMAND = 0x06 # Might be this or another value, or not used if using feature reports
-# HID_CMD_GET_BATTERY = [0xBA, 0x77] # Example command bytes
-# HID_CMD_GET_SIDETONE = [0x51, 0x00] # Example
-# HID_CMD_GET_EQ = [0xEE, 0x00] # Example
-# HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
+# HID Report Details (Placeholders - REQUIRES DISCOVERY AND VERIFICATION)
+# --------------------------------------------------------------------------
+# The following constants are placeholders for direct HID communication with the
+# SteelSeries Arctis Nova 7. These values are UNKNOWN and MUST be determined by
+# analyzing USB HID reports, as outlined in the README.md section
+# '## Discovering HID Report Details for Direct Communication'.
+#
+# Direct HID communication can allow for features not available through
+# `headsetcontrol` or reduce reliance on it.
+#
+# Common properties of HID reports for headsets:
+# - Report ID: Often the first byte of the report. Can be 0 if not used.
+# - Command Bytes: Specific byte sequences that trigger an action or request data.
+# - Data Payload: Bytes following the command that carry parameters or returned values.
+# - Report Length: Total length of the report in bytes (e.g., 32, 64). This can
+#                  sometimes vary depending on the report or interface.
+
+# Example: (These are purely illustrative and NOT real values for Arctis Nova 7)
+# REPORT_ID_FEATURE_OUTPUT = 0x06 # Example: Report ID for sending (Output) Feature reports
+# REPORT_ID_FEATURE_INPUT = 0x07  # Example: Report ID for receiving (Input) Feature reports
+# REPORT_LENGTH_FEATURE = 64      # Example: Length in bytes for feature reports
+
+# --- Placeholders for Arctis Nova 7 ---
+
+# Output Report ID (Host to Device) for sending commands.
+# Might be a specific value (e.g., 0x01 - 0xFF) or 0x00 if not using numbered reports
+# for the primary command interface.
+HID_REPORT_ID_COMMAND_OUTPUT = 0x00 # Placeholder: e.g., 0x06 or specific SteelSeries command report ID
+
+# Input Report ID (Device to Host) for receiving status/data.
+# Often different from the output report ID.
+HID_REPORT_ID_DATA_INPUT = 0x00 # Placeholder: e.g., 0x07 or specific SteelSeries data report ID
+
+# General length in bytes for command/data reports.
+# SteelSeries devices often use 32 or 64 bytes. This might need to be specific
+# per command or report ID.
+HID_REPORT_LENGTH = 64 # Placeholder: Common length, verify per report.
+
+# Specific command sequences (byte arrays).
+# These would be sent as part of the data payload, possibly after the Report ID.
+
+# Example: Get Battery Status
+# This command would be sent to the device.
+HID_CMD_GET_BATTERY = [0xBA, 0x77] # Placeholder: Entirely speculative command bytes
+# Expected response format for battery:
+# - Might be in a specific byte of the input report.
+# - Might include report ID, command echo, level, charging status.
+# HID_RESPONSE_BATTERY_BYTE_INDEX = 2 # Placeholder: e.g., byte index for battery level
+# HID_RESPONSE_BATTERY_CHARGING_BIT = 0x80 # Placeholder: e.g., a bit indicating charging
+
+# Example: Get Sidetone Status
+HID_CMD_GET_SIDETONE = [0x51, 0x00] # Placeholder
+# Expected response format for sidetone:
+# HID_RESPONSE_SIDETONE_BYTE_INDEX = 3 # Placeholder
+
+# Example: Set Sidetone Level
+# This would likely include the sidetone level as a parameter.
+# e.g., [0x51, 0x01, level_byte]
+HID_CMD_SET_SIDETONE_PREFIX = [0x51, 0x01] # Placeholder: Command prefix, level to be appended
+
+# Example: Get EQ settings
+HID_CMD_GET_EQ = [0xEE, 0x00] # Placeholder
+
+# Example: Get Active EQ Preset ID
+HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Placeholder
+
+# Note: Some features might use standard HID Usages (e.g., Telephony page for mute)
+# rather than custom vendor-defined reports. This also needs investigation.
 
 # REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
 # Kept for potential other uses or if a fixed interval is ever needed again.

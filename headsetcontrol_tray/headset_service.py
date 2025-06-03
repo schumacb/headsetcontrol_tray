@@ -234,6 +234,11 @@ class HeadsetService:
         Writes a report to the HID device.
         Prepends report_id if it's > 0.
         Pads data to report_length.
+
+        The `report_id` is prefixed to `data` if `report_id > 0`.
+        The combined message is then passed to `self.hid_device.write()`.
+        This method is intended for sending command/control data to the headset
+        once the correct report IDs and data structures are known.
         """
         if not self._ensure_hid_connection() or not self.hid_device: # Check low-level first
             logger.warning("_write_hid_report: No HID device connected (low-level).")
@@ -242,6 +247,9 @@ class HeadsetService:
         # Additional check for functional connection might be needed if headsetcontrol is primary
         # For now, assume if HID is open, writes can be attempted. Failures will be caught.
 
+        # TODO: Determine if report_length padding is needed here or if hid.write handles it.
+        # For feature reports, the report_id is often included as the first byte of the buffer passed to hid.write().
+        # For output reports on an interrupt OUT endpoint, it might also be the first byte, or handled by the endpoint itself.
         payload = bytes(data)
         if report_id > 0: 
             final_report = bytes([report_id]) + payload
@@ -266,6 +274,15 @@ class HeadsetService:
         """
         Reads a report from the HID device.
         If report_id_to_request is provided, it's for Feature Reports.
+
+        If `report_id_to_request` is provided (typically for Feature Reports), it is sent
+        to the device using `self.hid_device.get_feature_report()`. Otherwise,
+        `self.hid_device.read()` is used for Input Reports (typically from Interrupt IN endpoint).
+
+        This method is intended for reading status, configuration, or responses
+        from the headset once report IDs and data structures are known.
+        The interpretation of the returned `List[int]` depends on the specific
+        report being read.
         """
         if not self._ensure_hid_connection() or not self.hid_device: # Check low-level first
             logger.warning("_read_hid_report: No HID device connected (low-level).")
@@ -273,7 +290,35 @@ class HeadsetService:
         
         logger.debug(f"Reading HID report: ReportIDToRequest={report_id_to_request}, Length={report_length}, Timeout={timeout_ms}ms")
         try:
-            data = self.hid_device.read(report_length, timeout_ms=timeout_ms) # Might fail
+            data: Optional[List[int]] = None
+            if report_id_to_request is not None:
+                # For Feature Reports, report_id_to_request usually includes the actual report ID.
+                # The buffer size should be report_length + 1 if report_id_to_request is prepended by some libraries,
+                # but python-hid/hidapi expects the report_id as a separate first argument for get_feature_report.
+                # However, hid.Device does not have get_feature_report. This needs hid.FeatureReport(device, id)
+                # This part of python-hid is a bit confusing.
+                # For now, assuming 'read' is for interrupt/input reports and feature reports need more specific handling.
+                # If we were to use get_feature_report, it might look something like:
+                # report_data = bytearray([report_id_to_request] + [0] * report_length)
+                # bytes_read = self.hid_device.get_feature_report(report_data, len(report_data))
+                # data = list(report_data[:bytes_read])
+                # This needs to be verified with how python-hid handles feature reports.
+                # For now, we'll assume report_id_to_request means we are expecting an Input report
+                # that *starts* with this ID if it's a numbered report.
+                # The current hid.Device.read() reads from an IN endpoint.
+                logger.debug(f"Attempting to read Input report, expecting report ID {report_id_to_request} if numbered.")
+                raw_data = self.hid_device.read(report_length, timeout_ms=timeout_ms)
+                if raw_data and report_id_to_request is not None and raw_data[0] == report_id_to_request:
+                    data = raw_data[1:] # Strip the report ID if it's present and matches
+                    logger.debug(f"Stripped report ID {report_id_to_request} from received data.")
+                elif raw_data and report_id_to_request is None:
+                    data = raw_data # Unnumbered report or ID stripping not requested
+                else:
+                    data = raw_data # Return raw data if ID doesn't match or not expecting one
+            else:
+                # Standard input report read
+                data = self.hid_device.read(report_length, timeout_ms=timeout_ms)
+
             if data:
                 logger.debug(f"HID read data: {bytes(data).hex()}")
                 return list(data)
@@ -374,6 +419,60 @@ class HeadsetService:
 
         return None
 
+    # --- Hypothetical HID-based methods (for future implementation) ---
+
+    def get_battery_level_hid(self) -> Optional[int]:
+        """
+        Hypothetical: Gets battery level via direct HID communication.
+        This method is NOT FUNCTIONAL and serves as a template.
+        Requires app_config.HID_CMD_GET_BATTERY and related HID constants
+        to be correctly defined.
+        """
+        logger.info("Attempting get_battery_level_hid (currently non-functional placeholder).")
+        if not self._ensure_hid_connection() or not self.hid_device:
+            logger.warning("get_battery_level_hid: No HID device connected.")
+            return None
+
+        # 1. Prepare the command (example from app_config placeholders)
+        # Ensure app_config.HID_REPORT_ID_COMMAND_OUTPUT and app_config.HID_CMD_GET_BATTERY are defined.
+        # command_to_send = app_config.HID_CMD_GET_BATTERY
+        # report_id_output = app_config.HID_REPORT_ID_COMMAND_OUTPUT
+        # report_length = app_config.HID_REPORT_LENGTH
+
+        # logger.debug(f"get_battery_level_hid: Sending command {command_to_send} with report ID {report_id_output}")
+        # success_write = self._write_hid_report(report_id_output, command_to_send, report_length)
+
+        # if not success_write:
+        #     logger.warning("get_battery_level_hid: Failed to write HID command.")
+        #     return None
+
+        # 2. Read the response (example)
+        # Ensure app_config.HID_REPORT_ID_DATA_INPUT is defined.
+        # report_id_input = app_config.HID_REPORT_ID_DATA_INPUT # Or None if not expecting a specific ID prefix
+        # response_data = self._read_hid_report(report_id_to_request=report_id_input,
+        #                                       report_length=report_length,
+        #                                       timeout_ms=1000)
+
+        # if not response_data:
+        #     logger.warning("get_battery_level_hid: No response from HID device.")
+        #     return None
+
+        # 3. Parse the response (highly speculative)
+        # Example: Assuming battery level is in the Nth byte, after the (optional) report ID.
+        # response_offset = 0 # if report_id_input was None or _read_hid_report strips it
+        # if response_data and len(response_data) > app_config.HID_RESPONSE_BATTERY_BYTE_INDEX + response_offset:
+        #     battery_level = response_data[app_config.HID_RESPONSE_BATTERY_BYTE_INDEX + response_offset]
+        #     # Optionally, parse charging status from another byte/bit
+        #     # charging_status_byte = response_data[app_config.HID_RESPONSE_BATTERY_CHARGING_BYTE_INDEX + response_offset]
+        #     # is_charging = (charging_status_byte & app_config.HID_RESPONSE_BATTERY_CHARGING_BIT) != 0
+        #     logger.info(f"get_battery_level_hid: Parsed battery level (hypothetical): {battery_level}%")
+        #     return battery_level
+        # else:
+        #    logger.warning(f"get_battery_level_hid: Invalid or too short response: {response_data}")
+
+        logger.warning("get_battery_level_hid: Logic is placeholder and not implemented.")
+        return None
+
     def get_chatmix_value(self) -> Optional[int]:
         if not self.is_device_connected():
             logger.debug("get_chatmix_value: Device not connected, skipping.")
@@ -434,6 +533,7 @@ class HeadsetService:
         return None
 
     def get_sidetone_level(self) -> Optional[int]:
+        logger.debug("get_sidetone_level: Using headsetcontrol. Direct HID implementation pending configuration.")
         if not self.is_device_connected():
             logger.debug("get_sidetone_level: Device not connected, skipping.")
             return None
@@ -450,6 +550,7 @@ class HeadsetService:
         return None 
 
     def set_sidetone_level(self, level: int) -> bool:
+        logger.debug("set_sidetone_level: Using headsetcontrol. Direct HID implementation pending configuration.")
         if not self.is_device_connected():
             logger.warning("set_sidetone_level: Device not connected, cannot set.")
             return False
@@ -496,6 +597,7 @@ class HeadsetService:
         return None
 
     def set_eq_values(self, values: List[int]) -> bool:
+        logger.debug("set_eq_values: Using headsetcontrol. Direct HID implementation pending configuration.")
         if not self.is_device_connected():
             logger.warning("set_eq_values: Device not connected, cannot set.")
             return False
@@ -527,6 +629,7 @@ class HeadsetService:
         return None
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
+        logger.debug("set_eq_preset_id: Using headsetcontrol. Direct HID implementation pending configuration.")
         if not self.is_device_connected():
             logger.warning("set_eq_preset_id: Device not connected, cannot set.")
             return False
