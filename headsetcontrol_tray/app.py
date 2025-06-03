@@ -107,30 +107,44 @@ Without these rules, the application might not be able to detect or control your
 
                         if result.returncode == 0:
                             logger.info("pkexec script executed successfully.")
-                            QMessageBox.information(None, "Success",
-                                                    "Udev rules installed successfully.",
-                                                    "Please replug your headset for the changes to take effect.")
+                            feedback_dialog = QMessageBox()
+                            feedback_dialog.setIcon(QMessageBox.Information)
+                            feedback_dialog.setWindowTitle("Success")
+                            feedback_dialog.setText("Udev rules installed successfully.")
+                            feedback_dialog.setInformativeText("Please replug your headset for the changes to take effect.")
+                            feedback_dialog.exec()
                         elif result.returncode == 126: # User cancelled pkexec authentication
                             logger.warning("User cancelled pkexec authentication.")
-                            QMessageBox.warning(None, "Authentication Cancelled",
-                                                "Udev rule installation was cancelled.",
-                                                "Authentication was not provided. The udev rules have not been installed. You can try again or use the manual instructions.")
-                        elif result.returncode == 127: # pkexec authorization failure (e.g. command not in PATH for root, policy issue)
+                            feedback_dialog = QMessageBox()
+                            feedback_dialog.setIcon(QMessageBox.Warning)
+                            feedback_dialog.setWindowTitle("Authentication Cancelled")
+                            feedback_dialog.setText("Udev rule installation was cancelled.")
+                            feedback_dialog.setInformativeText("Authentication was not provided. The udev rules have not been installed. You can try again or use the manual instructions.")
+                            feedback_dialog.exec()
+                        elif result.returncode == 127: # pkexec authorization failure
                             logger.error(f"pkexec authorization failed or error. stderr: {result.stderr.strip()}")
-                            QMessageBox.critical(None, "Authorization Error",
-                                                 "Failed to install udev rules due to an authorization error.",
-                                                 f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges or contact support. You can also try the manual instructions.")
+                            feedback_dialog = QMessageBox()
+                            feedback_dialog.setIcon(QMessageBox.Critical)
+                            feedback_dialog.setWindowTitle("Authorization Error")
+                            feedback_dialog.setText("Failed to install udev rules due to an authorization error.")
+                            feedback_dialog.setInformativeText(f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges or contact support. You can also try the manual instructions.")
+                            feedback_dialog.exec()
                         else: # Other non-zero return codes from the helper script
                             logger.error(f"pkexec helper script failed with code {result.returncode}. stderr: {result.stderr.strip()}")
-                            QMessageBox.critical(None, "Installation Failed",
-                                                 "The udev rule installation script failed.",
-                                                 f"Error (code {result.returncode}): {result.stderr.strip()}\n\nPlease check the output and try the manual instructions, or contact support.")
+                            feedback_dialog = QMessageBox()
+                            feedback_dialog.setIcon(QMessageBox.Critical)
+                            feedback_dialog.setWindowTitle("Installation Failed")
+                            feedback_dialog.setText("The udev rule installation script failed.")
+                            feedback_dialog.setInformativeText(f"Error (code {result.returncode}): {result.stderr.strip()}\n\nPlease check the output and try the manual instructions, or contact support.")
+                            feedback_dialog.exec()
 
                     except FileNotFoundError:
                         logger.error("pkexec command not found. Please ensure PolicyKit agent and pkexec are installed.")
+                        # This specific error still uses a static call, which is fine for a critical app error.
                         QMessageBox.critical(None, "Error", "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.")
                     except Exception as e:
                         logger.error(f"An unexpected error occurred during pkexec execution: {e}")
+                        # Also fine to use a static call for unexpected critical errors.
                         QMessageBox.critical(None, "Error", f"An unexpected error occurred while trying to run the helper script:\n{e}")
 
             elif clicked_button_role == manual_button:
