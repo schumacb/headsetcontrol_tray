@@ -280,6 +280,9 @@ class HeadsetService:
 
     def _get_headset_device_json(self) -> Optional[Dict[str, Any]]:
         """Gets the first device object from 'headsetcontrol -o json'."""
+        if not self.headsetcontrol_available:
+            logger.debug("_get_headset_device_json: headsetcontrol is not available. Skipping execution.")
+            return None
         logger.debug("Trying CLI method for status ('headsetcontrol -o json').")
         success_json, output_json = self._execute_headsetcontrol(['-o', 'json'])
         if success_json:
@@ -375,7 +378,13 @@ class HeadsetService:
                 # that *starts* with this ID if it's a numbered report.
                 # The current hid.Device.read() reads from an IN endpoint.
                 logger.debug(f"Attempting to read Input report, expecting report ID {report_id_to_request} if numbered.")
-                raw_data = self.hid_device.read(report_length, timeout_ms=timeout_ms)
+                # The python-hid hid.Device.read(max_length) is a blocking call.
+                # Timeouts are generally handled by the underlying OS/hidapi library's default
+                # blocking behavior. If specific timeout control is needed, it's often set
+                # when the device is opened (e.g., hid.device.open(..., blocking=False) and then poll)
+                # or via other device-specific calls if the wrapper exposes them, not directly in read().
+                # The `timeout_ms` parameter originally here was causing an error.
+                raw_data = self.hid_device.read(report_length) # Might fail or block
                 if raw_data and report_id_to_request is not None and raw_data[0] == report_id_to_request:
                     data = raw_data[1:] # Strip the report ID if it's present and matches
                     logger.debug(f"Stripped report ID {report_id_to_request} from received data.")
@@ -385,7 +394,13 @@ class HeadsetService:
                     data = raw_data # Return raw data if ID doesn't match or not expecting one
             else:
                 # Standard input report read
-                data = self.hid_device.read(report_length, timeout_ms=timeout_ms)
+                # The python-hid hid.Device.read(max_length) is a blocking call.
+                # Timeouts are generally handled by the underlying OS/hidapi library's default
+                # blocking behavior. If specific timeout control is needed, it's often set
+                # when the device is opened (e.g., hid.device.open(..., blocking=False) and then poll)
+                # or via other device-specific calls if the wrapper exposes them, not directly in read().
+                # The `timeout_ms` parameter originally here was causing an error.
+                data = self.hid_device.read(report_length) # Might fail or block
 
             if data:
                 logger.debug(f"HID read data: {bytes(data).hex()}")
