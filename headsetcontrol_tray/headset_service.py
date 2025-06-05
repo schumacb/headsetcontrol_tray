@@ -71,6 +71,8 @@ class HeadsetService:
         self.udev_setup_details = None # Initialize details for udev rule setup
         self.headsetcontrol_available: bool = False # Default to False
         self._last_hid_only_connection_logged_status: Optional[bool] = None
+        self._last_hid_raw_read_data: Optional[List[int]] = None
+        self._last_hid_parsed_status: Optional[Dict[str, Any]] = None
 
         # Check for headsetcontrol availability
         try:
@@ -525,55 +527,61 @@ class HeadsetService:
         """
         Gets and parses the combined status report (battery, chatmix)
         via direct HID communication.
+        Logs raw data and parsed status at DEBUG level only if they change.
         """
-        logger.debug("Attempting _get_parsed_status_hid.") # Changed from info to debug for less noise
+        logger.debug("Attempting _get_parsed_status_hid.")
         if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_get_parsed_status_hid: No HID device connected or connection failed.")
+            # Reset last known states if connection is lost then re-established, to ensure fresh logging
+            self._last_hid_raw_read_data = None
+            self._last_hid_parsed_status = None
             return None
 
-        # 1. Send the status request command.
-        # Based on HID_RESEARCH.md and headsetcontrol C code:
-        # Most commands (like GET_STATUS) starting with HID_REPORT_FIXED_FIRST_BYTE (0x00)
-        # are likely sent as unnumbered reports or where Report ID 0 is implicit.
-        # _write_hid_report with report_id=0 sends the data payload as-is.
         command_payload = app_config.HID_CMD_GET_STATUS
         success_write = self._write_hid_report(
-            report_id=0, # Assuming 0x00 is part of data for unnumbered/implicit ID 0 report
+            report_id=0,
             data=command_payload,
-            report_length=len(command_payload) # Send minimal length, device should ignore padding if any
+            report_length=len(command_payload)
         )
 
         if not success_write:
             logger.warning("_get_parsed_status_hid: Failed to write HID status request command.")
-            # self.close() # Consider if closing is appropriate on write failure
             return None
 
-        # 2. Read the response.
-        # The response is an 8-byte input report.
-        response_data = self._read_hid_report(
-            report_id_to_request=None, # Not a Feature Report, reading an Input report.
-                                       # If input reports were numbered and started with an ID (e.g. 0x00),
-                                       # _read_hid_report's logic for stripping it would apply.
-                                       # For Arctis Nova 7, status response doesn't seem to be prefixed by its own ID.
-            report_length=app_config.HID_INPUT_REPORT_LENGTH_STATUS,
-            timeout_ms=1000  # Increased timeout slightly for reliability
-        )
+        response_data = self.hid_device.read(app_config.HID_INPUT_REPORT_LENGTH_STATUS)
 
         if not response_data:
             logger.warning("_get_parsed_status_hid: No response data from HID device.")
-            # self.close() # Consider closing if read fails critically
+            # If we get no data, it's a change from having data, so clear last known states.
+            if self._last_hid_raw_read_data is not None: # Log change if we previously had data
+                logger.debug("HID read data changed: No data received (previously had data).")
+            self._last_hid_raw_read_data = None
+            self._last_hid_parsed_status = None
             return None
 
         if len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
             logger.warning(
                 f"_get_parsed_status_hid: Incomplete response. Expected {app_config.HID_INPUT_REPORT_LENGTH_STATUS} bytes, got {len(response_data)}: {response_data}"
             )
+            # Treat incomplete response as a change/error state for logging.
+            self._last_hid_raw_read_data = None
+            self._last_hid_parsed_status = None
             return None
 
-        # 3. Parse the response.
-        parsed_status = {'headset_online': True} # Assume online if we got this far
+        # Conditional logging for raw HID data
+        # Convert response_data to list for comparison, as hid.Device.read() returns bytes/List[int] depending on platform/version.
+        current_raw_data_list = list(response_data)
+        if current_raw_data_list != self._last_hid_raw_read_data:
+            logger.debug(f"HID read data: {bytes(response_data).hex()}") # Log the hex string for readability
+            self._last_hid_raw_read_data = current_raw_data_list
+        else:
+            logger.debug("HID read data: No change since last report.")
 
-        # Battery Level
+
+        # ... (parsing logic remains the same)
+        parsed_status = {'headset_online': True}
+
+        raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
         elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
@@ -586,37 +594,42 @@ class HeadsetService:
 
         # Battery Status
         raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
-        if raw_battery_status == 0x00:  # Offline / Not connected
-            logger.info("_get_parsed_status_hid: Headset reported offline by status byte.")
-            # This is a specific state reported by the headset itself.
+        if raw_battery_status == 0x00:
+            # This typically means headset is off or dongle is connected but headset is not.
+            # It's a distinct state from simply failing to read.
+            logger.info("_get_parsed_status_hid: Headset reported offline by status byte (0x00).")
             parsed_status['battery_charging'] = None
-            parsed_status['headset_online'] = False # Explicitly set based on device report
-            # Do not return None here, let the caller decide based on 'headset_online'
-        elif raw_battery_status == 0x01:  # Charging
+            parsed_status['headset_online'] = False
+            # If it's offline, other values might not be meaningful.
+            parsed_status['battery_percent'] = None # Often shown as 0 or N/A when offline
+            parsed_status['chatmix'] = None
+        elif raw_battery_status == 0x01:
             parsed_status['battery_charging'] = True
-        else:  # Discharging / Available (e.g., 0x02, 0x03, etc.)
+            # logger.debug("_get_parsed_status_hid: Headset charging (status byte 0x01).") # Example of too much noise
+        else:
             parsed_status['battery_charging'] = False
+            # logger.debug(f"_get_parsed_status_hid: Headset not charging (status byte {raw_battery_status:#02x}).")
 
-        # ChatMix (only parse if headset is considered online)
         if parsed_status['headset_online']:
             raw_game = response_data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE]
             raw_chat = response_data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE]
-
-            # Mapping from headsetcontrol: map(value, 0, 100, 0, 64) for game, map(value, 0, 100, 0, -64) for chat
-            # Approximate linear map: (val / 100.0) * 64.0
-            # Ensure raw_game and raw_chat are within 0-100 to prevent unexpected values.
             raw_game_clamped = max(0, min(100, raw_game))
             raw_chat_clamped = max(0, min(100, raw_chat))
-
             mapped_game = int((raw_game_clamped / 100.0) * 64.0)
-            mapped_chat = int((raw_chat_clamped / 100.0) * -64.0) # chat part is negative in formula
+            mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
             chatmix_value = 64 - (mapped_chat + mapped_game)
-            parsed_status['chatmix'] = max(0, min(128, chatmix_value)) # Clamp to 0-128
-        else:
-            parsed_status['chatmix'] = None
+            parsed_status['chatmix'] = max(0, min(128, chatmix_value))
+        else: # Already set chatmix to None if offline
+            pass
 
-        logger.debug(f"_get_parsed_status_hid: Parsed status: {parsed_status}")
-        return parsed_status
+        # Conditional logging for parsed status
+        if parsed_status != self._last_hid_parsed_status:
+            logger.debug(f"_get_parsed_status_hid: Parsed status: {parsed_status}")
+            self._last_hid_parsed_status = parsed_status.copy() # Store a copy
+        else:
+            logger.debug("_get_parsed_status_hid: Parsed status: No change since last report.")
+
+        return parsed_status # Return the current parsed_status regardless of whether it was logged
 
     # Add example public methods that would use _get_parsed_status_hid()
     def get_battery_level_hid(self) -> Optional[int]:
