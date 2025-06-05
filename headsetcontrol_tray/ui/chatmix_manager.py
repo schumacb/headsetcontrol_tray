@@ -209,4 +209,4 @@ class ChatMixManager:
 
             logger.debug(f"Processing stream: ID={stream_id}, AppName='{props.get('application.name', '')}', "
                          f"Binary='{props.get('application.process.binary', '')}', Type={stream_type}, TargetVol={current_target_volume:.2f}")
-            self._set_stream_volume(stream_id, current_target_volume, num_channels)
+            self._set_stream_volume(stream_id, num_channels, current_target_volume)
