@@ -859,33 +859,158 @@ class HeadsetService:
             logger.warning(f"set_inactive_timeout: Direct HID failed for {clamped_minutes} minutes and headsetcontrol is not available.")
             return False
 
-    def get_current_eq_values(self) -> Optional[List[int]]:
+    def _set_eq_values_hid(self, float_values: List[float]) -> bool:
+        """
+        Sets custom EQ bands via direct HID communication.
+        'float_values' is a list of 10 float values, typically from -10.0 to +10.0.
+        Returns True on success, False on failure.
+        """
+        logger.debug(f"Attempting _set_eq_values_hid with bands: {float_values}")
+        if not self._ensure_hid_connection() or not self.hid_device:
+            logger.warning("_set_eq_values_hid: No HID device connected or connection failed.")
+            return False
+
+        if len(float_values) != 10:
+            logger.error(f"_set_eq_values_hid: Invalid number of EQ bands. Expected 10, got {len(float_values)}.")
+            return False
+
+        # Construct the HID report payload
+        # Report: { 0x00, 0x33, b0, b1, ..., b9, 0x00 } (total 13 bytes of payload data for this specific command, excluding padding for 64 byte report)
+        # where bX = int(0x14 + float_value_X)
+        command_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX)  # Starts with [0x00, 0x33]
+
+        for val in float_values:
+            # Clamp float_value to typical effective range (e.g. -10 to 10, matching headsetcontrol C code for Arctis Nova 7)
+            # to prevent issues with byte conversion if values are wildly out of expected bounds.
+            # The C code implies band_value is float, and (0x14 + band_value) is cast to uint8_t.
+            # Min byte: 0x14 - 10 = 20 - 10 = 10 (0x0A)
+            # Max byte: 0x14 + 10 = 20 + 10 = 30 (0x1E)
+            clamped_val = max(-10.0, min(10.0, val))
+            byte_value = int(0x14 + clamped_val)
+            # Ensure it fits in a byte if clamping wasn't perfect or range is different
+            byte_value = max(0, min(255, byte_value))
+            command_payload.append(byte_value)
+
+        # Append the terminating 0x00 byte for the EQ command structure
+        # The total data related to EQ command: prefix (2 bytes) + 10 bands (10 bytes) + terminator (1 byte) = 13 bytes.
+        # From headsetcontrol C: data[i+2] for bands, then data[settings->size + 2] = 0x0 (using 0-indexed i for bands)
+        # data[0]=0x00, data[1]=0x33, data[2]=band0, ..., data[11]=band9, data[12]=0x00
+        if len(command_payload) == 12: # After prefix and 10 bands
+            command_payload.append(0x00) # Terminator
+        else:
+            # This case should not be reached if input validation (len(float_values) == 10) is correct.
+            logger.error(f"_set_eq_values_hid: Error constructing EQ payload. Length before terminator: {len(command_payload)}")
+            return False
+
+        logger.debug(f"_set_eq_values_hid: Constructed payload: {command_payload}")
+
+        success = self._write_hid_report(
+            report_id=0, # Assuming HID_CMD_SET_EQ_BANDS_PREFIX's first byte (0x00) is part of data for unnumbered/implicit ID 0 report
+            data=command_payload,
+            report_length=len(command_payload) # Send actual payload length; device/driver handles padding to 64 bytes if necessary for endpoint.
+        )
+
+        if success:
+            logger.info(f"_set_eq_values_hid: Successfully sent custom EQ bands: {float_values}")
+        else:
+            logger.warning(f"_set_eq_values_hid: Failed to send custom EQ bands.")
+        return success
+
+    def get_current_eq_values(self) -> Optional[List[float]]: # Changed return hint to List[float] for consistency
+        logger.debug("get_current_eq_values: Attempting to get current EQ values.")
+        if not self.headsetcontrol_available:
+            logger.warning("get_current_eq_values: `headsetcontrol` is not available. Cannot determine current EQ values via HID with current knowledge.")
+            return None
+
         if not self.is_device_connected():
             logger.debug("get_current_eq_values: Device not connected, skipping.")
             return None
-        # This would require a specific headsetcontrol command or HID report if supported
-        logger.debug("Placeholder: HID get_current_eq_values() / or needs headsetcontrol support")
+
+        # This feature in headsetcontrol -o json provides the 10 band values.
+        device_data = self._get_headset_device_json()
+        if device_data and "equalizer" in device_data and isinstance(device_data["equalizer"], dict):
+            eq_info = device_data["equalizer"]
+            if "values" in eq_info and isinstance(eq_info["values"], list):
+                # Ensure all values are floats, as headsetcontrol JSON provides them as numbers.
+                try:
+                    float_values = [float(v) for v in eq_info["values"]]
+                    if len(float_values) == 10:
+                        logger.verbose(f"Current EQ values from CLI (-o json): {float_values}")
+                        return float_values
+                    else:
+                        logger.warning(f"EQ values from JSON do not contain 10 bands: {float_values}")
+                except ValueError:
+                    logger.warning(f"Could not convert EQ values from JSON to float: {eq_info['values']}")
+            else:
+                logger.warning(f"'values' key missing or not a list in eq_info (JSON): {eq_info}")
+        elif not device_data and self.headsetcontrol_available: # Only warn about missing device_data if we expected it
+             logger.warning("get_current_eq_values: Could not get device_data for JSON via headsetcontrol.")
         return None
 
-    def set_eq_values(self, values: List[int]) -> bool:
-        logger.debug("set_eq_values: Using headsetcontrol. Direct HID implementation pending configuration.")
-        if not self.is_device_connected():
-            logger.warning("set_eq_values: Device not connected, cannot set.")
+    def set_eq_values(self, values: List[float]) -> bool: # Changed List[int] to List[float]
+        logger.debug(f"set_eq_values: Attempting to set EQ bands to {values} via direct HID.")
+
+        # Input validation (e.g. length) is handled by _set_eq_values_hid
+        if self._set_eq_values_hid(values):
+            # If config saving is desired after setting EQ, it would go here.
+            # For example, if these values should become the new "Custom" preset.
+            # self.config_manager.set_custom_eq_curve(app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME, values)
+            # logger.info(f"Saved EQ values as '{app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME}' preset in config.")
+            return True
+
+        if self.headsetcontrol_available:
+            logger.warning(f"set_eq_values: Failed to set EQ bands via HID. Falling back to headsetcontrol.")
+            if not self.is_device_connected():
+                logger.warning("set_eq_values (fallback): Device not connected, cannot set via CLI.")
+                return False
+
+            logger.info(f"Setting EQ values to: {values} (fallback to headsetcontrol CLI).")
+            if not (isinstance(values, list) and len(values) == 10): # Original validation
+                logger.error(f"Invalid EQ values provided for headsetcontrol CLI: {values}")
+                return False
+            # headsetcontrol CLI expects float values as strings, space or comma separated
+            values_str = ",".join(map(str, values))
+            success_hc, _ = self._execute_headsetcontrol(['-e', values_str])
+            if not success_hc:
+                 logger.error(f"Failed to set EQ values using headsetcontrol: {values_str}")
+            return success_hc
+        else:
+            logger.warning(f"set_eq_values: Direct HID failed for EQ bands {values} and headsetcontrol is not available.")
             return False
-        logger.info(f"Setting EQ values to: {values}")
-        if not (isinstance(values, list) and len(values) == 10):
-            logger.error(f"Invalid EQ values provided: {values}")
+
+    def _set_eq_preset_hid(self, preset_id: int) -> bool:
+        """
+        Sets a hardware EQ preset via direct HID communication by sending its specific band values.
+        'preset_id' is typically 0-3.
+        Returns True on success, False on failure.
+        """
+        logger.debug(f"Attempting _set_eq_preset_hid for preset ID: {preset_id}")
+
+        if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
+            logger.error(f"_set_eq_preset_hid: Invalid preset ID: {preset_id}. Not found in ARCTIS_NOVA_7_HW_PRESETS.")
             return False
-        values_str = ",".join(map(str, values))
-        success, _ = self._execute_headsetcontrol(['-e', values_str])
-        if not success:
-             logger.error(f"Failed to set EQ values: {values_str}")
-        return success
+
+        preset_data = app_config.ARCTIS_NOVA_7_HW_PRESETS[preset_id]
+        float_values = preset_data.get("values")
+
+        if not float_values or len(float_values) != 10:
+            logger.error(f"_set_eq_preset_hid: Malformed preset data for ID {preset_id} in app_config.ARCTIS_NOVA_7_HW_PRESETS.")
+            return False
+
+        logger.info(f"_set_eq_preset_hid: Setting hardware preset '{preset_data.get('name', 'Unknown')}' (ID: {preset_id}) using its defined bands.")
+        return self._set_eq_values_hid(float_values)
 
     def get_current_eq_preset_id(self) -> Optional[int]:
-        if not self.is_device_connected():
+        logger.debug("get_current_eq_preset_id: Attempting to get current HW EQ preset ID.")
+        if not self.headsetcontrol_available:
+            logger.warning("get_current_eq_preset_id: `headsetcontrol` is not available. Cannot determine current EQ preset ID via HID with current knowledge.")
+            return None
+
+        # Existing logic that uses _get_headset_device_json()
+        if not self.is_device_connected(): # This check now also considers headsetcontrol_available
             logger.debug("get_current_eq_preset_id: Device not connected, skipping.")
             return None
+
         device_data = self._get_headset_device_json()
         if device_data and "equalizer" in device_data and isinstance(device_data["equalizer"], dict):
             eq_info = device_data["equalizer"]
@@ -895,23 +1020,36 @@ class HeadsetService:
                 return preset_id
             else:
                 logger.warning(f"'preset' key missing or not int in eq_info (JSON): {eq_info}")
-        elif not device_data:
-            logger.warning("get_current_eq_preset_id: Could not get device_data for JSON.")
+        elif not device_data and self.headsetcontrol_available: # Only warn about missing device_data if we expected it
+            logger.warning("get_current_eq_preset_id: Could not get device_data for JSON via headsetcontrol.")
         return None
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
-        logger.debug("set_eq_preset_id: Using headsetcontrol. Direct HID implementation pending configuration.")
-        if not self.is_device_connected():
-            logger.warning("set_eq_preset_id: Device not connected, cannot set.")
+        logger.debug(f"set_eq_preset_id: Attempting to set HW EQ preset to ID {preset_id} via direct HID.")
+
+        # Basic validation, though _set_eq_preset_hid will also check against defined presets
+        if not (0 <= preset_id <= 3): # Common range for 4 hardware presets
+            logger.error(f"set_eq_preset_id: Invalid HW EQ preset ID: {preset_id}. Typically 0-3.")
+            # return False # Or let _set_eq_preset_hid handle it if using app_config keys strictly
+
+        if self._set_eq_preset_hid(preset_id):
+            return True
+
+        if self.headsetcontrol_available:
+            logger.warning(f"set_eq_preset_id: Failed to set HW EQ preset ID {preset_id} via HID. Falling back to headsetcontrol.")
+            if not self.is_device_connected():
+                logger.warning("set_eq_preset_id (fallback): Device not connected, cannot set via CLI.")
+                return False
+
+            logger.info(f"Setting HW EQ preset to ID: {preset_id} (fallback to headsetcontrol CLI).")
+            # Original headsetcontrol logic (already clamps/validates in its own way for CLI)
+            success_hc, _ = self._execute_headsetcontrol(['-p', str(preset_id)])
+            if not success_hc:
+                logger.error(f"Failed to set HW EQ preset ID using headsetcontrol: {preset_id}")
+            return success_hc
+        else:
+            logger.warning(f"set_eq_preset_id: Direct HID failed for HW EQ preset ID {preset_id} and headsetcontrol is not available.")
             return False
-        logger.info(f"Setting HW EQ preset to ID: {preset_id}")
-        if not (0 <= preset_id <= 3): 
-            logger.error(f"Invalid HW EQ preset ID: {preset_id}")
-            return False
-        success, _ = self._execute_headsetcontrol(['-p', str(preset_id)])
-        if not success:
-            logger.error(f"Failed to set HW EQ preset ID: {preset_id}")
-        return success
 
 # --- Methods Still Reliant on headsetcontrol CLI ---
 # The following public methods currently rely exclusively on parsing
