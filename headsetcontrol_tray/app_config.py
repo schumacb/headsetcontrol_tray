@@ -44,6 +44,18 @@ DEFAULT_EQ_CURVES = {
     "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1] # Example for footsteps & clarity
 }
 
+# Specific Hardware Preset Curves for Arctis Nova 7 (derived from headsetcontrol C code)
+# These are intended to match what selecting a preset number (0-3) on the device via headsetcontrol would do.
+# Note: headsetcontrol's 'focus' preset had 9 values; padded to 10 here with a final 0.
+ARCTIS_NOVA_7_HW_PRESETS = {
+    0: { "name": "Flat (Hardware)", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    1: { "name": "Bass Boost (Hardware)", "values": [3.5, 5.5, 4.0, 1.0, -1.5, -1.5, -1.0, -1.0, -1.0, -1.0]},
+    2: { "name": "Focus (Hardware)", "values": [-5.0, -3.5, -1.0, -3.5, -2.5, 4.0, 6.0, -3.5, 0.0, 0.0]}, # Padded last value
+    3: { "name": "Smiley (Hardware)", "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0]}
+}
+# The HARDWARE_EQ_PRESET_NAMES can still be used for display names in UI if needed,
+# but these curves are what will be sent for the preset IDs.
+
 # Sidetone levels (0-128, example steps for menu)
 SIDETONE_OPTIONS = {
     "Off": 0,
