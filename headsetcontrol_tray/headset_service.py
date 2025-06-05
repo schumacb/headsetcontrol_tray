@@ -73,6 +73,9 @@ class HeadsetService:
         self._last_hid_only_connection_logged_status: Optional[bool] = None
         self._last_hid_raw_read_data: Optional[List[int]] = None
         self._last_hid_parsed_status: Optional[Dict[str, Any]] = None
+        self._last_reported_battery_level: Optional[int] = None
+        self._last_reported_chatmix: Optional[int] = None
+        self._last_reported_charging_status: Optional[bool] = None
 
         # Check for headsetcontrol availability
         try:
@@ -472,26 +475,32 @@ class HeadsetService:
     def get_battery_level(self) -> Optional[int]:
         logger.debug("get_battery_level: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
+        # current_value = None # Initialize in case status is None or value is missing
         if status and status.get('headset_online') and status.get('battery_percent') is not None:
-            logger.verbose(f"Battery level from HID: {status['battery_percent']}%")
-            return status['battery_percent']
+            current_value = status['battery_percent']
+            if current_value != self._last_reported_battery_level:
+                logger.verbose(f"Battery level from HID: {current_value}%")
+                self._last_reported_battery_level = current_value
+            else:
+                logger.debug(f"Battery level from HID: {current_value}% (unchanged, VERBOSE suppressed).")
+            return current_value
 
-        # Fallback only if headsetcontrol is available
+        # Reset if HID fails to get a value, so next success logs
+        self._last_reported_battery_level = None
+
         if self.headsetcontrol_available:
             logger.warning("get_battery_level: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
-            if not self.is_device_connected(): # is_device_connected itself now respects headsetcontrol_available
+            # ... (rest of fallback logic remains the same) ...
+            # Ensure it returns None if fallback also fails
+            # The original fallback logic is preserved below
+            if not self.is_device_connected():
                 logger.debug("get_battery_level (fallback): Device not connected per is_device_connected, skipping CLI call.")
                 return None
 
             logger.debug("Attempting to get battery level (fallback to headsetcontrol CLI).")
-        success_b, output_b = self._execute_headsetcontrol(['-b'])
-
-        if success_b:
-            if "BATTERY_UNAVAILABLE" in output_b:
-                logger.debug("Battery status is UNAVAILABLE via headsetcontrol -b fallback.")
-                return None
-
-            match = re.search(r"Level:\s*(\d+)%", output_b)
+            success_b, output_b = self._execute_headsetcontrol(['-b'])
+            if success_b:
+                match = re.search(r"Level:\s*(\d+)%", output_b)
             if match:
                 level = int(match.group(1))
                 logger.verbose(f"Battery level from CLI (-b fallback, regex parse): {level}%")
@@ -660,27 +669,36 @@ class HeadsetService:
     def get_chatmix_value(self) -> Optional[int]:
         logger.debug("get_chatmix_value: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
+        # current_value = None
         if status and status.get('headset_online') and status.get('chatmix') is not None:
-            logger.verbose(f"ChatMix value from HID: {status['chatmix']}")
-            return status['chatmix']
+            current_value = status['chatmix']
+            if current_value != self._last_reported_chatmix:
+                logger.verbose(f"ChatMix value from HID: {current_value}")
+                self._last_reported_chatmix = current_value
+            else:
+                logger.debug(f"ChatMix value from HID: {current_value} (unchanged, VERBOSE suppressed).")
+            return current_value
+
+        self._last_reported_chatmix = None # Reset if HID fails
 
         if self.headsetcontrol_available:
             logger.warning("get_chatmix_value: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
+            # ... (rest of fallback logic remains the same) ...
             if not self.is_device_connected():
                 logger.debug("get_chatmix_value (fallback): Device not connected, skipping CLI call.")
                 return None
 
             logger.debug("Attempting to get ChatMix value (fallback to headsetcontrol CLI).")
-            device_data = self._get_headset_device_json() # Relies on headsetcontrol
+            device_data = self._get_headset_device_json()
             if device_data and "chatmix" in device_data:
                 chatmix_val = device_data["chatmix"]
                 if isinstance(chatmix_val, (int, float)):
                     chatmix_int = int(chatmix_val)
-                    logger.verbose(f"ChatMix value from CLI (-o json): {chatmix_int}")
+                    # logger.verbose(f"ChatMix value from CLI (-o json): {chatmix_int}")
                     return chatmix_int
                 else:
                     logger.warning(f"'chatmix' value is not a number in device_data (JSON): {chatmix_val}")
-            elif not device_data:
+            elif not device_data: # device_data is None
                  logger.warning("get_chatmix_value (fallback): Could not get device_data for JSON.")
         else:
             logger.warning("get_chatmix_value: Direct HID failed and headsetcontrol is not available.")
@@ -688,28 +706,36 @@ class HeadsetService:
         return None
 
     def is_charging(self) -> Optional[bool]:
-        """Checks if the headset is currently charging."""
         logger.debug("is_charging: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
+        # current_value = None
         if status and status.get('headset_online') and status.get('battery_charging') is not None:
-            logger.verbose(f"Charging status from HID: {status['battery_charging']}")
-            return status['battery_charging']
+            current_value = status['battery_charging']
+            if current_value != self._last_reported_charging_status:
+                logger.verbose(f"Charging status from HID: {current_value}")
+                self._last_reported_charging_status = current_value
+            else:
+                logger.debug(f"Charging status from HID: {current_value} (unchanged, VERBOSE suppressed).")
+            return current_value
+
+        self._last_reported_charging_status = None # Reset if HID fails
 
         if self.headsetcontrol_available:
             logger.warning("is_charging: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
+            # ... (rest of fallback logic remains the same) ...
             if not self.is_device_connected():
                  logger.debug("is_charging (fallback): Device not connected.")
                  return None
 
-            device_data = self._get_headset_device_json() # Relies on headsetcontrol
+            device_data = self._get_headset_device_json()
             if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
                 battery_info = device_data["battery"]
                 if "charging" in battery_info and isinstance(battery_info["charging"], bool):
-                    logger.verbose(f"Charging status from headsetcontrol JSON: {battery_info['charging']}")
+                    # logger.verbose(f"Charging status from headsetcontrol JSON: {battery_info['charging']}")
                     return battery_info["charging"]
                 if "status" in battery_info and isinstance(battery_info["status"], str):
                     is_charging_str = "charging" in battery_info["status"].lower()
-                    logger.verbose(f"Charging status from headsetcontrol JSON (string parse): {is_charging_str}")
+                    # logger.verbose(f"Charging status from headsetcontrol JSON (string parse): {is_charging_str}")
                     return is_charging_str
             logger.debug("is_charging (fallback): Could not determine charging status from headsetcontrol JSON.")
         else:
