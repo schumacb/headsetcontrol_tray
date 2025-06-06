@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  structurizr-lite:
+    image: structurizr/lite
+    container_name: structurizr-lite
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./structurizr:/usr/local/structurizr:rw
+    # The 'rw' (read-write) is default but explicitly stated here for clarity.
+    # Structurizr Lite typically needs read-only for the workspace.dsl,
+    # but write access might be used if it offers features to save changes back,
+    # or if other files are managed in that directory by Structurizr Lite.
+    # For basic DSL rendering, read-only (ro) would also work.
+    restart: unless-stopped
