@@ -44,6 +44,18 @@ DEFAULT_EQ_CURVES = {
     "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1] # Example for footsteps & clarity
 }
 
+# Specific Hardware Preset Curves for Arctis Nova 7 (derived from headsetcontrol C code)
+# These are intended to match what selecting a preset number (0-3) on the device via headsetcontrol would do.
+# Note: headsetcontrol's 'focus' preset had 9 values; padded to 10 here with a final 0.
+ARCTIS_NOVA_7_HW_PRESETS = {
+    0: { "name": "Flat (Hardware)", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    1: { "name": "Bass Boost (Hardware)", "values": [3.5, 5.5, 4.0, 1.0, -1.5, -1.5, -1.0, -1.0, -1.0, -1.0]},
+    2: { "name": "Focus (Hardware)", "values": [-5.0, -3.5, -1.0, -3.5, -2.5, 4.0, 6.0, -3.5, 0.0, 0.0]}, # Padded last value
+    3: { "name": "Smiley (Hardware)", "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0]}
+}
+# The HARDWARE_EQ_PRESET_NAMES can still be used for display names in UI if needed,
+# but these curves are what will be sent for the preset IDs.
+
 # Sidetone levels (0-128, example steps for menu)
 SIDETONE_OPTIONS = {
     "Off": 0,
@@ -72,16 +84,81 @@ HARDWARE_EQ_PRESET_NAMES = {
     3: "Preset 4"
 }
 
-# HID Report details (Placeholders - these need to be accurately determined for Arctis Nova 7)
-# These are highly speculative and need verification via USB sniffing or documentation.
-# Report ID for sending commands might be specific.
-# Common report length for SteelSeries devices is 64 bytes or 32 bytes.
-# Example:
-# HID_REPORT_ID_COMMAND = 0x06 # Might be this or another value, or not used if using feature reports
-# HID_CMD_GET_BATTERY = [0xBA, 0x77] # Example command bytes
-# HID_CMD_GET_SIDETONE = [0x51, 0x00] # Example
-# HID_CMD_GET_EQ = [0xEE, 0x00] # Example
-# HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
+# HID Report Details (Derived from HeadsetControl source code - See HID_RESEARCH.md)
+# ------------------------------------------------------------------------------------
+# The following constants are based on analysis of Sapd/HeadsetControl for
+# SteelSeries Arctis Nova 7 (and variants).
+#
+# General HID Configuration for Arctis Nova 7 Features:
+# - Vendor ID: 0x1038 (STEELSERIES_VID)
+# - Product IDs: See TARGET_PIDS (e.g., 0x2202 for Arctis Nova 7)
+# - Interface: 3
+# - Usage Page: 0xffc0
+# - Usage ID: 0x0001
+# - Report Size: 64 bytes (reports are typically padded to this length)
+
+# --- Primary HID Interface Characteristics ---
+# Most commands use this configuration.
+# The first byte of the output report is often 0x00. This might be:
+#   a) A specific Report ID for this interface/usage page.
+#   b) A conventional first byte if the interface uses unnumbered reports for these commands.
+#   This needs to be handled correctly by the HID writing function.
+#   If it's a Report ID, python-hid's device.write() expects it as the first byte.
+#   If it's not a Report ID (i.e., unnumbered reports), it should be omitted if the library handles that,
+#   or it's part of the actual command data sent after a (potentially zero) report ID.
+#   For simplicity, we'll define it as part of the command if it's fixed for many commands.
+#   HeadsetControl's C code writes these bytes directly, often starting with 0x00.
+
+HID_REPORT_INTERFACE = 3
+HID_REPORT_USAGE_PAGE = 0xffc0
+HID_REPORT_USAGE_ID = 0x0001 # Equivalent to 0x1 in headsetcontrol
+HID_REPORT_FIXED_FIRST_BYTE = 0x00 # Common first byte for many commands
+
+# --- Commands (Payloads typically follow the HID_REPORT_FIXED_FIRST_BYTE) ---
+
+# Get Battery Status & ChatMix (Shared command and response)
+# Command to trigger status read:
+HID_CMD_GET_STATUS = [HID_REPORT_FIXED_FIRST_BYTE, 0xb0] # Results in an 8-byte input report
+# Response parsing (byte indices in the 8-byte input report):
+HID_RES_STATUS_BATTERY_LEVEL_BYTE = 2    # Raw value 0x00-0x04
+HID_RES_STATUS_BATTERY_STATUS_BYTE = 3   # 0x00=offline, 0x01=charging
+HID_RES_STATUS_CHATMIX_GAME_BYTE = 4     # Game component (0-100)
+HID_RES_STATUS_CHATMIX_CHAT_BYTE = 5     # Chat component (0-100)
+HID_INPUT_REPORT_LENGTH_STATUS = 8
+
+# Sidetone
+HID_CMD_SET_SIDETONE_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x39] # Append mapped level_value
+# level_value mapping: 0-25->0x00, 26-50->0x01, 51-75->0x02, >75->0x03
+
+# Inactive Time (Auto Shutdown)
+HID_CMD_SET_INACTIVE_TIME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xa3] # Append minutes
+
+# Equalizer Bands (Custom)
+HID_CMD_SET_EQ_BANDS_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x33] # Append 10 band_values, then 0x00
+# Each band_value = 0x14 + float_value (-10 to +10)
+
+# Bluetooth When Powered On
+HID_CMD_SET_BT_POWER_ON_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xb2] # Append status (0x00 or 0x01)
+HID_CMD_SAVE_SETTINGS = [0x06, 0x09] # Separate command, different first byte (potential Report ID 0x06)
+
+# Bluetooth Call Volume Configuration
+HID_CMD_SET_BT_CALL_VOLUME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xb3] # Append level (0x00-0x02)
+
+# Microphone Mute LED Brightness
+HID_CMD_SET_MIC_LED_BRIGHTNESS_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xae] # Append brightness (0x00-0x03)
+
+# Microphone Volume
+HID_CMD_SET_MIC_VOLUME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x37] # Append mapped level (0x00-0x07)
+
+# Volume Limiter
+HID_CMD_SET_VOLUME_LIMITER_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x3a] # Append status (0x00 or 0x01)
+
+# --- Old Placeholders (Commented out for reference, to be removed later) ---
+# # HID_REPORT_ID_COMMAND = 0x06 # Might be this or another value, or not used if using feature reports
+# # HID_CMD_GET_BATTERY = [0xBA, 0x77] # Example command bytes
+# # HID_CMD_GET_SIDETONE = [0x51, 0x00] # Example
+# # HID_CMD_GET_EQ = [0xEE, 0x00] # Example
+# # HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
 
 # REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
 # Kept for potential other uses or if a fixed interval is ever needed again.

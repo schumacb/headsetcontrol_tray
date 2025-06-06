@@ -24,6 +24,8 @@ class ChatMixManager:
         ]
         # Reference volume for 100% (PipeWire uses floats, typically 0.0 to 1.0 for normal range)
         self.reference_volume = 1.0
+        self._pipewire_nodes: Dict[str, Any] = {} # Assuming this was intended to be here, based on your prompt. If not, it should be removed.
+        self._last_set_stream_volumes: Dict[str, List[float]] = {} # New attribute
         logger.info(f"ChatMixManager initialized. Chat app identifiers: {self.chat_app_identifiers_config}")
 
     def _run_pipewire_command(self, command_args: List[str]) -> Optional[str]:
@@ -131,34 +133,40 @@ class ChatMixManager:
         logger.debug(f"ChatMix Raw: {chatmix_value}, Norm: {chatmix_norm:.2f} -> ChatTargetVol: {chat_vol:.2f}, GameTargetVol: {game_vol:.2f}")
         return chat_vol, game_vol
 
-    def _set_stream_volume(self, stream_id: int, target_volume: float, num_channels: int) -> bool:
-        """Sets the volume for a specific stream node using its "Props" parameter."""
-        if not (0.0 <= target_volume <= self.reference_volume + 0.5): # Allow slight boost
-            logger.warning(f"Target volume {target_volume:.2f} for stream {stream_id} is out of expected range. Clamping.")
-            target_volume = max(0.0, min(self.reference_volume, target_volume))
+    def _set_stream_volume(self, stream_id: str, num_channels: int, target_volume: float):
+        # Ensure target_volume is clamped between 0.0 and 1.0
+        target_volume = max(0.0, min(1.0, target_volume))
 
-        # Construct the JSON payload for channelVolumes
-        # Create a list of the target_volume repeated for each channel
-        channel_volumes_payload = [float(f"{target_volume:.6f}") for _ in range(num_channels)] # Format to few decimal places
-        
-        # The JSON payload to set for the "Props" parameter
-        # We are only modifying 'channelVolumes'. Other properties within "Props" remain untouched by this command.
-        # PipeWire's set-param for complex objects often merges, but for safety,
-        # it's better if we knew the full existing Props structure if we wanted to preserve everything else.
-        # However, just setting channelVolumes is usually supported for sink-inputs.
-        json_payload_str = json.dumps({"channelVolumes": channel_volumes_payload})
+        # Create a list of target volumes for each channel
+        target_volumes_list = [target_volume] * num_channels
 
-        logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {json_payload_str}")
+        # Check if volume needs to be changed
+        last_volumes = self._last_set_stream_volumes.get(stream_id)
+        if last_volumes is not None and \
+           len(last_volumes) == num_channels and \
+           all(abs(last_vol - target_volume) < 0.001 for last_vol in last_volumes): # Compare with a tolerance
+            logger.debug(f"Volume for stream ID {stream_id} already at target {target_volume:.2f}. Skipping pw-cli.")
+            return
+
+        payload_dict = {"channelVolumes": target_volumes_list}
+        payload_json = json.dumps(payload_dict) # Ensure json is imported
+
+        logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {payload_json}")
         
-        # Command: pw-cli set-param <object-id> <param-name> <param-json>
-        success_str = self._run_pipewire_command(['pw-cli', 'set-param', str(stream_id), 'Props', json_payload_str])
-        
-        if success_str is not None: # Command executed, check output if needed (usually empty on success for set-param)
-            logger.debug(f"pw-cli set-param for stream {stream_id} successful.")
-            return True
-        else:
-            logger.error(f"Failed to set volume for stream ID {stream_id}.")
-            return False
+        # Construct the command
+        cmd = ['pw-cli', 'set-param', stream_id, 'Props', payload_json]
+        logger.debug(f"Executing PipeWire command: {' '.join(cmd)}")
+
+        try:
+            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            logger.debug(f"pw-cli set-param for stream {stream_id} successful. Output: {process.stdout.strip()}")
+            self._last_set_stream_volumes[stream_id] = target_volumes_list # Update last set volumes
+        except FileNotFoundError:
+            logger.error(f"pw-cli command not found. Please ensure PipeWire utilities are installed and in PATH.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error setting volume for stream {stream_id} using pw-cli (exit code {e.returncode}): {e.stderr.strip()}")
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while setting volume for stream {stream_id}: {e}")
 
     def update_volumes(self, chatmix_value: Optional[int]):
         if chatmix_value is None:
@@ -201,4 +209,4 @@ class ChatMixManager:
 
             logger.debug(f"Processing stream: ID={stream_id}, AppName='{props.get('application.name', '')}', "
                          f"Binary='{props.get('application.process.binary', '')}', Type={stream_type}, TargetVol={current_target_volume:.2f}")
-            self._set_stream_volume(stream_id, current_target_volume, num_channels)
+            self._set_stream_volume(stream_id, num_channels, current_target_volume)
