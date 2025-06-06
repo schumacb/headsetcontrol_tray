@@ -89,6 +89,41 @@ Alternatively, you can use `uv` to run scripts defined in `pyproject.toml` (if a
 uv run python -m headsetcontrol_tray
 ```
 
+## Visualizing the Architecture (C4 Model)
+
+The architecture of this application is documented using the C4 model. The model is defined in the `architecture.dsl` file using the Structurizr DSL.
+
+Structurizr is a lightweight, code-based approach to creating software architecture diagrams. The C4 model (Context, Containers, Components, and Code) provides a hierarchical way to describe software architecture at different levels of detail.
+
+### Rendering the Diagrams
+
+You can render these diagrams locally using Structurizr Lite, which can be run via Docker.
+
+1.  **Export Diagrams (PlantUML & Mermaid):**
+    The following commands will export the diagrams defined in `architecture.dsl` into PlantUML and Mermaid formats. The exported files will be placed in a `structurizr-exports` directory.
+    ```bash
+    # Export to PlantUML
+    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite export -format plantuml -workspace architecture.dsl
+    # Export to Mermaid
+    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite export -format mermaid -workspace architecture.dsl
+    ```
+
+2.  **Render PlantUML to SVG:**
+    After exporting, you can render the PlantUML files into SVG images. For example, to render the System Context diagram:
+    ```bash
+    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite render -format plantuml -path architecture.dsl/structurizr-PlantUMLSystemContext-001.puml
+    ```
+    You'll need to adjust the path for other diagrams (e.g., `structurizr-PlantUMLContainerView-001.puml`, `structurizr-PlantUMLComponentView-001.puml`). The rendered SVG files will be placed in the same directory as the `.puml` files (i.e., within `architecture.dsl/`).
+
+3.  **Using Structurizr Lite Web Interface:**
+    Alternatively, you can run the Structurizr Lite web server to view and interact with the diagrams in your browser:
+    ```bash
+    docker run -it --rm -p 8080:8080 -v $(pwd):/usr/local/structurizr structurizr/lite
+    ```
+    Then, open `http://localhost:8080` in your web browser. The workspace should be automatically loaded from `architecture.dsl`.
+
+This allows for easy visualization and exploration of the system's architecture at various levels of detail.
+
 ## Contributing
 
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
