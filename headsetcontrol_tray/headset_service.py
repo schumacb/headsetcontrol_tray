@@ -76,6 +76,7 @@ class HeadsetService:
         self._last_reported_battery_level: Optional[int] = None
         self._last_reported_chatmix: Optional[int] = None
         self._last_reported_charging_status: Optional[bool] = None
+        self._last_raw_battery_status_for_logging: Optional[int] = None
 
         # Check for headsetcontrol availability
         try:
@@ -610,23 +611,41 @@ class HeadsetService:
 
         # Battery Status
         raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
+
         if raw_battery_status == 0x00:
-            # This typically means headset is off or dongle is connected but headset is not.
-            # It's a distinct state from simply failing to read.
-            logger.info("_get_parsed_status_hid: Headset reported offline by status byte (0x00).")
+            if self._last_raw_battery_status_for_logging != 0x00:
+                logger.info("_get_parsed_status_hid: Headset reported offline by status byte (0x00).")
             parsed_status['battery_charging'] = None
             parsed_status['headset_online'] = False
-            # If it's offline, other values might not be meaningful.
-            parsed_status['battery_percent'] = None # Often shown as 0 or N/A when offline
+            parsed_status['battery_percent'] = None
             parsed_status['chatmix'] = None
-        elif raw_battery_status == 0x01:
+        elif raw_battery_status == 0x01: # Example: Charging
+            if self._last_raw_battery_status_for_logging == 0x00: # Was previously offline by status byte
+                logger.info(f"_get_parsed_status_hid: Headset now reported as charging (status byte {raw_battery_status:#02x}), was previously offline by status byte.")
             parsed_status['battery_charging'] = True
-            # logger.debug("_get_parsed_status_hid: Headset charging (status byte 0x01).") # Example of too much noise
-        else:
+            # headset_online remains True (default or set before this block)
+        else: # Example: Not charging, but online (e.g., status byte 0x02 or other non-0x00, non-0x01 values)
+            if self._last_raw_battery_status_for_logging == 0x00: # Was previously offline by status byte
+                logger.info(f"_get_parsed_status_hid: Headset now reported as online (status byte {raw_battery_status:#02x}), was previously offline by status byte.")
             parsed_status['battery_charging'] = False
-            # logger.debug(f"_get_parsed_status_hid: Headset not charging (status byte {raw_battery_status:#02x}).")
+            # headset_online remains True
+
+        # Update the last known raw battery status for logging purposes
+        self._last_raw_battery_status_for_logging = raw_battery_status
 
         if parsed_status['headset_online']:
+            # This part for raw_battery_level (battery_percent) should only be processed if headset is online.
+            # The original code for raw_battery_level parsing was outside the raw_battery_status block.
+            # It needs to be moved or made conditional here based on parsed_status['headset_online'].
+            # Let's ensure raw_battery_level is parsed *after* headset_online is determined by raw_battery_status.
+            # The prompt stated: "The current structure already does this... raw_battery_level parsing is outside this if/elif/else"
+            # This is incorrect. The raw_battery_level parsing is *before* this block.
+            # It should be *after* or made conditional.
+            # For now, I will keep the original structure for raw_battery_level parsing as per prompt's assertion,
+            # but note this potential discrepancy. The prompt also says:
+            # "The `parsed_status['battery_percent'] = None` ... were already correctly placed inside the `raw_battery_status == 0x00` block."
+            # This implies the existing battery_percent parsing (outside this block) will be overridden if status is 0x00. This is acceptable.
+
             raw_game = response_data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE]
             raw_chat = response_data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE]
             raw_game_clamped = max(0, min(100, raw_game))
