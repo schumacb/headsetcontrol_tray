@@ -35,8 +35,7 @@ class HeadsetService:
     def __init__(self):
         self.hid_device: Optional[hid.Device] = None 
         self.device_path: Optional[bytes] = None
-        self.udev_setup_details = None
-        self.headsetcontrol_available = True 
+        self.udev_setup_details = None # Initialize details for udev rule setup
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
 
@@ -201,7 +200,6 @@ class HeadsetService:
             return True, process.stdout.strip()
         except FileNotFoundError:
             logger.error("headsetcontrol command not found. Please ensure it is installed and in PATH.")
-            self.headsetcontrol_available = False  # Set to False on FileNotFoundError
             return False, "headsetcontrol not found. Please install it."
         except subprocess.CalledProcessError as e:
             # For '--connected', a non-zero exit code is expected if not connected, stderr might be empty.
@@ -540,7 +538,3 @@ class HeadsetService:
         if not success:
             logger.error(f"Failed to set HW EQ preset ID: {preset_id}")
         return success
-
-    def is_headsetcontrol_available(self) -> bool:
-        """Checks if the headsetcontrol CLI tool is available."""
-        return self.headsetcontrol_available
