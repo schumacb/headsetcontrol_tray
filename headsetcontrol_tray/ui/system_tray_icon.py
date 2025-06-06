@@ -437,27 +437,31 @@ class SystemTrayIcon(QSystemTrayIcon):
             if not prev_connection_state: # Was disconnected, now is
                 logger.info("SystemTray: Headset connected.")
             
-            battery_details = self.headset_service.get_battery_details()
-            if battery_details:
-                self.battery_level = battery_details.get('level')
-                self.battery_status_text = battery_details.get('status_text')
+            self.battery_level = self.headset_service.get_battery_level() # Get direct integer value
+            is_charging = self.headset_service.is_charging()
+
+            if is_charging:
+                self.battery_status_text = "BATTERY_CHARGING"
+            elif self.battery_level == 100:
+                self.battery_status_text = "BATTERY_FULL"
+            elif self.battery_level is not None:
+                self.battery_status_text = "BATTERY_AVAILABLE"
             else:
-                self.battery_level = None # Explicitly set if details are None
-                self.battery_status_text = None
+                self.battery_status_text = "BATTERY_UNAVAILABLE"
 
             self.chatmix_value = self.headset_service.get_chatmix_value()
 
-            if self.battery_level is not None:
-                level_text = f"{self.battery_level}%"
-                if self.battery_status_text == "BATTERY_CHARGING":
-                    new_battery_text = f"Battery: {level_text} (Charging)"
-                elif self.battery_status_text == "BATTERY_FULL": # Assuming this status exists for fully charged
-                    new_battery_text = f"Battery: {level_text} (Full)"
-                else: # BATTERY_AVAILABLE or other
-                    new_battery_text = f"Battery: {level_text}"
-            elif self.battery_status_text == "BATTERY_UNAVAILABLE": # Explicitly unavailable
-                 new_battery_text = "Battery: Unavailable"
-            else: # General N/A if no level and no specific "unavailable" status
+            # Construct new_battery_text using the updated instance variables
+            if self.battery_status_text == "BATTERY_CHARGING":
+                level_text = f"{self.battery_level}%" if self.battery_level is not None else "Unknown Level"
+                new_battery_text = f"Battery: {level_text} (Charging)"
+            elif self.battery_status_text == "BATTERY_FULL":
+                new_battery_text = f"Battery: {self.battery_level}% (Full)"
+            elif self.battery_status_text == "BATTERY_AVAILABLE":
+                new_battery_text = f"Battery: {self.battery_level}%"
+            elif self.battery_status_text == "BATTERY_UNAVAILABLE":
+                new_battery_text = "Battery: Unavailable"
+            else: # Should not happen given the logic above, but as a fallback
                 new_battery_text = "Battery: N/A"
 
             chatmix_display_str = self._get_chatmix_display_string_for_tray(self.chatmix_value)
