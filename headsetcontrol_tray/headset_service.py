@@ -525,8 +525,11 @@ class HeadsetService:
                     logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
             elif not device_data:
                      logger.warning("get_battery_level (fallback): Could not get device_data for JSON fallback.")
-        else:
-            logger.warning("get_battery_level: Direct HID failed and headsetcontrol is not available.")
+        else: # headsetcontrol is not available, and direct HID failed or reported offline
+            if status is not None and not status.get('headset_online'):
+                logger.info(f"get_battery_level: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+            else: # status is None (HID read failed) or other unexpected status
+                logger.warning(f"get_battery_level: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
         
         return None
 
@@ -700,8 +703,11 @@ class HeadsetService:
                     logger.warning(f"'chatmix' value is not a number in device_data (JSON): {chatmix_val}")
             elif not device_data: # device_data is None
                  logger.warning("get_chatmix_value (fallback): Could not get device_data for JSON.")
-        else:
-            logger.warning("get_chatmix_value: Direct HID failed and headsetcontrol is not available.")
+        else: # headsetcontrol is not available, and direct HID failed or reported offline
+            if status is not None and not status.get('headset_online'):
+                logger.info(f"get_chatmix_value: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+            else: # status is None (HID read failed) or other unexpected status
+                logger.warning(f"get_chatmix_value: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
 
         return None
 
@@ -738,8 +744,11 @@ class HeadsetService:
                     # logger.verbose(f"Charging status from headsetcontrol JSON (string parse): {is_charging_str}")
                     return is_charging_str
             logger.debug("is_charging (fallback): Could not determine charging status from headsetcontrol JSON.")
-        else:
-            logger.warning("is_charging: Direct HID failed and headsetcontrol is not available.")
+        else: # headsetcontrol is not available, and direct HID failed or reported offline
+            if status is not None and not status.get('headset_online'):
+                logger.info(f"is_charging: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+            else: # status is None (HID read failed) or other unexpected status
+                logger.warning(f"is_charging: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
 
         return None
 
