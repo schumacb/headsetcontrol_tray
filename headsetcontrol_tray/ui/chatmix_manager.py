@@ -154,7 +154,7 @@ class ChatMixManager:
         logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {payload_json}")
         
         # Construct the command
-        cmd = ['pw-cli', 'set-param', stream_id, 'Props', payload_json]
+        cmd = ['pw-cli', 'set-param', str(stream_id), 'Props', payload_json]
         logger.debug(f"Executing PipeWire command: {' '.join(cmd)}")
 
         try:
