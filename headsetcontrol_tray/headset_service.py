@@ -442,32 +442,36 @@ class HeadsetService:
             logger.debug("is_device_connected (CLI mode): _ensure_hid_connection was OK and _get_headset_device_json() successful.")
             return True
         else: # headsetcontrol is NOT available
-            # Determine current HID connection status
-            # _ensure_hid_connection() will attempt to connect if not already connected.
-            # It returns True if a connection is established/exists, False otherwise.
-            # self.hid_device will be set by _ensure_hid_connection if successful.
-            if self.hid_device is None: # If no device, try to connect
-                 self._ensure_hid_connection()
+            # headsetcontrol is NOT available
+            if self.hid_device is None:
+                self._ensure_hid_connection() # Attempt to connect to the HID path
 
-            current_hid_connected_status = self.hid_device is not None
+            if self.hid_device is None: # Check if HID path connection failed
+                if self._last_hid_only_connection_logged_status is not False: # Log change to not connected
+                    logger.info("is_device_connected: `headsetcontrol` is NOT available.")
+                    logger.warning("is_device_connected (HID mode): HID device path NOT active (dongle likely disconnected or permissions issue).")
+                    self._last_hid_only_connection_logged_status = False
+                return False
 
-            if current_hid_connected_status != self._last_hid_only_connection_logged_status:
-                # Log the general mode once or on change
+            # HID path is active, now check functional status
+            status = self._get_parsed_status_hid()
+            is_functionally_online = status is not None and status.get('headset_online', False)
+
+            current_overall_connected_status = is_functionally_online # If HID path is active, connection depends on functional status
+
+            if current_overall_connected_status != self._last_hid_only_connection_logged_status:
                 logger.info("is_device_connected: `headsetcontrol` is NOT available. Relying on direct HID for connection status.")
-                if current_hid_connected_status:
-                    logger.info("is_device_connected (HID mode): Direct HID connection is active.")
-                else:
-                    # This implies _ensure_hid_connection failed to establish/maintain a connection
+                if current_overall_connected_status:
+                    logger.info("is_device_connected (HID mode): Direct HID connection is active and headset is online.")
+                elif self.hid_device is not None and not is_functionally_online : # Dongle present, headset off
+                    logger.info("is_device_connected (HID mode): HID device path active, but headset reported as offline.")
+                else: # Should ideally not be reached if self.hid_device is None is caught above
                     logger.warning("is_device_connected (HID mode): Direct HID connection is NOT active or failed.")
-                self._last_hid_only_connection_logged_status = current_hid_connected_status
+                self._last_hid_only_connection_logged_status = current_overall_connected_status
             else:
-                # Optional: log at DEBUG if status hasn't changed, if needed for deep debugging.
-                logger.debug(f"is_device_connected (HID mode): Connection status remains {'active' if current_hid_connected_status else 'inactive'} (logged at DEBUG to reduce noise).")
+                logger.debug(f"is_device_connected (HID mode): Connection status remains {'active and online' if current_overall_connected_status else 'inactive or offline'} (logged at DEBUG to reduce noise).")
 
-            # self.close() should only be called if _ensure_hid_connection itself decides to,
-            # not just because current_hid_connected_status is False after the check.
-            # _ensure_hid_connection already calls self.close() if it fails to connect.
-            return current_hid_connected_status
+            return current_overall_connected_status
 
 
     # --- Public API ---
