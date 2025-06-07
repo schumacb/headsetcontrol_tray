@@ -89,6 +89,28 @@ Alternatively, you can use `uv` to run scripts defined in `pyproject.toml` (if a
 uv run python -m headsetcontrol_tray
 ```
 
+## Features and Limitations
+
+**Interacting with Your Headset**
+
+This application interacts directly with your SteelSeries headset using HID commands.
+
+**Supported Readable Information:**
+*   Battery Level: You can view the current battery percentage.
+*   Charging Status: Indicates if the headset is currently charging.
+*   ChatMix Value: Shows the current ChatMix balance.
+
+**Supported Controllable Settings (Write-Only for Some Aspects):**
+You can control and set the following features on your headset:
+*   Sidetone Level
+*   Inactive Timeout (Auto-shutdown)
+*   Equalizer (EQ) Band Values
+*   Equalizer (EQ) Presets
+
+**Current Limitations on Reading Settings:**
+*   While you can *set* the Sidetone Level, Inactive Timeout, EQ Band Values, and EQ Presets, the application currently cannot *read back* their current values from the headset after they have been set or changed externally.
+*   Reason: Direct HID commands for reading these specific current states (Sidetone, Inactive Timeout, EQ configuration) are not implemented in this version of the application. The application will log a warning if an attempt is made to fetch these values, and the UI may not display them.
+
 ## Contributing
 
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
