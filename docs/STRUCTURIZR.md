@@ -154,6 +154,49 @@ This approach is useful for accurately depicting the current architecture of suc
     - The first argument to `container` (for a view) is the identifier of the software system.
     - The `include *` directive is a common way to show all containers within that system and the elements connected to them.
 
+### Defining Components and Component Views
+
+To detail the internal structure of a `container`, you can define `component` elements within it and then create a `componentView` for that container.
+
+1.  **Define Components within a Container**:
+    Expand your `container` definition into a block and add `component` elements.
+    ```dsl
+    model {
+        mySystem = softwareSystem "My System" {
+            myWebApp = container "My Web Application" "Handles web requests." "Java/Spring Boot" {
+                mvcController = component "MVC Controller" "Handles HTTP requests." "Spring MVC"
+                serviceLogic = component "Service Logic" "Contains business logic." "Java"
+                dataAccess = component "Data Access Component" "Interacts with the database." "Spring Data JPA"
+
+                // Define relationships between components
+                mvcController -> serviceLogic "Uses"
+                serviceLogic -> dataAccess "Uses"
+
+                // Optionally, define relationships to elements outside the container if specific components handle them
+                // For example, if 'user' (a person) interacts directly with 'mvcController'
+                // user -> mvcController "Sends HTTP requests to"
+            }
+        }
+    }
+    ```
+    - Each `component` typically has a name, description, and technology (optional), and tags (optional).
+
+2.  **Define a Component View**:
+    In the `views` block, add a `component` view targeting your container.
+    ```dsl
+    views {
+        // ... other views (systemContext, container, etc.)
+        component myWebApp "MyWebAppComponents" "Component diagram for My Web Application." {
+            include * // Includes all components within the container and relevant connected elements
+            // You can also specify particular components: include mvcController, serviceLogic
+            autoLayout
+        }
+        // ... styles ...
+    }
+    ```
+    - The first argument to `component` (for a view) is the identifier of the container.
+    - The `include *` directive is common to show all components within that container and elements connected to them.
+
 ### Element Definition Order
 
 To avoid "element does not exist" parsing errors when defining relationships, it's generally a good practice to define elements (like people, software systems, containers) before they are referenced. The Structurizr DSL parser may not always look ahead to find definitions that appear later in the file.

@@ -4,11 +4,21 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
         user = person "User" "A person using the HeadsetControl Tray application to manage their headset settings." ""
         headsetControl = softwareSystem "HeadsetControl" "The core software/firmware responsible for managing the headset's functions, settings, and communication." "Software/Firmware"
         headsetControlTray = softwareSystem "HeadsetControl Tray" "A tray application that allows users to manage their headset settings and view status information." "Application" {
-            hcTrayProcess = container "HeadsetControl Tray Process" "The main application process for the headset control tray." "Python" "Monolith"
+            hcTrayProcess = container "HeadsetControl Tray Process" "The main application process for the headset control tray." "Python" "Monolith" {
+                # Define components within hcTrayProcess
+                uiComponent = component "UI Component" "Handles user interface logic, displays information, and captures user input." "Python/Qt" "GUI Logic"
+                configComponent = component "Configuration Component" "Manages loading, saving, and applying application settings and headset profiles." "Python" "Settings Management"
+                headsetDriverComponent = component "Headset Driver Component" "Interfaces with the headsetControl system to send commands and receive status updates." "Python" "Device Interface"
 
-            # Relationships for this single container
-            user -> hcTrayProcess "Uses" "Interacts with the tray application"
-            hcTrayProcess -> headsetControl "Controls/Manages" "Sends commands to and receives status from the headset control system"
+                # Define relationships between these components
+                uiComponent -> configComponent "Uses" "Loads/Saves settings"
+                uiComponent -> headsetDriverComponent "Uses" "Sends commands/gets status"
+
+                # Define how these components interact with elements outside this container
+                # This makes the container-level relationships (user -> hcTrayProcess and hcTrayProcess -> headsetControl) potentially redundant
+                user -> uiComponent "Interacts with"
+                headsetDriverComponent -> headsetControl "Communicates with" "Sends/Receives low-level commands"
+            }
         }
 
     }
@@ -20,6 +30,11 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
         }
 
         container headsetControlTray "ContainerView" "The container view for the HeadsetControl Tray application." {
+            include *
+            autoLayout
+        }
+
+        component hcTrayProcess "ComponentView" "The component view for the HeadsetControl Tray Process." {
             include *
             autoLayout
         }
