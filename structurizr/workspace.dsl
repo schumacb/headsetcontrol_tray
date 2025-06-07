@@ -1,4 +1,5 @@
 workspace "HeadsetControl System" "User controlling SteelSeries headset via HeadsetControl Tray" {
+    !identifiers hierarchical
     model {
         user = person "User" "A person using the HeadsetControl Tray to manage their SteelSeries headset."
         headsetControlTray = softwareSystem "HeadsetControl Tray" "A desktop tray application for controlling SteelSeries headsets." {
