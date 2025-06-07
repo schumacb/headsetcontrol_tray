@@ -18,12 +18,31 @@ except ImportError as e:
 
 
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
+    qapp_for_class = None # Class attribute to hold the QApplication instance
+
+    @classmethod
+    def setUpClass(cls):
+        # Create a QApplication instance once for the entire test class
+        if QApplication.instance() is None:
+            cls.qapp_for_class = QApplication(sys.argv)
+            cls._created_qapp = True # Flag to indicate this class created it
+        else:
+            cls.qapp_for_class = QApplication.instance()
+            cls._created_qapp = False
+
+    @classmethod
+    def tearDownClass(cls):
+        # Quit the QApplication instance if this class created it
+        if cls.qapp_for_class is not None and cls._created_qapp:
+            if QApplication.instance(): # Check if it still exists
+                QApplication.quit()
+        cls.qapp_for_class = None
 
     def setUp(self):
-        if not QApplication.instance():
-            self.app = QApplication(sys.argv)
-        else:
-            self.app = QApplication.instance()
+        # Patch 'headsetcontrol_tray.app.QApplication' to return the class-level instance
+        # This ensures SteelSeriesTrayApp uses our managed QApplication
+        self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=self.__class__.qapp_for_class)
+        self.mock_qapplication_constructor = self.qapplication_patch.start()
 
         self.sample_details = {
             "temp_file_path": "/tmp/test_rules_sample.txt",
@@ -242,6 +261,15 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertIn("Error", args[1])
         self.assertIn("Installation script not found", args[2])
         self.assertIn(self.expected_helper_script_path, args[2])
+
+    def tearDown(self):
+        # Stop the patch after each test
+        self.qapplication_patch.stop()
+        # Clean up the SteelSeriesTrayApp instance if created by a test
+        # This assumes self.tray_app is the instance, which is not consistently set in these tests.
+        # The tests instantiate SteelSeriesTrayApp() directly for its side effects during __init__.
+        # If SteelSeriesTrayApp had a specific cleanup method, it would be called here on a test-owned instance.
+        # For now, the primary cleanup is stopping the patch and the class-level QApplication.
 
 
 if __name__ == "__main__":

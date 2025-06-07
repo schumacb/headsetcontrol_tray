@@ -165,6 +165,79 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         # Restart the class setUp patcher
         self.mock_connect_hid = self.connect_patcher.start()
 
+    @patch("headsetcontrol_tray.headset_service.logger")
+    def test_get_sidetone_level_returns_none_and_logs_warning(self, mock_logger):
+        self.service.hid_device = None # Ensure service thinks device is not connected for this test path
+        self.mock_connect_hid.return_value = False # _ensure_hid_connection returns False
+        result = self.service.get_sidetone_level()
+        self.assertIsNone(result)
+        mock_logger.warning.assert_any_call("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
+
+    @patch("headsetcontrol_tray.headset_service.logger")
+    def test_get_inactive_timeout_returns_none_and_logs_warning(self, mock_logger):
+        self.service.hid_device = None
+        self.mock_connect_hid.return_value = False
+        result = self.service.get_inactive_timeout()
+        self.assertIsNone(result)
+        mock_logger.warning.assert_any_call("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
+
+    @patch.object(HeadsetService, "_set_sidetone_level_hid", return_value=True)
+    @patch("subprocess.run") # To ensure CLI is not called
+    def test_set_sidetone_level_uses_hid_only_success(self, mock_subprocess_run, mock_set_sidetone_hid):
+        self.service.hid_device = Mock() # Simulate connected device object
+        self.mock_connect_hid.return_value = True # _ensure_hid_connection returns True
+
+        result = self.service.set_sidetone_level(50)
+        self.assertTrue(result)
+        mock_set_sidetone_hid.assert_called_once_with(50)
+        for call_args in mock_subprocess_run.call_args_list: # Check no CLI calls
+            args, _ = call_args
+            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
+                 self.fail("subprocess.run called with headsetcontrol")
+
+    @patch.object(HeadsetService, "_set_sidetone_level_hid", return_value=False)
+    @patch("subprocess.run")
+    def test_set_sidetone_level_hid_failure_no_cli_fallback(self, mock_subprocess_run, mock_set_sidetone_hid_failure):
+        self.service.hid_device = Mock()
+        self.mock_connect_hid.return_value = True
+
+        result = self.service.set_sidetone_level(50)
+        self.assertFalse(result)
+        mock_set_sidetone_hid_failure.assert_called_once_with(50)
+        for call_args in mock_subprocess_run.call_args_list:
+            args, _ = call_args
+            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
+                 self.fail("subprocess.run called with headsetcontrol")
+
+    @patch.object(HeadsetService, "_get_parsed_status_hid")
+    @patch("subprocess.run")
+    def test_get_battery_level_uses_hid_only_success(self, mock_subprocess_run, mock_get_status_hid):
+        mock_get_status_hid.return_value = {"headset_online": True, "battery_percent": 75, "battery_charging": False, "chatmix": 64}
+        self.service.hid_device = Mock()
+        self.mock_connect_hid.return_value = True
+
+        level = self.service.get_battery_level()
+        self.assertEqual(level, 75)
+        mock_get_status_hid.assert_called()
+        for call_args in mock_subprocess_run.call_args_list:
+            args, _ = call_args
+            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
+                self.fail("subprocess.run called with headsetcontrol")
+
+    @patch.object(HeadsetService, "_get_parsed_status_hid", return_value=None)
+    @patch("subprocess.run")
+    def test_get_battery_level_hid_failure_no_cli_fallback(self, mock_subprocess_run, mock_get_status_hid_failure):
+        self.service.hid_device = Mock()
+        self.mock_connect_hid.return_value = True
+
+        level = self.service.get_battery_level()
+        self.assertIsNone(level)
+        mock_get_status_hid_failure.assert_called()
+        for call_args in mock_subprocess_run.call_args_list:
+            args, _ = call_args
+            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
+                 self.fail("subprocess.run called with headsetcontrol")
+
 
 class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
     def setUp(self):
@@ -239,34 +312,50 @@ class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
         self.assertEqual(self.service._sort_hid_devices([]), [])
 
     def test_sort_hid_devices_single_device(self):
-        single_device_list = [{'product_id': TARGET_PIDS[0], 'path': b'path1'}]
-        self.assertEqual(self.service._sort_hid_devices(single_device_list), single_device_list)
+        # Ensure the single device has all necessary keys for the sort_key function
+        single_device = {
+            'vendor_id': STEELSERIES_VID,
+            'product_id': TARGET_PIDS[0],
+            'path': b'path1',
+            'interface_number': -1, # Default value if not relevant to test
+            'usage_page': 0,      # Default value
+            'usage': 0            # Default value
+        }
+        single_device_list = [single_device]
+        # The method sorts in-place and returns the list, so the list instance is the same.
+        # For a single device, the list content remains unchanged.
+        self.assertEqual(self.service._sort_hid_devices(list(single_device_list)), single_device_list)
+
 
     def test_sort_hid_devices_sorting_logic(self):
-        # Create devices with properties designed to trigger each sort tier
+        # Base attributes for all devices, ensuring all necessary keys are present
+        base_attrs = {
+            'vendor_id': STEELSERIES_VID,
+            'interface_number': -1, # Default, overridden if specific to sort tier
+            'usage_page': 0,      # Default, overridden if specific
+            'usage': 0,           # Default, overridden if specific
+        }
+
         # Device E: Default priority (2)
-        dev_e_default = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathE', 'interface_number': 1, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'E_Default'}
+        dev_e_default = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathE', 'interface_number': 1, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'E_Default'}
         # Device D: Usage page 0xFFC0 (1)
-        dev_d_usage_page = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathD', 'interface_number': 1, 'usage_page': app_config.HID_REPORT_USAGE_PAGE, 'usage': 0x0000, 'name': 'D_UsagePage'}
+        dev_d_usage_page = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathD', 'interface_number': 1, 'usage_page': app_config.HID_REPORT_USAGE_PAGE, 'usage': 0x0000, 'name': 'D_UsagePage'}
         # Device C: Interface 3 (0)
-        dev_c_interface3 = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathC', 'interface_number': 3, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'C_Interface3'}
+        dev_c_interface3 = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathC', 'interface_number': 3, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'C_Interface3'}
         # Device B: PID 0x2202 (ARCTIS_NOVA_7_USER_PID) and interface 0 (-1)
-        dev_b_pid2202_if0 = {'vendor_id': STEELSERIES_VID, 'product_id': app_config.ARCTIS_NOVA_7_USER_PID, 'path': b'pathB', 'interface_number': 0, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'B_PID2202_IF0'}
-        # Device A: Exact match (-2) - assuming TARGET_PIDS[0] is not 0x2202 for this test case to be distinct from B
-        # If TARGET_PIDS[0] IS 0x2202, then dev_a and dev_b might be hard to distinguish or might merge.
-        # For this test, let's assume TARGET_PIDS[0] is a generic one for the "exact match" device.
-        # The key is that HID_REPORT_INTERFACE, HID_REPORT_USAGE_PAGE, HID_REPORT_USAGE_ID are matched.
+        dev_b_pid2202_if0 = {**base_attrs, 'product_id': app_config.ARCTIS_NOVA_7_USER_PID, 'path': b'pathB', 'interface_number': 0, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'B_PID2202_IF0'}
+
         target_pid_for_a = TARGET_PIDS[0]
         if target_pid_for_a == app_config.ARCTIS_NOVA_7_USER_PID and len(TARGET_PIDS) > 1:
-            target_pid_for_a = TARGET_PIDS[1] # Try to pick a different PID for A if first is 0x2202
+            target_pid_for_a = TARGET_PIDS[1]
 
-        dev_a_exact = {'vendor_id': STEELSERIES_VID, 'product_id': target_pid_for_a, 'path': b'pathA',
+        dev_a_exact = {**base_attrs, 'product_id': target_pid_for_a, 'path': b'pathA',
                        'interface_number': app_config.HID_REPORT_INTERFACE,
                        'usage_page': app_config.HID_REPORT_USAGE_PAGE,
                        'usage': app_config.HID_REPORT_USAGE_ID, 'name': 'A_Exact'}
 
         # Device F: Another default priority device to check stability (should come after E if E was first)
-        dev_f_default_stable = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathF', 'interface_number': 2, 'usage_page': 0x0001, 'usage': 0x0001, 'name': 'F_DefaultStable'}
+        dev_f_default_stable = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathF', 'interface_number': 2, 'usage_page': 0x0001, 'usage': 0x0001, 'name': 'F_DefaultStable'}
 
 
         # Intentionally unsorted list
@@ -280,78 +369,6 @@ class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
 
         # Assert based on the 'name' field for simplicity, assuming paths or other fields could be used too
         self.assertEqual([d.get('name') for d in sorted_devices], [d.get('name') for d in expected_order])
-
-    @patch("headsetcontrol_tray.headset_service.logger")
-    def test_get_sidetone_level_returns_none_and_logs_warning(self, mock_logger):
-        self.service.hid_device = None
-        result = self.service.get_sidetone_level()
-        self.assertIsNone(result)
-        mock_logger.warning.assert_any_call("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-
-    @patch("headsetcontrol_tray.headset_service.logger")
-    def test_get_inactive_timeout_returns_none_and_logs_warning(self, mock_logger):
-        self.service.hid_device = None
-        result = self.service.get_inactive_timeout()
-        self.assertIsNone(result)
-        mock_logger.warning.assert_any_call("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-
-    @patch.object(HeadsetService, "_set_sidetone_level_hid", return_value=True)
-    @patch("subprocess.run") # To ensure CLI is not called
-    def test_set_sidetone_level_uses_hid_only_success(self, mock_subprocess_run, mock_set_sidetone_hid):
-        # Ensure hid_device is mocked as connected for this path
-        self.service.hid_device = Mock()
-        self.mock_connect_hid.return_value = True # _ensure_hid_connection returns True
-
-        result = self.service.set_sidetone_level(50)
-        self.assertTrue(result)
-        mock_set_sidetone_hid.assert_called_once_with(50)
-        for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
-            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
-                 self.fail("subprocess.run called with headsetcontrol")
-
-    @patch.object(HeadsetService, "_set_sidetone_level_hid", return_value=False)
-    @patch("subprocess.run")
-    def test_set_sidetone_level_hid_failure_no_cli_fallback(self, mock_subprocess_run, mock_set_sidetone_hid_failure):
-        self.service.hid_device = Mock()
-        self.mock_connect_hid.return_value = True
-
-        result = self.service.set_sidetone_level(50)
-        self.assertFalse(result)
-        mock_set_sidetone_hid_failure.assert_called_once_with(50)
-        for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
-            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
-                 self.fail("subprocess.run called with headsetcontrol")
-
-    @patch.object(HeadsetService, "_get_parsed_status_hid")
-    @patch("subprocess.run")
-    def test_get_battery_level_uses_hid_only_success(self, mock_subprocess_run, mock_get_status_hid):
-        mock_get_status_hid.return_value = {"headset_online": True, "battery_percent": 75, "battery_charging": False, "chatmix": 64}
-        self.service.hid_device = Mock()
-        self.mock_connect_hid.return_value = True
-
-        level = self.service.get_battery_level()
-        self.assertEqual(level, 75)
-        mock_get_status_hid.assert_called()
-        for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
-            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
-                self.fail("subprocess.run called with headsetcontrol")
-
-    @patch.object(HeadsetService, "_get_parsed_status_hid", return_value=None)
-    @patch("subprocess.run")
-    def test_get_battery_level_hid_failure_no_cli_fallback(self, mock_subprocess_run, mock_get_status_hid_failure):
-        self.service.hid_device = Mock()
-        self.mock_connect_hid.return_value = True
-
-        level = self.service.get_battery_level()
-        self.assertIsNone(level)
-        mock_get_status_hid_failure.assert_called()
-        for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
-            if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
-                 self.fail("subprocess.run called with headsetcontrol")
 
 
 class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
