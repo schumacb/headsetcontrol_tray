@@ -33,8 +33,10 @@ class ConfigManager:
         try:
             with open(file_path, "w") as f:
                 json.dump(data, f, indent=4)
-        except OSError:
-            logger.error(f"Could not write to {file_path}.")
+        except IOError as e: # More specific catch for IOErrors
+            logger.error(f"IOError saving file {file_path}: {e}")
+        except OSError as e: # Catch other OS-related errors
+            logger.error(f"OSError saving file {file_path}: {e}")
 
 
     # General Settings

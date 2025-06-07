@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess  # Added for pkexec
 import sys
+from typing import Callable
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -45,7 +46,6 @@ class SteelSeriesTrayApp:
 
         # Check if udev rule setup instructions were generated
         if self.headset_service.udev_setup_details:
-            details = self.headset_service.udev_setup_details
             details = self.headset_service.udev_setup_details
             temp_file = details["temp_file_path"]
             final_file = details["final_file_path"]
@@ -162,7 +162,7 @@ Without these rules, the application might not be able to detect or control your
         self.tray_icon = sti.SystemTrayIcon(
             self.headset_service,
             self.config_manager,
-            self.quit_application,
+            self.quit_application, # type: Callable[[], None]
         )
         self.tray_icon.show()
 

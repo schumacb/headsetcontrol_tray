@@ -153,13 +153,6 @@ HID_CMD_SET_MIC_VOLUME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x37] # Append map
 # Volume Limiter
 HID_CMD_SET_VOLUME_LIMITER_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x3a] # Append status (0x00 or 0x01)
 
-# --- Old Placeholders (Commented out for reference, to be removed later) ---
-# # HID_REPORT_ID_COMMAND = 0x06 # Might be this or another value, or not used if using feature reports
-# # HID_CMD_GET_BATTERY = [0xBA, 0x77] # Example command bytes
-# # HID_CMD_GET_SIDETONE = [0x51, 0x00] # Example
-# # HID_CMD_GET_EQ = [0xEE, 0x00] # Example
-# # HID_CMD_GET_ACTIVE_PRESET = [0xEE, 0x01] # Example
-
 # REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
 # Kept for potential other uses or if a fixed interval is ever needed again.
 REFRESH_INTERVAL_MS = 1000
