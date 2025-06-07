@@ -1,11 +1,11 @@
-import unittest
-from unittest.mock import patch, Mock, MagicMock
 import os
+import subprocess  # For subprocess.CompletedProcess
 import sys
-import subprocess # For subprocess.CompletedProcess
+import unittest
+from unittest.mock import MagicMock, Mock, patch
 
 # Ensure the application modules can be imported
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
@@ -28,16 +28,16 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.sample_details = {
             "temp_file_path": "/tmp/test_rules_sample.txt",
             "final_file_path": "/etc/udev/rules.d/99-sample.rules",
-            "rule_filename": "99-sample.rules"
+            "rule_filename": "99-sample.rules",
         }
 
-        current_script_dir = os.path.dirname(os.path.abspath(sys.modules['headsetcontrol_tray.app'].__file__))
+        current_script_dir = os.path.dirname(os.path.abspath(sys.modules["headsetcontrol_tray.app"].__file__))
         repo_root = os.path.abspath(os.path.join(current_script_dir, ".."))
         self.expected_helper_script_path = os.path.join(repo_root, "scripts", "install-udev-rules.sh")
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
     def test_initial_dialog_shown_when_details_present(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
         mock_service_instance = MockHeadsetService.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
@@ -78,7 +78,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_dialog_instance.setWindowTitle.assert_called_with("Headset Permissions Setup Required")
         # Updated assertion for the main text
         mock_dialog_instance.setText.assert_called_with(
-            "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules)."
+            "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
         )
 
         informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
@@ -87,9 +87,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertNotIn("Show Manual Instructions Only", informative_text_call_args)
 
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
     def test_initial_dialog_not_shown_when_details_absent(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = None
@@ -127,7 +127,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_subprocess_run.return_value = subprocess.CompletedProcess(
             args=["pkexec", self.expected_helper_script_path, self.sample_details["temp_file_path"], self.sample_details["final_file_path"]],
-            returncode=pkexec_returncode, stdout=pkexec_stdout, stderr=pkexec_stderr
+            returncode=pkexec_returncode, stdout=pkexec_stdout, stderr=pkexec_stderr,
         )
 
         MockQMessageBoxClass.reset_mock()
@@ -153,11 +153,11 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                  self.assertIn(item, mock_feedback_dialog_instance.setInformativeText.call_args[0][0])
         mock_feedback_dialog_instance.exec.assert_called_once()
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.os.path.exists')
-    @patch('headsetcontrol_tray.app.subprocess.run')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.os.path.exists")
+    @patch("headsetcontrol_tray.app.subprocess.run")
     def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
         self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
                                   pkexec_returncode=0, pkexec_stdout="Success", pkexec_stderr="",
@@ -166,11 +166,11 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                                   expected_text="Udev rules installed successfully.",
                                   expected_informative_text_contains="Please replug your headset")
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.os.path.exists')
-    @patch('headsetcontrol_tray.app.subprocess.run')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.os.path.exists")
+    @patch("headsetcontrol_tray.app.subprocess.run")
     def test_pkexec_flow_user_cancelled(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
         self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
                                   pkexec_returncode=126, pkexec_stdout="", pkexec_stderr="User cancelled",
@@ -179,11 +179,11 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                                   expected_text="Udev rule installation was cancelled.",
                                   expected_informative_text_contains="Authentication was not provided")
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.os.path.exists')
-    @patch('headsetcontrol_tray.app.subprocess.run')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.os.path.exists")
+    @patch("headsetcontrol_tray.app.subprocess.run")
     def test_pkexec_flow_auth_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
         stderr_msg = "Authorization failed (polkit)"
         self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
@@ -193,11 +193,11 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                                   expected_text="Failed to install udev rules due to an authorization error.",
                                   expected_informative_text_contains=[stderr_msg, "Please ensure you have privileges"])
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.os.path.exists')
-    @patch('headsetcontrol_tray.app.subprocess.run')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.os.path.exists")
+    @patch("headsetcontrol_tray.app.subprocess.run")
     def test_pkexec_flow_script_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
         stderr_msg = "Helper script failed: cp error"
         self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
@@ -207,11 +207,11 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                                   expected_text="The udev rule installation script failed.",
                                   expected_informative_text_contains=[f"Error (code 4): {stderr_msg}", "Please check the output"])
 
-    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
-    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
-    @patch('headsetcontrol_tray.app.QMessageBox')
-    @patch('headsetcontrol_tray.app.os.path.exists')
-    @patch('headsetcontrol_tray.app.subprocess.run')
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @patch("headsetcontrol_tray.app.QMessageBox")
+    @patch("headsetcontrol_tray.app.os.path.exists")
+    @patch("headsetcontrol_tray.app.subprocess.run")
     def test_pkexec_helper_script_not_found(self, mock_subprocess_run, mock_os_path_exists, MockQMessageBoxClass, MockHeadsetService, MockSystemTrayIcon):
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = self.sample_details
@@ -244,5 +244,5 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertIn(self.expected_helper_script_path, args[2])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

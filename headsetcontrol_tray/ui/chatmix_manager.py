@@ -1,8 +1,8 @@
 # chatmix_manager.py
-import subprocess
 import json
 import logging
-from typing import List, Dict, Optional, Tuple, Any
+import subprocess
+from typing import Any
 
 # Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
 # Adjust the import path if necessary, e.g., from .. import app_config
@@ -24,11 +24,11 @@ class ChatMixManager:
         ]
         # Reference volume for 100% (PipeWire uses floats, typically 0.0 to 1.0 for normal range)
         self.reference_volume = 1.0
-        self._pipewire_nodes: Dict[str, Any] = {} # Assuming this was intended to be here, based on your prompt. If not, it should be removed.
-        self._last_set_stream_volumes: Dict[str, List[float]] = {} # New attribute
+        self._pipewire_nodes: dict[str, Any] = {} # Assuming this was intended to be here, based on your prompt. If not, it should be removed.
+        self._last_set_stream_volumes: dict[str, list[float]] = {} # New attribute
         logger.info(f"ChatMixManager initialized. Chat app identifiers: {self.chat_app_identifiers_config}")
 
-    def _run_pipewire_command(self, command_args: List[str]) -> Optional[str]:
+    def _run_pipewire_command(self, command_args: list[str]) -> str | None:
         """Runs a PipeWire command (like pw-dump or pw-cli) and returns its stdout."""
         try:
             logger.debug(f"Executing PipeWire command: {' '.join(command_args)}")
@@ -42,12 +42,12 @@ class ChatMixManager:
             logger.error(f"An unexpected error occurred while running '{' '.join(command_args)}': {e}")
         return None
 
-    def _get_audio_streams(self) -> List[Dict[str, Any]]:
+    def _get_audio_streams(self) -> list[dict[str, Any]]:
         """
         Gets all active audio output stream nodes from PipeWire using pw-dump.
         Extracts ID, identifying properties, and current channel/volume info.
         """
-        json_output = self._run_pipewire_command(['pw-dump'])
+        json_output = self._run_pipewire_command(["pw-dump"])
         if not json_output:
             logger.warning("Failed to get output from pw-dump.")
             return []
@@ -82,7 +82,7 @@ class ChatMixManager:
                 current_channel_volumes = [self.reference_volume] # Default to mono 100%
                 num_channels = 1
 
-                if "Props" in node_params and node_params["Props"]: # "Props" exists and is not empty list
+                if node_params.get("Props"): # "Props" exists and is not empty list
                     # "Props" parameter is usually an array with one object in it
                     props_param_instance = node_params["Props"][0] if isinstance(node_params["Props"], list) and node_params["Props"] else {}
                     if "channelVolumes" in props_param_instance:
@@ -95,12 +95,12 @@ class ChatMixManager:
                     "id": stream_id,
                     "props": props, # application.name, application.process.binary, etc.
                     "num_channels": num_channels,
-                    "current_channel_volumes": current_channel_volumes # For reference or if needed
+                    "current_channel_volumes": current_channel_volumes, # For reference or if needed
                 })
         logger.debug(f"Found {len(streams)} Stream/Output/Audio nodes.")
         return streams
 
-    def _calculate_volumes(self, chatmix_value: int) -> Tuple[float, float]:
+    def _calculate_volumes(self, chatmix_value: int) -> tuple[float, float]:
         """
         Calculates game and chat volumes based on ChatMix (0-128).
         0   = Full Chat (Game low, Chat full)
@@ -152,9 +152,9 @@ class ChatMixManager:
         payload_json = json.dumps(payload_dict) # Ensure json is imported
 
         logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {payload_json}")
-        
+
         # Construct the command
-        cmd = ['pw-cli', 'set-param', str(stream_id), 'Props', payload_json]
+        cmd = ["pw-cli", "set-param", str(stream_id), "Props", payload_json]
         logger.debug(f"Executing PipeWire command: {' '.join(cmd)}")
 
         try:
@@ -168,7 +168,7 @@ class ChatMixManager:
         except Exception as e:
             logger.error(f"An unexpected error occurred while setting volume for stream {stream_id}: {e}")
 
-    def update_volumes(self, chatmix_value: Optional[int]):
+    def update_volumes(self, chatmix_value: int | None):
         if chatmix_value is None:
             logger.debug("ChatMix value is None, skipping volume update.")
             return
@@ -200,7 +200,7 @@ class ChatMixManager:
                 if ident in app_name or ident in app_binary:
                     is_chat_app = True
                     break
-            
+
             current_target_volume = game_target_vol
             stream_type = "OTHER/GAME"
             if is_chat_app:

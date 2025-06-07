@@ -24,7 +24,7 @@ TARGET_PIDS = [
 ]
 
 # Configuration File
-CONFIG_DIR = Path(os.getenv('XDG_CONFIG_HOME', Path.home() / ".config")) / "steelseries_tray"
+CONFIG_DIR = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
 CONFIG_FILE = CONFIG_DIR / "settings.json"
 CUSTOM_EQ_CURVES_FILE = CONFIG_DIR / "custom_eq_curves.json"
 
@@ -41,7 +41,7 @@ DEFAULT_EQ_CURVES = {
     "Bass Boost": [6, 5, 4, 2, 1, 0, 0, 0, 0, 0],
     "Treble Boost": [0, 0, 0, 0, 0, 1, 2, 3, 4, 5],
     "Vocal Clarity": [-2, -1, 0, 2, 3, 3, 2, 1, 0, -1],
-    "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1] # Example for footsteps & clarity
+    "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1], # Example for footsteps & clarity
 }
 
 # Specific Hardware Preset Curves for Arctis Nova 7 (derived from headsetcontrol C code)
@@ -51,7 +51,7 @@ ARCTIS_NOVA_7_HW_PRESETS = {
     0: { "name": "Flat (Hardware)", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
     1: { "name": "Bass Boost (Hardware)", "values": [3.5, 5.5, 4.0, 1.0, -1.5, -1.5, -1.0, -1.0, -1.0, -1.0]},
     2: { "name": "Focus (Hardware)", "values": [-5.0, -3.5, -1.0, -3.5, -2.5, 4.0, 6.0, -3.5, 0.0, 0.0]}, # Padded last value
-    3: { "name": "Smiley (Hardware)", "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0]}
+    3: { "name": "Smiley (Hardware)", "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0]},
 }
 # The HARDWARE_EQ_PRESET_NAMES can still be used for display names in UI if needed,
 # but these curves are what will be sent for the preset IDs.
@@ -62,7 +62,7 @@ SIDETONE_OPTIONS = {
     "Low": 32,
     "Medium": 64,
     "High": 96,
-    "Max": 128
+    "Max": 128,
 }
 # Sidetone can also be a slider from 0-128. Using a slider action.
 
@@ -73,7 +73,7 @@ INACTIVE_TIMEOUT_OPTIONS = {
     "30 minutes": 30,
     "45 minutes": 45,
     "60 minutes": 60,
-    "90 minutes": 90
+    "90 minutes": 90,
 }
 
 # Hardware EQ Preset Names (Assuming 4 presets, names might vary)
@@ -81,7 +81,7 @@ HARDWARE_EQ_PRESET_NAMES = {
     0: "Preset 1 (Default)",
     1: "Preset 2",
     2: "Preset 3",
-    3: "Preset 4"
+    3: "Preset 4",
 }
 
 # HID Report Details (Derived from HeadsetControl source code - See HID_RESEARCH.md)
@@ -162,6 +162,6 @@ HID_CMD_SET_VOLUME_LIMITER_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x3a] # Append
 
 # REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
 # Kept for potential other uses or if a fixed interval is ever needed again.
-REFRESH_INTERVAL_MS = 1000 
+REFRESH_INTERVAL_MS = 1000
 
 DEFAULT_CHAT_APP_IDENTIFIERS = ["Discord"]

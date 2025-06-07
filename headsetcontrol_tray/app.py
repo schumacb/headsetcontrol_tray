@@ -1,14 +1,15 @@
-import sys
 import logging
 import os
-import subprocess # Added for pkexec
-from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtGui import QIcon
+import subprocess  # Added for pkexec
+import sys
 
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication, QMessageBox
+
+from . import app_config
 from . import config_manager as cfg_mgr
 from . import headset_service as hs_svc
 from .ui import system_tray_icon as sti
-from . import app_config
 
 # Initialize logging
 log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -17,7 +18,7 @@ log_level = getattr(logging, log_level_str, logging.INFO)
 logging.basicConfig(
     level=log_level,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)] # Output to console
+    handlers=[logging.StreamHandler(sys.stdout)], # Output to console
 )
 logger = logging.getLogger(app_config.APP_NAME)
 
@@ -38,7 +39,7 @@ class SteelSeriesTrayApp:
         app_icon = QIcon.fromTheme("audio-headset", QIcon.fromTheme("preferences-desktop-multimedia"))
         if not app_icon.isNull():
             self.qt_app.setWindowIcon(app_icon)
-        
+
         self.config_manager = cfg_mgr.ConfigManager()
         self.headset_service = hs_svc.HeadsetService()
 
@@ -151,21 +152,20 @@ Without these rules, the application might not be able to detect or control your
             #     logger.info("User chose to view manual udev rules instructions.")
             else: # Includes clicking Close button or if auto_button was not the one clicked
                 logger.info("User closed or cancelled the udev rules dialog, or did not choose automatic install.")
-        
+
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on startup by HeadsetService.")
             # QSystemTrayIcon.supportsMessages() can check if backend supports this.
             # For now, tooltip will indicate disconnected state.
             # print("Warning: Headset not detected on startup.")
-            pass
 
         self.tray_icon = sti.SystemTrayIcon(
-            self.headset_service, 
+            self.headset_service,
             self.config_manager,
-            self.quit_application
+            self.quit_application,
         )
         self.tray_icon.show()
-        
+
         # Apply persisted settings on startup
         self.tray_icon.set_initial_headset_settings()
 

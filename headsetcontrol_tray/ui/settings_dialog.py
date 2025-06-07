@@ -1,23 +1,33 @@
-from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QDialogButtonBox,
-    QRadioButton, QLabel, QButtonGroup, QSizePolicy, QMessageBox, QSlider, QSpacerItem,
-    QGroupBox, QLineEdit
-)
-from PySide6.QtCore import Signal, Qt
 import logging
-from typing import Optional
 
-from .equalizer_editor_widget import EqualizerEditorWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QDialog,
+    QDialogButtonBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QRadioButton,
+    QSizePolicy,
+    QSlider,
+    QSpacerItem,
+    QVBoxLayout,
+)
+
+from .. import app_config
 from .. import config_manager as cfg_mgr
 from .. import headset_service as hs_svc
-from .. import app_config
+from .equalizer_editor_widget import EqualizerEditorWidget
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 
 class SettingsDialog(QDialog):
     """Main settings dialog for the application."""
-    eq_applied: Signal = Signal(str) 
+    eq_applied: Signal = Signal(str)
     settings_changed = Signal()
 
     def __init__(self, config_manager: cfg_mgr.ConfigManager, headset_service: hs_svc.HeadsetService, parent=None):
@@ -26,11 +36,11 @@ class SettingsDialog(QDialog):
         self.headset_service = headset_service
 
         self.setWindowTitle(f"{app_config.APP_NAME} - Settings")
-        self.setMinimumWidth(600) 
+        self.setMinimumWidth(600)
 
         main_layout = QVBoxLayout(self)
-        main_layout.setSpacing(15) 
-        main_layout.setContentsMargins(10, 10, 10, 10) 
+        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(10, 10, 10, 10)
 
         # --- ChatMix Group ---
         chatmix_main_groupbox = QGroupBox("ChatMix")
@@ -55,7 +65,7 @@ class SettingsDialog(QDialog):
 
         self.game_label_indicator = QLabel("Game")
         chatmix_visual_layout.addWidget(self.game_label_indicator)
-        
+
         chatmix_main_layout.addLayout(chatmix_visual_layout)
         # Add a small label below the slider for "Balanced" text
         balanced_label_indicator = QLabel("Balanced")
@@ -79,29 +89,29 @@ class SettingsDialog(QDialog):
         self.chat_apps_line_edit.setPlaceholderText("E.g., Discord, Teamspeak")
         chat_apps_config_layout.addWidget(self.chat_apps_line_edit)
         self.chat_apps_line_edit.editingFinished.connect(self._save_chat_app_identifiers)
-        
+
         chatmix_main_layout.addLayout(chat_apps_config_layout)
         main_layout.addWidget(chatmix_main_groupbox)
 
 
         # --- Sidetone Settings (Slider in GroupBox) ---
         sidetone_groupbox = QGroupBox("Sidetone Level")
-        sidetone_group_layout = QVBoxLayout(sidetone_groupbox) 
-        
-        sidetone_control_layout = QHBoxLayout() 
+        sidetone_group_layout = QVBoxLayout(sidetone_groupbox)
+
+        sidetone_control_layout = QHBoxLayout()
         self.sidetone_slider = QSlider(Qt.Orientation.Horizontal)
-        self.sidetone_slider.setRange(0, 128) 
-        self.sidetone_slider.setTickInterval(16) 
+        self.sidetone_slider.setRange(0, 128)
+        self.sidetone_slider.setTickInterval(16)
         self.sidetone_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         sidetone_control_layout.addWidget(self.sidetone_slider)
-        
-        self.sidetone_value_label = QLabel("0") 
-        self.sidetone_value_label.setMinimumWidth(35) 
+
+        self.sidetone_value_label = QLabel("0")
+        self.sidetone_value_label.setMinimumWidth(35)
         self.sidetone_value_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         sidetone_control_layout.addWidget(self.sidetone_value_label)
         sidetone_group_layout.addLayout(sidetone_control_layout)
         main_layout.addWidget(sidetone_groupbox)
-        
+
         self.sidetone_slider.valueChanged.connect(self._on_sidetone_slider_value_changed)
         self.sidetone_slider.sliderReleased.connect(self._apply_sidetone_setting)
 
@@ -109,13 +119,13 @@ class SettingsDialog(QDialog):
         # --- Inactive Timeout Settings (in GroupBox) ---
         timeout_groupbox = QGroupBox("Inactive Timeout")
         timeout_group_layout = QHBoxLayout(timeout_groupbox)
-        
+
         self.timeout_button_group = QButtonGroup(self)
         for idx, (text, minutes) in enumerate(app_config.INACTIVE_TIMEOUT_OPTIONS.items()):
             rb = QRadioButton(text)
             timeout_group_layout.addWidget(rb)
             self.timeout_button_group.addButton(rb, minutes)
-        timeout_group_layout.addStretch() 
+        timeout_group_layout.addStretch()
         main_layout.addWidget(timeout_groupbox)
         self.timeout_button_group.idClicked.connect(self._on_inactive_timeout_changed)
 
@@ -124,18 +134,18 @@ class SettingsDialog(QDialog):
         eq_group_layout = QVBoxLayout(eq_groupbox)
 
         self.equalizer_widget = EqualizerEditorWidget(self.config_manager, self.headset_service, self)
-        self.equalizer_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred) 
+        self.equalizer_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         eq_group_layout.addWidget(self.equalizer_widget)
         main_layout.addWidget(eq_groupbox)
-        
-        self.equalizer_widget.eq_applied.connect(self.eq_applied) 
+
+        self.equalizer_widget.eq_applied.connect(self.eq_applied)
 
         main_layout.addSpacerItem(QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         # --- Dialog buttons ---
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        self.button_box.rejected.connect(self.reject) 
-        self.button_box.accepted.connect(self.accept) 
+        self.button_box.rejected.connect(self.reject)
+        self.button_box.accepted.connect(self.accept)
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
@@ -145,7 +155,7 @@ class SettingsDialog(QDialog):
         current_sidetone = self.config_manager.get_last_sidetone_level()
         self.sidetone_slider.setValue(current_sidetone)
         self.sidetone_value_label.setText(str(current_sidetone))
-        
+
         current_timeout = self.config_manager.get_last_inactive_timeout()
         timeout_button_to_check = self.timeout_button_group.button(current_timeout)
         if timeout_button_to_check:
@@ -153,16 +163,16 @@ class SettingsDialog(QDialog):
 
         chat_ids_list = self.config_manager.get_setting("chat_app_identifiers", app_config.DEFAULT_CHAT_APP_IDENTIFIERS)
         self.chat_apps_line_edit.setText(", ".join(chat_ids_list))
-        
+
         self.refresh_chatmix_display()
 
-    def get_chatmix_tooltip_string(self, chatmix_val: Optional[int]) -> str:
+    def get_chatmix_tooltip_string(self, chatmix_val: int | None) -> str:
         if chatmix_val is None: return "ChatMix: N/A (Headset disconnected?)"
         percentage = round((chatmix_val / 128) * 100)
         if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
-        elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
-        elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
-        else: return f"ChatMix: Custom Mix ({percentage}%)" 
+        if chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+        if chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+        return f"ChatMix: Custom Mix ({percentage}%)"
 
     def refresh_chatmix_display(self):
         chatmix_val = self.headset_service.get_chatmix_value()
@@ -189,7 +199,7 @@ class SettingsDialog(QDialog):
         else:
             QMessageBox.warning(self, "Error", "Failed to set sidetone level. Is the headset connected?")
             current_sidetone = self.config_manager.get_last_sidetone_level()
-            self.sidetone_slider.setValue(current_sidetone) 
+            self.sidetone_slider.setValue(current_sidetone)
             self.sidetone_value_label.setText(str(current_sidetone))
 
     def _on_inactive_timeout_changed(self, minutes_id: int):
@@ -199,20 +209,20 @@ class SettingsDialog(QDialog):
             self.settings_changed.emit()
         else:
             QMessageBox.warning(self, "Error", "Failed to set inactive timeout. Is the headset connected?")
-            self._load_initial_settings() 
+            self._load_initial_settings()
 
     def showEvent(self, event):
         super().showEvent(event)
-        self._load_initial_settings() 
+        self._load_initial_settings()
         self.equalizer_widget.refresh_view()
 
     def _save_chat_app_identifiers(self):
         current_text = self.chat_apps_line_edit.text().strip()
-        new_identifiers = [ident.strip() for ident in current_text.split(',') if ident.strip()]
-        
+        new_identifiers = [ident.strip() for ident in current_text.split(",") if ident.strip()]
+
         old_identifiers = self.config_manager.get_setting("chat_app_identifiers", app_config.DEFAULT_CHAT_APP_IDENTIFIERS)
 
-        if set(new_identifiers) != set(old_identifiers): 
+        if set(new_identifiers) != set(old_identifiers):
             self.config_manager.set_setting("chat_app_identifiers", new_identifiers)
             logger.info(f"Chat application identifiers updated to: {new_identifiers}")
             self.settings_changed.emit()
