@@ -27,15 +27,12 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
                 shape Person
             }
             element "Application" {
-                inherits "Software System"
                 icon "https://static.structurizr.com/icons/desktop-24.png"
             }
             element "Software/Firmware" {
-                inherits "Software System"
                 icon "https://static.structurizr.com/icons/component-24.png"
             }
             element "User" {
-                inherits "Person"
             }
         }
     }

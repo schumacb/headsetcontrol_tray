@@ -189,4 +189,63 @@ Correct:   `mySystem = softwareSystem "My System" "A description."`
 Correct:   `mySystem = softwareSystem "My System"`
 
 Note: Unlike `container` elements, the `softwareSystem` definition does not have a separate `[technology]` field in its main definition line. Technology or type information should typically be included as a tag.
+
+### Element Style Inheritance
+
+When defining element styles in the `styles` block, it's important to note that the `inherits` keyword is **not** a valid property within an `element "Tag" { ... }` definition.
+
+Instead, style inheritance and combination are typically handled by Structurizr based on the tags an element possesses:
+
+1.  **Base Styles**: Define base styles for general tags like "Person" or "Software System".
+    ```dsl
+    styles {
+        element "Software System" {
+            background #1168bd
+            color #ffffff
+            shape RoundedBox
+        }
+        element "Person" {
+            background #08427b
+            color #ffffff
+            shape Person
+        }
+    }
+    ```
+
+2.  **Specific Styles**: For elements that have more specific characteristics (and corresponding tags), define additional styles for those specific tags. These styles will be layered on top of or override the base styles.
+    ```dsl
+    styles {
+        // Base style for all software systems
+        element "Software System" {
+            shape RoundedBox
+            background #dddddd
+        }
+
+        // Specific style for elements also tagged "Application"
+        element "Application" {
+            // This element will get shape and background from "Software System"
+            // and then this icon will be added/applied.
+            icon "https://static.structurizr.com/icons/desktop-24.png"
+        }
+    }
+    ```
+
+3.  **Element Tagging**: Ensure your model elements are tagged appropriately. An element can have multiple tags.
+    ```dsl
+    model {
+        myWebApp = softwareSystem "My Web App" "Serves web content." "Application"
+        // myWebApp has tags: "Software System" (default), "Element" (default), and "Application"
+    }
+    ```
+    In the example above, `myWebApp` would receive base styling from the "Software System" tag style and then have the "Application" tag style (e.g., the icon) applied.
+
+**Incorrect usage (causes parsing error):**
+```dsl
+element "Application" {
+    inherits "Software System" // This is invalid
+    icon "..."
+}
+```
+
+By defining styles for individual tags and ensuring elements have all relevant tags, the Structurizr renderer will combine these styles appropriately.
 ```
