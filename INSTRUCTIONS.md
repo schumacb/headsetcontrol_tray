@@ -286,4 +286,60 @@ To visualize the internal structure of a `softwareSystem`, you define `container
     ```
     - The first argument to `container` (for a view) is the identifier of the software system.
     - The `include *` directive is a common way to show all containers within that system and the elements connected to them.
+
+### Element Definition Order
+
+To avoid "element does not exist" parsing errors when defining relationships, it's generally a good practice to define elements (like people, software systems, containers) before they are referenced. The Structurizr DSL parser may not always look ahead to find definitions that appear later in the file.
+
+**Example:**
+
+If `SystemB` is defined after `SystemA`, and `SystemA` tries to form a relationship with `SystemB`:
+
+```dsl
+// Potentially problematic order
+model {
+    systemA = softwareSystem "System A" {
+        -> systemB "Uses" // systemB might not be found yet
+    }
+    systemB = softwareSystem "System B"
+}
+```
+
+**Recommended Order:**
+
+```dsl
+model {
+    systemB = softwareSystem "System B" // Define systemB first
+    systemA = softwareSystem "System A" {
+        -> systemB "Uses" // Now systemB is known
+    }
+}
+```
+This is particularly relevant when an element (e.g., a container inside `SystemA`) references another top-level element (e.g., `SystemB`).
+
+### Relationship Specificity and Redundancy
+
+Structurizr creates implicit relationships. For example, if you define a relationship from a `Person` to a `Container` within a `SoftwareSystem` (e.g., `user -> MyWebAppClient`), Structurizr understands that the `user` is also implicitly related to the parent `MyWebApp` software system.
+
+Because of this, defining both a specific relationship (e.g., `user -> MyWebAppClient`) and a more general one (e.g., `user -> MyWebApp`) can sometimes lead to "relationship already exists" errors.
+
+**General Guideline:**
+Prefer defining the most specific relationship. For example, if a user interacts directly with a specific container (like a GUI client or an API), define the relationship to that container.
+
+```dsl
+model {
+    user = person "User"
+    mySystem = softwareSystem "My System" {
+        myClient = container "My Client" "GUI for My System." "Desktop App"
+
+        // Specific relationship (Preferred)
+        user -> myClient "Uses the client"
+    }
+
+    // This might be redundant if the above is defined,
+    // as user's interaction with myClient implies interaction with mySystem.
+    // user -> mySystem "Uses My System"
+}
+```
+If a general relationship to the software system is still needed for clarity in a higher-level diagram (like System Context) and a specific one for a lower-level diagram (like Container), ensure their descriptions or technologies are distinct enough if you choose to keep both. However, often the specific relationship is sufficient, and Structurizr will render it appropriately in parent diagrams.
 ```

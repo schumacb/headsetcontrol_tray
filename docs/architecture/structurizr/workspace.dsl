@@ -25,7 +25,6 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
             headsetComm -> headsetControl "Controls/Manages" "Sends commands to and receives status from the headset control system."
         }
 
-        user -> headsetControlTray "Uses" "Interacts with the tray application to view status and change settings."
         headsetControlTray -> headsetControl "Controls/Manages" "Sends commands to and receives status from the headset control system."
     }
 
