@@ -122,6 +122,21 @@ To visualize the internal structure of a `softwareSystem`, you define `container
     ```
     - Each `container` has a name, description, technology (optional), and tags (optional).
 
+Alternatively, if your software system acts as a single process or monolith, you can represent it with a single container:
+
+```dsl
+    model {
+        myMonolithicSystem = softwareSystem "My Monolithic System" "A system that runs as a single process." "LegacyApp" {
+            appProcess = container "Application Process" "The main process of the system." "Java" "Monolith"
+
+            // Relationships for this single container
+            // user -> appProcess "Uses"
+            // appProcess -> externalSystem "Connects to"
+        }
+    }
+```
+This approach is useful for accurately depicting the current architecture of such systems while still using the container diagram to show interactions.
+
 2.  **Define a Container View**:
     In the `views` block, add a `container` view (often referred to as `containerView` in documentation but keyword is `container` for the view type) targeting your software system.
     ```dsl
