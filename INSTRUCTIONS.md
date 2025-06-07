@@ -248,4 +248,42 @@ element "Application" {
 ```
 
 By defining styles for individual tags and ensuring elements have all relevant tags, the Structurizr renderer will combine these styles appropriately.
+
+### Defining Containers and Container Views
+
+To visualize the internal structure of a `softwareSystem`, you define `container` elements within it and then create a `containerView` to display them.
+
+1.  **Define Containers within a Software System**:
+    Expand your `softwareSystem` definition into a block and add `container` elements.
+    ```dsl
+    model {
+        mySystem = softwareSystem "My System" "An example system." "InternalApp" {
+            myDatabase = container "My Database" "Stores system data." "SQL Database" "Database"
+            myApi = container "My API" "Provides access to data." "Java/Spring" "API"
+
+            // Define relationships between containers or to other elements
+            myApi -> myDatabase "Reads/Writes"
+            // If 'user' is an external element (e.g., a person)
+            // user -> myApi "Uses API"
+        }
+    }
+    ```
+    - Each `container` has a name, description, technology (optional), and tags (optional).
+
+2.  **Define a Container View**:
+    In the `views` block, add a `container` view (often referred to as `containerView` in documentation but keyword is `container` for the view type) targeting your software system.
+    ```dsl
+    views {
+        // ... other views (systemContext, etc.)
+        container mySystem "MySystemContainers" "Container diagram for My System." {
+            include * // Includes all containers and relevant external elements
+            // You can also specify particular containers: include myApi, myDatabase
+            // And people/software systems connected to them: include user
+            autoLayout
+        }
+        // ... styles ...
+    }
+    ```
+    - The first argument to `container` (for a view) is the identifier of the software system.
+    - The `include *` directive is a common way to show all containers within that system and the elements connected to them.
 ```
