@@ -2,6 +2,7 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
 
     model {
         user = person "User" "A person using the HeadsetControl Tray application to manage their headset settings." ""
+        headsetControl = softwareSystem "HeadsetControl" "The core software/firmware responsible for managing the headset's functions, settings, and communication." "Software/Firmware"
         headsetControlTray = softwareSystem "HeadsetControl Tray" "A tray application that allows users to manage their headset settings and view status information." "Application" {
             # Define containers within headsetControlTray
             trayAppClient = container "Tray Application Client" "Provides the user interface and interacts with other services." "Python with Qt" "GUI"
@@ -23,7 +24,6 @@ workspace "HeadsetControl Architecture" "Describes the architecture of the Heads
             # HeadsetComm interacts with the external headsetControl system
             headsetComm -> headsetControl "Controls/Manages" "Sends commands to and receives status from the headset control system."
         }
-        headsetControl = softwareSystem "HeadsetControl" "The core software/firmware responsible for managing the headset's functions, settings, and communication." "Software/Firmware"
 
         user -> headsetControlTray "Uses" "Interacts with the tray application to view status and change settings."
         headsetControlTray -> headsetControl "Controls/Manages" "Sends commands to and receives status from the headset control system."
