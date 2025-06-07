@@ -18,12 +18,20 @@ except ImportError as e:
 
 
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Create QApplication instance once for the class
+        app_instance = QApplication.instance()
+        if app_instance is None:
+            # QApplication needs sys.argv, but it might be empty or just pytest args.
+            # For testing, usually an empty list or a generic app name is fine.
+            cls.cls_app = QApplication(sys.argv if hasattr(sys, 'argv') and sys.argv else ['test_app'])
+            print(f'INFO: QApplication created by setUpClass in {cls.__name__}')
+        else:
+            cls.cls_app = app_instance
+            print(f'INFO: QApplication instance reused by setUpClass in {cls.__name__}')
 
     def setUp(self):
-        if not QApplication.instance():
-            self.app = QApplication(sys.argv)
-        else:
-            self.app = QApplication.instance()
 
         self.sample_details = {
             "temp_file_path": "/tmp/test_rules_sample.txt",
@@ -243,6 +251,16 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertIn("Installation script not found", args[2])
         self.assertIn(self.expected_helper_script_path, args[2])
 
+
+
+    @classmethod
+    def tearDownClass(cls):
+        # This is primarily to ensure that if this class created the app, it attempts a cleanup.
+        # The main issue of singleton re-creation should be solved by app.py and setUpClass.
+        # Explicitly quitting here can have side effects if other test classes in the same session need it.
+        # A global test session manager for QApplication would be more robust for larger suites.
+        print(f'INFO: tearDownClass called for {cls.__name__}. QApplication cleanup not aggressively performed by this method.')
+        pass # Rely on test runner or app.py's own QApplication.instance() logic for subsequent tests.
 
 if __name__ == '__main__':
     unittest.main()

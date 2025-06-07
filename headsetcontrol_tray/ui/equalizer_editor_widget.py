@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QComboBox, QMessageBox, QGridLayout, QInputDialog
 )
 from PySide6.QtCore import Qt, Signal, QTimer
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any # Added Any
 
 from .. import config_manager as cfg_mgr
 from .. import headset_service as hs_svc
@@ -193,7 +193,7 @@ class EqualizerEditorWidget(QWidget):
         logger.debug(f"User selected EQ in combo: {self.eq_combo.itemText(index)}, Data: {selected_data}")
         self._process_eq_selection(selected_data, is_initial_load=False)
 
-    def _process_eq_selection(self, eq_data: Tuple[str, any], is_initial_load: bool = False, force_ui_update_only: bool = False):
+    def _process_eq_selection(self, eq_data: Tuple[str, Any], is_initial_load: bool = False, force_ui_update_only: bool = False): # Changed any to Any
         eq_type, eq_identifier = eq_data
         
         if eq_type == EQ_TYPE_CUSTOM:
@@ -259,7 +259,7 @@ class EqualizerEditorWidget(QWidget):
         self._update_ui_for_active_eq(eq_type, eq_identifier)
 
 
-    def _update_ui_for_active_eq(self, active_eq_type: Optional[str], active_identifier: Optional[any]):
+    def _update_ui_for_active_eq(self, active_eq_type: Optional[str], active_identifier: Optional[Any]): # Changed any to Any
         is_custom_mode_active = (active_eq_type == EQ_TYPE_CUSTOM)
         
         for slider in self.sliders:
@@ -355,7 +355,7 @@ class EqualizerEditorWidget(QWidget):
 
         current_values = self._get_slider_values()
         logger.debug(f"Applying slider values to headset: {current_values}")
-        if self.headset_service.set_eq_values(current_values):
+        if self.headset_service.set_eq_values([float(v) for v in current_values]):
             logger.info(f"EQ_EDITOR: Sliders applied, set_eq_values SUCCESS for '{self._current_custom_curve_original_name}'")
             if self._current_custom_curve_original_name:
                  # On successful application, update ConfigManager for the active curve
@@ -388,7 +388,7 @@ class EqualizerEditorWidget(QWidget):
         self._set_slider_visuals(list(self._current_custom_curve_saved_values)) # Revert visuals
         
         # Re-apply the saved values to the headset
-        if self.headset_service.set_eq_values(list(self._current_custom_curve_saved_values)):
+        if self.headset_service.set_eq_values([float(v) for v in self._current_custom_curve_saved_values]):
             logger.info(f"EQ_EDITOR: Discarded changes, set_eq_values SUCCESS for '{self._current_custom_curve_original_name}'")
             # Ensure config reflects this (it should already, but to be safe)
             self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)

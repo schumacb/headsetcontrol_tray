@@ -3,14 +3,8 @@ from unittest import mock
 from unittest.mock import Mock, patch
 import os
 
-# Attempt to import from the correct location
-try:
-    from headsetcontrol_tray.headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
-    # from headsetcontrol_tray import app_config # Unused direct import
-except ImportError:
-    import sys
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
+# Direct import assuming PYTHONPATH or execution context is correct
+from headsetcontrol_tray.headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
 
 # Original TestHeadsetServiceUdevRules is removed as _check_udev_rules no longer exists.
 # Tests for _create_udev_rules are still relevant as the method itself was not removed,
@@ -62,39 +56,39 @@ class TestHeadsetServiceConnectionFailure(unittest.TestCase):
 
     @patch('headsetcontrol_tray.headset_service.hid.Device')
     @patch('headsetcontrol_tray.headset_service.hid.enumerate')
-    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
-    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True)
+    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_hid_enumerate_actual, mock_create_rules_actual, mock_hid_device_class_actual): # Corrected order
         # Simulate hid.enumerate finding one or more potential devices
-        mock_hid_enumerate.return_value = [
-            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0},
-            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path2', 'interface_number': 3}
+        mock_hid_enumerate_actual.return_value = [
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0, 'release_number': 0x0100, 'product_string': 'Device 1'},
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path2', 'interface_number': 3, 'release_number': 0x0100, 'product_string': 'Device 2'}
         ]
         # Simulate hid.Device constructor failing (raising an exception) for any path
-        mock_hid_device_class.side_effect = Exception("Failed to open HID device")
+        mock_hid_device_class_actual.side_effect = Exception("Failed to open HID device")
 
         service = HeadsetService() # __init__ calls _connect_hid_device
 
         self.assertIsNone(service.hid_device) # Should not have connected
-        mock_create_rules.assert_called_once() # Key assertion: _create_udev_rules was called
+        mock_create_rules_actual.assert_called_once() # Key assertion: _create_udev_rules was called
 
     @patch('headsetcontrol_tray.headset_service.hid.enumerate')
-    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
-    def test_connect_device_enumerate_empty_calls_create_rules(self, mock_create_rules, mock_hid_enumerate):
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True)
+    def test_connect_device_enumerate_empty_calls_create_rules(self, mock_hid_enumerate_actual, mock_create_rules_actual): # Corrected order
         # Simulate hid.enumerate finding no devices
-        mock_hid_enumerate.return_value = []
+        mock_hid_enumerate_actual.return_value = []
 
         service = HeadsetService() # __init__ calls _connect_hid_device
 
         self.assertIsNone(service.hid_device) # Should not have connected
-        mock_create_rules.assert_called_once() # Key assertion: _create_udev_rules was called
+        mock_create_rules_actual.assert_called_once() # Key assertion: _create_udev_rules was called
 
     @patch('headsetcontrol_tray.headset_service.hid.Device')
     @patch('headsetcontrol_tray.headset_service.hid.enumerate')
     @patch.object(HeadsetService, '_create_udev_rules', return_value=True)
-    def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+    def test_connect_device_success_does_not_call_create_rules(self, mock_hid_enumerate_actual, mock_create_rules_actual, mock_hid_device_class_actual): # Corrected order
         # Simulate hid.enumerate finding a device
-        mock_hid_enumerate.return_value = [
-             {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0}
+        mock_hid_enumerate_actual.return_value = [
+             {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0, 'release_number': 0x0100, 'product_string': 'Device 1'}
         ]
         # Simulate hid.Device succeeding
         mock_hid_device_instance = Mock()

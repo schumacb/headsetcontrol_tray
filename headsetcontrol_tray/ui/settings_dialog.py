@@ -157,12 +157,17 @@ class SettingsDialog(QDialog):
         self.refresh_chatmix_display()
 
     def get_chatmix_tooltip_string(self, chatmix_val: Optional[int]) -> str:
-        if chatmix_val is None: return "ChatMix: N/A (Headset disconnected?)"
+        if chatmix_val is None:
+            return "ChatMix: N/A (Headset disconnected?)"
         percentage = round((chatmix_val / 128) * 100)
-        if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
-        elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
-        elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
-        else: return f"ChatMix: Custom Mix ({percentage}%)" 
+        if chatmix_val == 0:
+            return f"ChatMix: Full Chat ({percentage}%)"
+        elif chatmix_val == 64:
+            return f"ChatMix: Balanced ({percentage}%)"
+        elif chatmix_val == 128:
+            return f"ChatMix: Full Game ({percentage}%)"
+        else:
+            return f"ChatMix: Custom Mix ({percentage}%)"
 
     def refresh_chatmix_display(self):
         chatmix_val = self.headset_service.get_chatmix_value()

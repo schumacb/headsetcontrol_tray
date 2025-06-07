@@ -1,5 +1,5 @@
 import subprocess
-import hid 
+import hid  # type: ignore[import-untyped]
 import logging
 import re
 import json
@@ -60,6 +60,12 @@ UDEV_RULE_FILENAME = "99-steelseries-headsets.rules"
 class BatteryDetails(TypedDict):
     level: Optional[int]
     status_text: Optional[str]
+
+class ParsedHidStatus(TypedDict, total=False): # total=False allows keys to be optional initially
+    headset_online: bool # This one is usually always present
+    battery_percent: Optional[int]
+    battery_charging: Optional[bool]
+    chatmix: Optional[int]
 
 class HeadsetService:
     """
@@ -484,7 +490,7 @@ class HeadsetService:
         if status and status.get('headset_online') and status.get('battery_percent') is not None:
             current_value = status['battery_percent']
             if current_value != self._last_reported_battery_level:
-                logger.verbose(f"Battery level from HID: {current_value}%")
+                logger.debug(f"Battery level from HID: {current_value}% (was verbose)") # Changed verbose to debug
                 self._last_reported_battery_level = current_value
             else:
                 logger.debug(f"Battery level from HID: {current_value}% (unchanged, VERBOSE suppressed).")
@@ -508,10 +514,10 @@ class HeadsetService:
                 match = re.search(r"Level:\s*(\d+)%", output_b)
             if match:
                 level = int(match.group(1))
-                logger.verbose(f"Battery level from CLI (-b fallback, regex parse): {level}%")
+                logger.debug(f"Battery level from CLI (-b fallback, regex parse): {level}% (was verbose)") # Changed verbose to debug
                 return level
             elif output_b.isdigit(): 
-                logger.verbose(f"Battery level from CLI (-b, direct parse): {output_b}%")
+                logger.debug(f"Battery level from CLI (-b, direct parse): {output_b}% (was verbose)") # Changed verbose to debug
                 return int(output_b)
             else: # Output changed, e.g. "Status: BATTERY_UNAVAILABLE"
                 logger.warning(f"Could not parse battery level from 'headsetcontrol -b' output: {output_b}")
@@ -524,7 +530,7 @@ class HeadsetService:
                 battery_info = device_data["battery"]
                 if "level" in battery_info and isinstance(battery_info["level"], int):
                     level = battery_info["level"]
-                    logger.verbose(f"Battery level from CLI (-o json): {level}%")
+                    logger.debug(f"Battery level from CLI (-o json): {level}% (was verbose)") # Changed verbose to debug
                     return level
                 else:
                     logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
@@ -596,7 +602,7 @@ class HeadsetService:
 
 
         # ... (parsing logic remains the same)
-        parsed_status = {'headset_online': True}
+        parsed_status: ParsedHidStatus = {'headset_online': True}
 
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
@@ -704,7 +710,7 @@ class HeadsetService:
         if status and status.get('headset_online') and status.get('chatmix') is not None:
             current_value = status['chatmix']
             if current_value != self._last_reported_chatmix:
-                logger.verbose(f"ChatMix value from HID: {current_value}")
+                logger.debug(f"ChatMix value from HID: {current_value} (was verbose)") # Changed verbose to debug
                 self._last_reported_chatmix = current_value
             else:
                 logger.debug(f"ChatMix value from HID: {current_value} (unchanged, VERBOSE suppressed).")
@@ -746,7 +752,7 @@ class HeadsetService:
         if status and status.get('headset_online') and status.get('battery_charging') is not None:
             current_value = status['battery_charging']
             if current_value != self._last_reported_charging_status:
-                logger.verbose(f"Charging status from HID: {current_value}")
+                logger.debug(f"Charging status from HID: {current_value} (was verbose)") # Changed verbose to debug
                 self._last_reported_charging_status = current_value
             else:
                 logger.debug(f"Charging status from HID: {current_value} (unchanged, VERBOSE suppressed).")
@@ -789,7 +795,7 @@ class HeadsetService:
         if device_data and "sidetone" in device_data:
             sidetone_val = device_data["sidetone"]
             if isinstance(sidetone_val, int):
-                logger.verbose(f"Sidetone level from CLI (-o json): {sidetone_val}")
+                logger.debug(f"Sidetone level from CLI (-o json): {sidetone_val} (was verbose)") # Changed verbose to debug
                 return sidetone_val
             else:
                 logger.warning(f"Sidetone value from JSON is not an int: {sidetone_val}")
@@ -919,7 +925,7 @@ class HeadsetService:
         if device_data and "inactive_time" in device_data: 
             timeout_val = device_data["inactive_time"]
             if isinstance(timeout_val, int):
-                logger.verbose(f"Inactive timeout from CLI (-o json): {timeout_val} minutes")
+                logger.debug(f"Inactive timeout from CLI (-o json): {timeout_val} minutes (was verbose)") # Changed verbose to debug
                 return timeout_val
             else:
                 logger.warning(f"Inactive timeout from JSON is not an int: {timeout_val}")
@@ -1031,7 +1037,7 @@ class HeadsetService:
                 try:
                     float_values = [float(v) for v in eq_info["values"]]
                     if len(float_values) == 10:
-                        logger.verbose(f"Current EQ values from CLI (-o json): {float_values}")
+                        logger.debug(f"Current EQ values from CLI (-o json): {float_values} (was verbose)") # Changed verbose to debug
                         return float_values
                     else:
                         logger.warning(f"EQ values from JSON do not contain 10 bands: {float_values}")
@@ -1112,7 +1118,7 @@ class HeadsetService:
             eq_info = device_data["equalizer"]
             if "preset" in eq_info and isinstance(eq_info["preset"], int):
                 preset_id = eq_info["preset"]
-                logger.verbose(f"Current HW EQ Preset ID from CLI (-o json): {preset_id}")
+                logger.debug(f"Current HW EQ Preset ID from CLI (-o json): {preset_id} (was verbose)") # Changed verbose to debug
                 return preset_id
             else:
                 logger.warning(f"'preset' key missing or not int in eq_info (JSON): {eq_info}")

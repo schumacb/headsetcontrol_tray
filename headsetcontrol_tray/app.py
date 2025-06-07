@@ -27,7 +27,7 @@ class SteelSeriesTrayApp:
 
     def __init__(self):
         logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
-        self.qt_app = QApplication(sys.argv)
+        self.qt_app = QApplication.instance() or QApplication(sys.argv)
         self.qt_app.setQuitOnLastWindowClosed(False) # Important for tray apps
 
         # Set application name for potential QSettings usage or window titles

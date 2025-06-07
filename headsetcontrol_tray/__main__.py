@@ -1,6 +1,6 @@
 import sys
 import signal
-import verboselogs
+import verboselogs  # type: ignore[import-untyped]
 
 # Install verboselogs custom levels into the standard logging module
 # This MUST be done before other application modules (that use logging) are imported.
