@@ -386,19 +386,36 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
     def tearDown(self):
         self.connect_patcher.stop()
 
-    def _create_mock_response_data(self, status_byte_val: int) -> bytes:
-        """Helper to create mock response_data byte array."""
+    def _create_mock_response_data(self, status_byte_val: int,
+                                 level_byte_val: int = 0x00,
+                                 game_byte_val: int = 0,
+                                 chat_byte_val: int = 0) -> bytes:
+        """Helper to create mock response_data byte array for status, battery, and chatmix."""
         data = [0] * app_config.HID_INPUT_REPORT_LENGTH_STATUS
-        # Ensure status_byte_index is within the bounds of the data list
+
         if app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE < len(data):
             data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE] = status_byte_val
         else:
-            # This case should ideally not happen if HID_INPUT_REPORT_LENGTH_STATUS is correctly defined
-            # and larger than HID_RES_STATUS_BATTERY_STATUS_BYTE.
-            # Handle error or adjust data creation as per actual structure if this assumption is wrong.
-            raise IndexError("HID_RES_STATUS_BATTERY_STATUS_BYTE is out of bounds for mock data array.")
+            raise IndexError("HID_RES_STATUS_BATTERY_STATUS_BYTE out of bounds.")
+
+        if app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE < len(data):
+            data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE] = level_byte_val
+        else:
+            raise IndexError("HID_RES_STATUS_BATTERY_LEVEL_BYTE out of bounds.")
+
+        if app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE < len(data):
+            data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE] = game_byte_val
+        else:
+            raise IndexError("HID_RES_STATUS_CHATMIX_GAME_BYTE out of bounds.")
+
+        if app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE < len(data):
+            data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE] = chat_byte_val
+        else:
+            raise IndexError("HID_RES_STATUS_CHATMIX_CHAT_BYTE out of bounds.")
+
         return bytes(data)
 
+    # Tests for _determine_headset_online_status (existing)
     def test_determine_headset_online_status_offline(self):
         # Status byte 0x00 indicates offline
         response_data_offline = self._create_mock_response_data(0x00)
@@ -414,8 +431,87 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
         response_data_online_not_charging = self._create_mock_response_data(0x02)
         self.assertTrue(self.service._determine_headset_online_status(response_data_online_not_charging))
 
-        response_data_online_other = self._create_mock_response_data(0x03) # Example other online status
+        response_data_online_other = self._create_mock_response_data(status_byte_val=0x03) # Example other online status
         self.assertTrue(self.service._determine_headset_online_status(response_data_online_other))
+
+    # Tests for _parse_battery_info (new)
+    def test_parse_battery_info_offline(self):
+        # For is_online=False, byte values shouldn't matter for the output.
+        # Using arbitrary valid byte values for completeness.
+        response_data = self._create_mock_response_data(status_byte_val=0x00, level_byte_val=0x02)
+        expected = {"battery_percent": None, "battery_charging": None}
+        self.assertEqual(self.service._parse_battery_info(response_data, is_online=False), expected)
+
+    def test_parse_battery_info_online_levels(self):
+        test_cases = [
+            (0x00, 0), (0x01, 25), (0x02, 50), (0x03, 75), (0x04, 100)
+        ]
+        # Assuming status byte 0x02 means "online, not charging" for these level tests
+        for level_byte, expected_percent in test_cases:
+            with self.subTest(level_byte=level_byte):
+                response_data = self._create_mock_response_data(status_byte_val=0x02, level_byte_val=level_byte)
+                # is_online=True, battery_charging should be False based on status_byte_val=0x02
+                expected = {"battery_percent": expected_percent, "battery_charging": False}
+                self.assertEqual(self.service._parse_battery_info(response_data, is_online=True), expected)
+
+    @patch('headsetcontrol_tray.headset_service.logger')
+    def test_parse_battery_info_online_level_unknown(self, mock_logger):
+        response_data = self._create_mock_response_data(status_byte_val=0x02, level_byte_val=0x05) # Unknown level
+        expected = {"battery_percent": None, "battery_charging": False} # Charging is False due to status_byte=0x02
+        self.assertEqual(self.service._parse_battery_info(response_data, is_online=True), expected)
+        mock_logger.warning.assert_called_with("_parse_battery_info: Unknown raw battery level: 5")
+
+    def test_parse_battery_info_online_charging_true(self):
+        # Level 0x02 (50%) and status 0x01 (charging)
+        response_data = self._create_mock_response_data(status_byte_val=0x01, level_byte_val=0x02)
+        expected = {"battery_percent": 50, "battery_charging": True}
+        self.assertEqual(self.service._parse_battery_info(response_data, is_online=True), expected)
+
+    def test_parse_battery_info_online_charging_false(self):
+        # Level 0x03 (75%) and status 0x02 (online, not charging)
+        response_data = self._create_mock_response_data(status_byte_val=0x02, level_byte_val=0x03)
+        expected = {"battery_percent": 75, "battery_charging": False}
+        self.assertEqual(self.service._parse_battery_info(response_data, is_online=True), expected)
+
+        # Test with another non-0x01 "online" status byte, e.g. 0x03 (if it means online & not charging)
+        # The _parse_battery_info method interprets any status_byte != 0x01 as not charging when is_online=True
+        response_data_other_online = self._create_mock_response_data(status_byte_val=0x03, level_byte_val=0x04) # 100%
+        expected_other_online = {"battery_percent": 100, "battery_charging": False}
+        self.assertEqual(self.service._parse_battery_info(response_data_other_online, is_online=True), expected_other_online)
+
+    # Tests for _parse_chatmix_info (new)
+    def test_parse_chatmix_info_offline(self):
+        # For is_online=False, byte values shouldn't matter for the output.
+        response_data = self._create_mock_response_data(status_byte_val=0x00, game_byte_val=50, chat_byte_val=50)
+        self.assertIsNone(self.service._parse_chatmix_info(response_data, is_online=False))
+
+    def test_parse_chatmix_info_online_various_values(self):
+        # Formula: mapped_game = int((raw_game_clamped / 100.0) * 64.0)
+        #          mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
+        #          chatmix_value = 64 - (mapped_chat + mapped_game)
+        #          clamped to 0-128
+        test_cases = [
+            # (game_raw, chat_raw, expected_chatmix_value)
+            (100, 0, 0),    # Full Game: mapped_game=64, mapped_chat=0  => 64 - (0+64) = 0
+            (0, 100, 128),  # Full Chat: mapped_game=0, mapped_chat=-64 => 64 - (-64+0) = 128
+            (50, 50, 64),   # Balanced:  mapped_game=32, mapped_chat=-32=> 64 - (-32+32) = 64
+            (0, 0, 64),     # Centered:  mapped_game=0, mapped_chat=0    => 64 - (0+0) = 64
+            (75, 25, 32),   # More Game: mapped_game=48, mapped_chat=-16 => 64 - (-16+48) = 64 - 32 = 32
+            (25, 75, 96),   # More Chat: mapped_game=16, mapped_chat=-48 => 64 - (-48+16) = 64 - (-32) = 96
+            # Test clamping of raw values (should be handled by _parse_chatmix_info's internal clamping)
+            (150, 0, 0),    # Game > 100 clamped to 100
+            (0, 150, 128),  # Chat > 100 clamped to 100
+            (-50, 0, 0),    # Game < 0 clamped to 0 (results in 0 based on formula after clamping)
+            (0, -50, 128),  # Chat < 0 clamped to 0 (results in 128 based on formula after clamping)
+             # Test final clamping to 0-128 (though formula seems to naturally stay in this range if inputs are 0-100)
+            (100, 100, 64), # Example: game=64, chat=-64 => 64 - ( -64 + 64) = 64. Both 100 gives this.
+        ]
+
+        for game, chat, expected_val in test_cases:
+            with self.subTest(game=game, chat=chat):
+                # Using status_byte_val=0x02 (online, not charging) as a default online state
+                response_data = self._create_mock_response_data(status_byte_val=0x02, game_byte_val=game, chat_byte_val=chat)
+                self.assertEqual(self.service._parse_chatmix_info(response_data, is_online=True), expected_val)
 
 
 if __name__ == "__main__":
