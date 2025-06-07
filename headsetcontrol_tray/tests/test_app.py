@@ -18,19 +18,32 @@ except ImportError as e:
     raise
 
 
-@pytest.mark.usefixtures("qapp") # Ensures qapp fixture (and thus QApplication) is initialized
+# Removed @pytest.mark.usefixtures("qapp")
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
-    # setUpClass and tearDownClass are no longer needed; pytest-qt manages QApplication.
+    qapp_for_class = None
+    _qapp_created_by_class = False
+
+    @classmethod
+    def setUpClass(cls):
+        cls.qapp_for_class = QApplication.instance()
+        if cls.qapp_for_class is None:
+            cls.qapp_for_class = QApplication([]) # Use an empty list for args
+            cls._qapp_created_by_class = True
+        else:
+            cls._qapp_created_by_class = False
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, "_qapp_created_by_class", False) and QApplication.instance():
+            QApplication.quit()
+        # cls.qapp_for_class = None # Optional: clear class reference
 
     def setUp(self):
-        # pytest-qt ensures QApplication.instance() exists.
-        # We patch 'headsetcontrol_tray.app.QApplication' to ensure that if SteelSeriesTrayApp
-        # tries to create a new QApplication (even via `QApplication.instance() or QApplication([])`),
-        # it receives the pytest-qt managed instance.
-        qapp = QApplication.instance()
-        assert qapp is not None, "pytest-qt should have created a QApplication instance"
+        # Use the class-level QApplication instance
+        self.qapp_instance = TestSteelSeriesTrayAppUdevDialog.qapp_for_class
 
-        self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=qapp)
+        # Patch 'headsetcontrol_tray.app.QApplication' to return the class-level instance
+        self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=self.qapp_instance)
         self.mock_qapplication_constructor = self.qapplication_patch.start()
 
         self.sample_details = {
@@ -177,6 +190,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     # tearDown is no longer strictly needed to stop the QApplication patch,
     # but can be kept for other cleanup if necessary.
     def tearDown(self):
+        self.qapplication_patch.stop()
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
         # if hasattr(self, 'tray_app') and self.tray_app:
