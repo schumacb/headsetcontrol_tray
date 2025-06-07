@@ -1,10 +1,8 @@
-# JULES.md - Python Project Rules for LLM Agents
+# INSTRUCTIONS.md - Python Project Rules for LLM Agents
 
 This document outlines rules and guidelines for an LLM agent (like Jules) when working on Python software development tasks. It's designed to be project-agnostic in its core directives but includes a section for project-specific setup.
 
 ## 1. Project-Specific Configuration & Setup
-
-**Instructions for User:** Please fill in the commands and specific details for the current project in the placeholders below (e.g., `[TODO: ...]` ).
 
 *   **Dependency Management:**
     *   Command to install/sync dependencies: `uv pip sync (or uv pip sync --all-extras if extras are used)`
@@ -13,9 +11,9 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
     *   Virtual environment creation: `uv venv`
     *   Virtual environment activation: `source .venv/bin/activate (Linux/macOS) or .venv\Scripts\activate (Windows)`
 *   **Linting & Static Analysis:**
-    *   Command to run linters (e.g., Flake8, Ruff): `ruff check . --fix (or your preferred linter)`
-    *   Command to run static type checker (e.g., MyPy): `mypy headsetcontrol_tray/ (or your preferred type checker)`
-    *   Are there specific configuration files for these tools? `pyproject.toml (for ruff), mypy.ini (if used)`
+    *   Command to run linters (e.g., Flake8, Ruff): `ruff check . --fix`
+    *   Command to run static type checker (e.g., MyPy): `mypy headsetcontrol_tray/ `
+    *   Are there specific configuration files for these tools? `pyproject.toml (for ruff), mypy.ini (for mypy)`
 *   **Testing:**
     *   Command to run all tests: `pytest`
     *   Command to run specific tests: `pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name`
@@ -48,14 +46,17 @@ These are primary rules to follow for all tasks.
     *   **No Meta-Comments:** Do **not** add comments that describe your changes (e.g., `# Added this import`, `# Refactored this loop`). Commit messages serve this purpose.
 
 4.  **README.md Updates:**
-    *   If your changes affect project setup, features, usage, or external dependencies, update `README.md` accordingly to reflect these changes accurately.
+    *   If your changes affect project setup, features, usage, or external dependencies, update `README.md` accordingly to reflect these changes accurately. The `README.md` should reflect the current state of the Project.
 
-5.  **Testing:**
+5.  **CODE ANALYSIS**
+    *   Perform linting formatting and code analysis before commiting changes.
+
+6.  **Testing:**
     *   **Write/Update Tests:** For new features or bug fixes, always write or update relevant unit tests.
     *   **Testable Code:** Strive to write code that is inherently testable (e.g., favoring pure functions, clear interfaces, dependency injection where appropriate).
     *   **Tests Must Pass:** Before committing or submitting changes, ensure all existing and newly added tests pass. If you cannot make them pass, report the issue.
 
-6.  **Adherence to Core Principles:**
+7.  **Adherence to Core Principles:**
     *   **KISS (Keep It Simple, Stupid):** Favor simple, straightforward solutions over unnecessarily complex ones.
     *   **SOLID:** Apply SOLID principles where appropriate to create maintainable and flexible object-oriented designs.
 
