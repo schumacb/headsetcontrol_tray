@@ -1,11 +1,12 @@
-import json
 import logging
 import os
-import re
-import subprocess
+
+# import re # No longer needed
+# import subprocess # No longer needed
 import tempfile
 from typing import Any, TypedDict
 
+# import json # No longer needed if _get_headset_device_json is removed and not used elsewhere
 import hid
 
 from . import app_config
@@ -68,7 +69,6 @@ class HeadsetService:
         self.hid_device: hid.Device | None = None
         self.device_path: bytes | None = None
         self.udev_setup_details = None # Initialize details for udev rule setup
-        self.headsetcontrol_available: bool = False # Default to False
         self._last_hid_only_connection_logged_status: bool | None = None
         self._last_hid_raw_read_data: list[int] | None = None
         self._last_hid_parsed_status: dict[str, Any] | None = None
@@ -77,35 +77,8 @@ class HeadsetService:
         self._last_reported_charging_status: bool | None = None
         self._last_raw_battery_status_for_logging: int | None = None
 
-        # Check for headsetcontrol availability
-        try:
-            # Use a non-disruptive command like --version or --help
-            # Ensure check=True is used to raise CalledProcessError on non-zero exit codes
-            # which might indicate headsetcontrol is present but not fully functional for this command.
-            # However, --version is usually safe.
-            process = subprocess.run(["headsetcontrol", "--version"], capture_output=True, text=True, check=True)
-            if process.returncode == 0 and "HeadsetControl" in process.stdout: # Basic check of output
-                self.headsetcontrol_available = True
-                logger.info("HeadsetService: `headsetcontrol` CLI tool is available.")
-            else:
-                # This case might occur if --version exists but output is unexpected or error code not 0
-                logger.warning(f"HeadsetService: `headsetcontrol --version` ran with code {process.returncode} or unexpected output. Assuming unavailable.")
-                self.headsetcontrol_available = False
-        except FileNotFoundError:
-            logger.info("HeadsetService: `headsetcontrol` CLI tool not found. Direct HID will be primary if interface is available.")
-            self.headsetcontrol_available = False
-        except subprocess.CalledProcessError as e:
-            # This catches non-zero exit codes if check=True
-            logger.warning(f"HeadsetService: `headsetcontrol --version` failed (exit code {e.returncode}): {e.stderr.strip()}. Assuming unavailable.")
-            self.headsetcontrol_available = False
-        except Exception as e: # Catch any other unexpected errors during the check
-            logger.error(f"HeadsetService: An unexpected error occurred while checking for `headsetcontrol`: {e}. Assuming unavailable.")
-            self.headsetcontrol_available = False
-
         logger.debug("HeadsetService initialized. Attempting initial HID connection.")
         self._connect_hid_device()
-
-    # _check_udev_rules method removed
 
     def _create_udev_rules(self) -> bool:
         """
@@ -114,15 +87,11 @@ class HeadsetService:
         """
         final_rules_path_str = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
         logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path_str}")
-        self.udev_setup_details = None # Reset in case of prior failure
-
+        self.udev_setup_details = None
         try:
-            # Create a temporary file
             with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="headsetcontrol_") as tmp_file:
                 temp_file_name = tmp_file.name
-                tmp_file.write(UDEV_RULE_CONTENT + "\n") # Add a newline for good measure
-
-            # Store details
+                tmp_file.write(UDEV_RULE_CONTENT + "\n")
             self.udev_setup_details = {
                 "temp_file_path": temp_file_name,
                 "final_file_path": final_rules_path_str,
@@ -139,24 +108,22 @@ class HeadsetService:
             return True
         except OSError as e:
             logger.error(f"Could not write temporary udev rule file: {e}")
-            self.udev_setup_details = None # Ensure it's None on failure
+            self.udev_setup_details = None
             return False
-        except Exception as e_global: # Catch any other unexpected errors during temp file handling
+        except Exception as e_global:
             logger.error(f"An unexpected error occurred during temporary udev rule file creation: {e_global}")
-            self.udev_setup_details = None # Ensure it's None on failure
+            self.udev_setup_details = None
             return False
 
     def _connect_hid_device(self) -> bool:
         """Attempts to connect to the headset via HID by trying suitable interfaces."""
-        # Udev check removed from here
-
         if self.hid_device:
             logger.debug("_connect_hid_device: Already connected.")
             return True
 
         logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
         try:
-            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0)
             logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
         except Exception as e_enum:
             logger.error(f"Error enumerating HID devices: {e_enum}")
@@ -164,92 +131,74 @@ class HeadsetService:
 
         potential_devices_to_try = []
         for dev_info in devices_enum:
-            logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info['release_number']:04x}, "
+            logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info.get('release_number', 0):04x}, "
                          f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
                          f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
                          f"Product='{dev_info.get('product_string', 'N/A')}'")
-            if dev_info["product_id"] in TARGET_PIDS: # Use imported TARGET_PIDS
+            if dev_info["product_id"] in TARGET_PIDS:
                 logger.debug(f"    Device matches target PID 0x{dev_info['product_id']:04x}. Adding to potential list.")
                 potential_devices_to_try.append(dev_info)
 
-        if not potential_devices_to_try:
-            logger.debug("_connect_hid_device: No devices found matching target PIDs after enumeration (normal if headset is off).")
-            return False
+        if potential_devices_to_try:
+            def sort_key(d_info):
+                if d_info["vendor_id"] == app_config.STEELSERIES_VID and \
+                   d_info["product_id"] in app_config.TARGET_PIDS and \
+                   d_info.get("interface_number") == app_config.HID_REPORT_INTERFACE and \
+                   d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE and \
+                   d_info.get("usage") == app_config.HID_REPORT_USAGE_ID:
+                    logger.debug(f"  SortKey: Prioritizing exact Arctis Nova 7 interface (0) for PID 0x{d_info.get('product_id'):04x}")
+                    return -2
+                if d_info.get("product_id") == 0x2202 and d_info.get("interface_number") == 0:
+                    logger.debug(f"  SortKey: Prioritizing interface 0 for PID 0x{d_info.get('product_id'):04x} (-1)")
+                    return -1
+                if d_info.get("interface_number") == 3:
+                    logger.debug(f"  SortKey: Prioritizing interface 3 (generic) for PID 0x{d_info.get('product_id'):04x} (0)")
+                    return 0
+                if d_info.get("usage_page") == 0xFFC0:
+                    logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 (generic) for PID 0x{d_info.get('product_id'):04x} (1)")
+                    return 1
+                logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, Interface {d_info.get('interface_number', 'N/A')}, UsagePage 0x{d_info.get('usage_page',0):04x}")
+                return 2
 
-        def sort_key(d_info):
-            # Prioritize exact match for Arctis Nova 7 communication interface
-            if d_info["vendor_id"] == app_config.STEELSERIES_VID and \
-               d_info["product_id"] in app_config.TARGET_PIDS and \
-               d_info.get("interface_number") == app_config.HID_REPORT_INTERFACE and \
-               d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE and \
-               d_info.get("usage") == app_config.HID_REPORT_USAGE_ID:
-                logger.debug(f"  SortKey: Prioritizing exact Arctis Nova 7 interface (0) for PID 0x{d_info.get('product_id'):04x}")
-                return -2 # Highest priority
+            potential_devices_to_try.sort(key=sort_key)
+            logger.debug(f"Sorted potential devices to try: {[(d['path'].decode('utf-8', errors='replace'), d.get('interface_number','N/A'), d.get('usage_page',0)) for d in potential_devices_to_try]}")
 
-            # Original Arctis Nova 7 (0x2202) interface 0 prioritization (keep as fallback)
-            if d_info.get("product_id") == 0x2202 and d_info.get("interface_number") == 0:
-                logger.debug(f"  SortKey: Prioritizing interface 0 for PID 0x{d_info.get('product_id'):04x} (-1)")
-                return -1
-
-            # Existing general prioritization (adjust their return values to be lower priority)
-            if d_info.get("interface_number") == 3: # This was interface 3, which matches our specific one.
-                                                    # The above exact match is more specific if usage page/id also match.
-                logger.debug(f"  SortKey: Prioritizing interface 3 (generic) for PID 0x{d_info.get('product_id'):04x} (0)")
-                return 0
-            if d_info.get("usage_page") == 0xFFC0: # This was usage page 0xFFC0
-                logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 (generic) for PID 0x{d_info.get('product_id'):04x} (1)")
-                return 1
-
-            logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, Interface {d_info.get('interface_number', 'N/A')}, UsagePage 0x{d_info.get('usage_page',0):04x}")
-            return 2
-
-        potential_devices_to_try.sort(key=sort_key)
-        logger.debug(f"Sorted potential devices to try: {[(d['path'].decode('utf-8', errors='replace'), d.get('interface_number','N/A'), d.get('usage_page',0)) for d in potential_devices_to_try]}")
-
-        for dev_info_to_try in potential_devices_to_try:
-            h_temp = None
-            logger.debug(f"  Attempting to open path: {dev_info_to_try['path'].decode('utf-8', errors='replace')} "
-                         f"(Interface: {dev_info_to_try.get('interface_number', 'N/A')}, "
-                         f"UsagePage: 0x{dev_info_to_try.get('usage_page', 0):04x}, "
-                         f"PID: 0x{dev_info_to_try['product_id']:04x})")
-            try:
-                h_temp = hid.Device(path=dev_info_to_try["path"])
-
-                self.hid_device = h_temp
-                self.device_path = dev_info_to_try["path"]
-                # This log indicates a low-level HID path was opened, not necessarily full headset function.
-                logger.debug(f"Low-level HID device path opened: {dev_info_to_try.get('product_string', 'N/A')} "
-                            f"on interface {dev_info_to_try.get('interface_number', -1)} "
-                            f"path {dev_info_to_try['path'].decode('utf-8', errors='replace')}")
-                return True
-            except Exception as e_open:
-                logger.warning(f"    Failed to open HID device path {dev_info_to_try['path'].decode('utf-8', errors='replace')}: {e_open}")
-                if h_temp:
-                    try:
-                        h_temp.close()
-                    except Exception:
-                        pass
-                continue
+            for dev_info_to_try in potential_devices_to_try:
+                h_temp = None
+                logger.debug(f"  Attempting to open path: {dev_info_to_try['path'].decode('utf-8', errors='replace')} "
+                             f"(Interface: {dev_info_to_try.get('interface_number', 'N/A')}, "
+                             f"UsagePage: 0x{dev_info_to_try.get('usage_page', 0):04x}, "
+                             f"PID: 0x{dev_info_to_try['product_id']:04x})")
+                try:
+                    h_temp = hid.Device(path=dev_info_to_try["path"])
+                    self.hid_device = h_temp
+                    self.device_path = dev_info_to_try["path"]
+                    logger.debug(f"Low-level HID device path opened: {dev_info_to_try.get('product_string', 'N/A')} "
+                                f"on interface {dev_info_to_try.get('interface_number', -1)} "
+                                f"path {dev_info_to_try['path'].decode('utf-8', errors='replace')}")
+                    return True
+                except Exception as e_open:
+                    logger.warning(f"    Failed to open HID device path {dev_info_to_try['path'].decode('utf-8', errors='replace')}: {e_open}")
+                    if h_temp:
+                        try:
+                            h_temp.close()
+                        except Exception:
+                            pass
+                    continue
+        else: # potential_devices_to_try was empty
+            logger.debug("_connect_hid_device: No devices found matching target PIDs after enumeration.")
 
         self.hid_device = None
         self.device_path = None
-
-        # If loop finishes and hid_device is still None, no device was connected.
-        # This is where we now trigger the udev rule creation if needed.
-        if self.hid_device is None:
-            logger.warning("Failed to connect to any suitable HID interface for the headset. Udev rules might be missing or incorrect.")
-            self._create_udev_rules() # Prepare instructions and populate self.udev_setup_details
-
-        logger.debug("_connect_hid_device: No suitable HID device interface found or all attempts to open failed (if hid_device is None).")
+        logger.warning("Failed to connect to any suitable HID interface. Udev rules might be missing or incorrect, or the device is off.")
+        self._create_udev_rules()
         return False
 
     def _ensure_hid_connection(self) -> bool:
         if not self.hid_device:
             logger.debug("_ensure_hid_connection: No HID device, attempting to connect.")
             return self._connect_hid_device()
-        # If hid_device exists, we assume it's open. headsetcontrol will verify functionality.
         return True
-
 
     def close(self) -> None:
         if self.hid_device:
@@ -263,48 +212,6 @@ class HeadsetService:
         else:
             logger.debug("Close called, but no HID device was open.")
 
-
-    def _execute_headsetcontrol(self, args: list[str]) -> tuple[bool, str]:
-        """Executes headsetcontrol CLI tool."""
-        cmd_str = " ".join(["headsetcontrol"] + args)
-        logger.debug(f"Executing headsetcontrol: {cmd_str}")
-        try:
-            process = subprocess.run(["headsetcontrol"] + args, capture_output=True, text=True, check=True)
-            logger.debug(f"headsetcontrol output for '{cmd_str}': {process.stdout.strip()}")
-            return True, process.stdout.strip()
-        except FileNotFoundError:
-            logger.error("headsetcontrol command not found. Please ensure it is installed and in PATH.")
-            return False, "headsetcontrol not found. Please install it."
-        except subprocess.CalledProcessError as e:
-            # For '--connected', a non-zero exit code is expected if not connected, stderr might be empty.
-            # For other commands, a non-zero exit usually means an actual error.
-            if "--connected" not in args:
-                 logger.error(f"headsetcontrol error for '{cmd_str}' (stderr): {e.stderr.strip()}")
-            else:
-                 logger.debug(f"headsetcontrol --connected indicated device not connected (exit code {e.returncode}). stderr: {e.stderr.strip()}")
-            return False, f"headsetcontrol error: {e.stderr.strip()}"
-
-    def _get_headset_device_json(self) -> dict[str, Any] | None:
-        """Gets the first device object from 'headsetcontrol -o json'."""
-        if not self.headsetcontrol_available:
-            logger.debug("_get_headset_device_json: headsetcontrol is not available. Skipping execution.")
-            return None
-        logger.debug("Trying CLI method for status ('headsetcontrol -o json').")
-        success_json, output_json = self._execute_headsetcontrol(["-o", "json"])
-        if success_json:
-            try:
-                data = json.loads(output_json)
-                if "devices" in data and isinstance(data["devices"], list) and len(data["devices"]) > 0:
-                    # Assuming the first device is the target
-                    return data["devices"][0]
-                logger.warning(f"'devices' key missing, not list, or empty in JSON output: {data}")
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse JSON from headsetcontrol: {e}. Output was: {output_json}")
-        else:
-             logger.warning(f"Failed to get status from 'headsetcontrol -o json'. Output was: {output_json}")
-        return None
-
-
     def _write_hid_report(self, report_id: int, data: list[int], report_length: int = 64) -> bool:
         """
         Writes a report to the HID device.
@@ -316,16 +223,10 @@ class HeadsetService:
         This method is intended for sending command/control data to the headset
         once the correct report IDs and data structures are known.
         """
-        if not self._ensure_hid_connection() or not self.hid_device: # Check low-level first
+        if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_write_hid_report: No HID device connected (low-level).")
             return False
 
-        # Additional check for functional connection might be needed if headsetcontrol is primary
-        # For now, assume if HID is open, writes can be attempted. Failures will be caught.
-
-        # TODO: Determine if report_length padding is needed here or if hid.write handles it.
-        # For feature reports, the report_id is often included as the first byte of the buffer passed to hid.write().
-        # For output reports on an interrupt OUT endpoint, it might also be the first byte, or handled by the endpoint itself.
         payload = bytes(data)
         if report_id > 0:
             final_report = bytes([report_id]) + payload
@@ -334,9 +235,9 @@ class HeadsetService:
 
         logger.debug(f"Writing HID report: ID={report_id}, Data={final_report.hex()}")
         try:
-            bytes_written = self.hid_device.write(final_report) # This might fail if headset is off
+            bytes_written = self.hid_device.write(final_report)
             logger.debug(f"Bytes written: {bytes_written}")
-            if bytes_written <= 0: # Some HID libraries might return 0 or -1 on error
+            if bytes_written <= 0:
                 logger.warning(f"HID write returned {bytes_written}, closing potentially stale HID handle.")
                 self.close()
                 return False
@@ -360,7 +261,7 @@ class HeadsetService:
         The interpretation of the returned `List[int]` depends on the specific
         report being read.
         """
-        if not self._ensure_hid_connection() or not self.hid_device: # Check low-level first
+        if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_read_hid_report: No HID device connected (low-level).")
             return None
 
@@ -368,232 +269,110 @@ class HeadsetService:
         try:
             data: list[int] | None = None
             if report_id_to_request is not None:
-                # For Feature Reports, report_id_to_request usually includes the actual report ID.
-                # The buffer size should be report_length + 1 if report_id_to_request is prepended by some libraries,
-                # but python-hid/hidapi expects the report_id as a separate first argument for get_feature_report.
-                # However, hid.Device does not have get_feature_report. This needs hid.FeatureReport(device, id)
-                # This part of python-hid is a bit confusing.
-                # For now, assuming 'read' is for interrupt/input reports and feature reports need more specific handling.
-                # If we were to use get_feature_report, it might look something like:
-                # report_data = bytearray([report_id_to_request] + [0] * report_length)
-                # bytes_read = self.hid_device.get_feature_report(report_data, len(report_data))
-                # data = list(report_data[:bytes_read])
-                # This needs to be verified with how python-hid handles feature reports.
-                # For now, we'll assume report_id_to_request means we are expecting an Input report
-                # that *starts* with this ID if it's a numbered report.
-                # The current hid.Device.read() reads from an IN endpoint.
                 logger.debug(f"Attempting to read Input report, expecting report ID {report_id_to_request} if numbered.")
-                # The python-hid hid.Device.read(max_length) is a blocking call.
-                # Timeouts are generally handled by the underlying OS/hidapi library's default
-                # blocking behavior. If specific timeout control is needed, it's often set
-                # when the device is opened (e.g., hid.device.open(..., blocking=False) and then poll)
-                # or via other device-specific calls if the wrapper exposes them, not directly in read().
-                # The `timeout_ms` parameter originally here was causing an error.
-                raw_data = self.hid_device.read(report_length) # Might fail or block
+                raw_data = self.hid_device.read(report_length)
                 if raw_data and report_id_to_request is not None and raw_data[0] == report_id_to_request:
-                    data = raw_data[1:] # Strip the report ID if it's present and matches
+                    data = raw_data[1:]
                     logger.debug(f"Stripped report ID {report_id_to_request} from received data.")
                 elif raw_data and report_id_to_request is None:
-                    data = raw_data # Unnumbered report or ID stripping not requested
+                    data = raw_data
                 else:
-                    data = raw_data # Return raw data if ID doesn't match or not expecting one
+                    data = raw_data
             else:
-                # Standard input report read
-                # The python-hid hid.Device.read(max_length) is a blocking call.
-                # Timeouts are generally handled by the underlying OS/hidapi library's default
-                # blocking behavior. If specific timeout control is needed, it's often set
-                # when the device is opened (e.g., hid.device.open(..., blocking=False) and then poll)
-                # or via other device-specific calls if the wrapper exposes them, not directly in read().
-                # The `timeout_ms` parameter originally here was causing an error.
-                data = self.hid_device.read(report_length) # Might fail or block
+                data = self.hid_device.read(report_length)
 
             if data:
                 logger.debug(f"HID read data: {bytes(data).hex()}")
                 return list(data)
             logger.debug("HID read no data (timeout or empty report).")
-            return None # Could indicate issue, or just no data for that report.
+            return None
         except Exception as e:
             logger.error(f"HID read error: {e}. Closing potentially stale HID handle.")
             self.close()
             return None
 
     def is_device_connected(self) -> bool:
-        if self.headsetcontrol_available:
-            logger.debug("is_device_connected: `headsetcontrol` is available, using CLI for robust connection check.")
-
-            # Original Step 1: Basic HID interface check. If this fails, it's unlikely headsetcontrol will find it.
-            if not self._ensure_hid_connection():
-                logger.warning("is_device_connected (CLI mode): _ensure_hid_connection failed (cannot open a relevant HID path). Device likely disconnected.")
-                # self.close() is called by _ensure_hid_connection if it fails to fully connect.
-                return False
-
-            # Original Step 2: Use headsetcontrol -o json to verify functional connection.
-            device_info = self._get_headset_device_json()
-
-            if device_info is None:
-                # This means headsetcontrol -o json failed or found no devices.
-                logger.debug("is_device_connected (CLI mode): _get_headset_device_json() returned None (headsetcontrol found no functional device). Closing our HID handle.")
-                self.close() # Close our HID handle as headsetcontrol confirms no functional device.
-                return False
-
-            # If device_info is present, headsetcontrol sees a functional device.
-            logger.debug("is_device_connected (CLI mode): _ensure_hid_connection was OK and _get_headset_device_json() successful.")
-            return True
-        # headsetcontrol is NOT available
-        # headsetcontrol is NOT available
         if self.hid_device is None:
-            self._ensure_hid_connection() # Attempt to connect to the HID path
+            self._ensure_hid_connection()
 
-        if self.hid_device is None: # Check if HID path connection failed
-            if self._last_hid_only_connection_logged_status is not False: # Log change to not connected
-                logger.info("is_device_connected: `headsetcontrol` is NOT available.")
+        if self.hid_device is None:
+            if self._last_hid_only_connection_logged_status is not False:
                 logger.warning("is_device_connected (HID mode): HID device path NOT active (dongle likely disconnected or permissions issue).")
                 self._last_hid_only_connection_logged_status = False
             return False
 
-        # HID path is active, now check functional status
         status = self._get_parsed_status_hid()
         is_functionally_online = status is not None and status.get("headset_online", False)
-
-        current_overall_connected_status = is_functionally_online # If HID path is active, connection depends on functional status
+        current_overall_connected_status = is_functionally_online
 
         if current_overall_connected_status != self._last_hid_only_connection_logged_status:
-            logger.info("is_device_connected: `headsetcontrol` is NOT available. Relying on direct HID for connection status.")
             if current_overall_connected_status:
                 logger.info("is_device_connected (HID mode): Direct HID connection is active and headset is online.")
-            elif self.hid_device is not None and not is_functionally_online : # Dongle present, headset off
+            elif self.hid_device is not None and not is_functionally_online :
                 logger.info("is_device_connected (HID mode): HID device path active, but headset reported as offline.")
-            else: # Should ideally not be reached if self.hid_device is None is caught above
+            else:
                 logger.warning("is_device_connected (HID mode): Direct HID connection is NOT active or failed.")
             self._last_hid_only_connection_logged_status = current_overall_connected_status
         else:
             logger.debug(f"is_device_connected (HID mode): Connection status remains {'active and online' if current_overall_connected_status else 'inactive or offline'} (logged at DEBUG to reduce noise).")
-
         return current_overall_connected_status
-
-
-    # --- Public API ---
 
     def get_battery_level(self) -> int | None:
         logger.debug("get_battery_level: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
-        # current_value = None # Initialize in case status is None or value is missing
         if status and status.get("headset_online") and status.get("battery_percent") is not None:
             current_value = status["battery_percent"]
             if current_value != self._last_reported_battery_level:
-                logger.verbose(f"Battery level from HID: {current_value}%")
+                logger.debug(f"Battery level from HID: {current_value}%")
                 self._last_reported_battery_level = current_value
             else:
                 logger.debug(f"Battery level from HID: {current_value}% (unchanged, VERBOSE suppressed).")
             return current_value
-
-        # Reset if HID fails to get a value, so next success logs
         self._last_reported_battery_level = None
-
-        if self.headsetcontrol_available:
-            logger.warning("get_battery_level: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
-            # ... (rest of fallback logic remains the same) ...
-            # Ensure it returns None if fallback also fails
-            # The original fallback logic is preserved below
-            if not self.is_device_connected():
-                logger.debug("get_battery_level (fallback): Device not connected per is_device_connected, skipping CLI call.")
-                return None
-
-            logger.debug("Attempting to get battery level (fallback to headsetcontrol CLI).")
-            success_b, output_b = self._execute_headsetcontrol(["-b"])
-            if success_b:
-                match = re.search(r"Level:\s*(\d+)%", output_b)
-            if match:
-                level = int(match.group(1))
-                logger.verbose(f"Battery level from CLI (-b fallback, regex parse): {level}%")
-                return level
-            if output_b.isdigit():
-                logger.verbose(f"Battery level from CLI (-b, direct parse): {output_b}%")
-                return int(output_b)
-            # Output changed, e.g. "Status: BATTERY_UNAVAILABLE"
-            logger.warning(f"Could not parse battery level from 'headsetcontrol -b' output: {output_b}")
-
-        # Fallback to JSON if direct -b fails to parse, but only if device is still seen as connected
-        # (which it should be if we reached here, unless -b itself caused a disconnect detection not yet reflected)
-        if self.is_device_connected(): # Re-check as -b might have issues if device just went off
-            device_data = self._get_headset_device_json()
-            if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
-                battery_info = device_data["battery"]
-                if "level" in battery_info and isinstance(battery_info["level"], int):
-                    level = battery_info["level"]
-                    logger.verbose(f"Battery level from CLI (-o json): {level}%")
-                    return level
-                logger.warning(f"'level' key missing or not int in battery_info (JSON): {battery_info}")
-            elif not device_data:
-                     logger.warning("get_battery_level (fallback): Could not get device_data for JSON fallback.")
-        elif status is not None and not status.get("headset_online"):
-            logger.info("get_battery_level: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
-        else: # status is None (HID read failed) or other unexpected status
-            logger.warning("get_battery_level: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
-
+        if status is not None and not status.get("headset_online"):
+            logger.info("get_battery_level: Headset reported itself as offline via HID. No value retrieved from HID.")
+        else:
+            logger.warning("get_battery_level: HID communication failed (or status was unexpected). No value retrieved.")
         return None
 
-    # --- Hypothetical HID-based methods (for future implementation) ---
-
     def _get_parsed_status_hid(self) -> dict[str, Any] | None:
-        """
-        Gets and parses the combined status report (battery, chatmix)
-        via direct HID communication.
-        Logs raw data and parsed status at DEBUG level only if they change.
-        """
         logger.debug("Attempting _get_parsed_status_hid.")
         if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_get_parsed_status_hid: No HID device connected or connection failed.")
-            # Reset last known states if connection is lost then re-established, to ensure fresh logging
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
             return None
-
         command_payload = app_config.HID_CMD_GET_STATUS
         success_write = self._write_hid_report(
             report_id=0,
             data=command_payload,
             report_length=len(command_payload),
         )
-
         if not success_write:
             logger.warning("_get_parsed_status_hid: Failed to write HID status request command.")
             return None
-
         response_data = self.hid_device.read(app_config.HID_INPUT_REPORT_LENGTH_STATUS)
-
         if not response_data:
             logger.warning("_get_parsed_status_hid: No response data from HID device.")
-            # If we get no data, it's a change from having data, so clear last known states.
-            if self._last_hid_raw_read_data is not None: # Log change if we previously had data
+            if self._last_hid_raw_read_data is not None:
                 logger.debug("HID read data changed: No data received (previously had data).")
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
             return None
-
         if len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
             logger.warning(
                 f"_get_parsed_status_hid: Incomplete response. Expected {app_config.HID_INPUT_REPORT_LENGTH_STATUS} bytes, got {len(response_data)}: {response_data}",
             )
-            # Treat incomplete response as a change/error state for logging.
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
             return None
-
-        # Conditional logging for raw HID data
-        # Convert response_data to list for comparison, as hid.Device.read() returns bytes/List[int] depending on platform/version.
         current_raw_data_list = list(response_data)
         if current_raw_data_list != self._last_hid_raw_read_data:
-            logger.debug(f"HID read data: {bytes(response_data).hex()}") # Log the hex string for readability
+            logger.debug(f"HID read data: {bytes(response_data).hex()}")
             self._last_hid_raw_read_data = current_raw_data_list
         else:
             logger.debug("HID read data: No change since last report.")
-
-
-        # ... (parsing logic remains the same)
         parsed_status = {"headset_online": True}
-
-        raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         if raw_battery_level == 0x00:
             parsed_status["battery_percent"] = 0
@@ -608,10 +387,7 @@ class HeadsetService:
         else:
             logger.warning(f"_get_parsed_status_hid: Unknown raw battery level: {raw_battery_level}")
             parsed_status["battery_percent"] = None
-
-        # Battery Status
         raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
-
         if raw_battery_status == 0x00:
             if self._last_raw_battery_status_for_logging != 0x00:
                 logger.info("_get_parsed_status_hid: Headset reported offline by status byte (0x00).")
@@ -619,33 +395,16 @@ class HeadsetService:
             parsed_status["headset_online"] = False
             parsed_status["battery_percent"] = None
             parsed_status["chatmix"] = None
-        elif raw_battery_status == 0x01: # Example: Charging
-            if self._last_raw_battery_status_for_logging == 0x00: # Was previously offline by status byte
+        elif raw_battery_status == 0x01:
+            if self._last_raw_battery_status_for_logging == 0x00:
                 logger.info(f"_get_parsed_status_hid: Headset now reported as charging (status byte {raw_battery_status:#02x}), was previously offline by status byte.")
             parsed_status["battery_charging"] = True
-            # headset_online remains True (default or set before this block)
-        else: # Example: Not charging, but online (e.g., status byte 0x02 or other non-0x00, non-0x01 values)
-            if self._last_raw_battery_status_for_logging == 0x00: # Was previously offline by status byte
+        else:
+            if self._last_raw_battery_status_for_logging == 0x00:
                 logger.info(f"_get_parsed_status_hid: Headset now reported as online (status byte {raw_battery_status:#02x}), was previously offline by status byte.")
             parsed_status["battery_charging"] = False
-            # headset_online remains True
-
-        # Update the last known raw battery status for logging purposes
         self._last_raw_battery_status_for_logging = raw_battery_status
-
         if parsed_status["headset_online"]:
-            # This part for raw_battery_level (battery_percent) should only be processed if headset is online.
-            # The original code for raw_battery_level parsing was outside the raw_battery_status block.
-            # It needs to be moved or made conditional here based on parsed_status['headset_online'].
-            # Let's ensure raw_battery_level is parsed *after* headset_online is determined by raw_battery_status.
-            # The prompt stated: "The current structure already does this... raw_battery_level parsing is outside this if/elif/else"
-            # This is incorrect. The raw_battery_level parsing is *before* this block.
-            # It should be *after* or made conditional.
-            # For now, I will keep the original structure for raw_battery_level parsing as per prompt's assertion,
-            # but note this potential discrepancy. The prompt also says:
-            # "The `parsed_status['battery_percent'] = None` ... were already correctly placed inside the `raw_battery_status == 0x00` block."
-            # This implies the existing battery_percent parsing (outside this block) will be overridden if status is 0x00. This is acceptable.
-
             raw_game = response_data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE]
             raw_chat = response_data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE]
             raw_game_clamped = max(0, min(100, raw_game))
@@ -654,19 +413,15 @@ class HeadsetService:
             mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
             chatmix_value = 64 - (mapped_chat + mapped_game)
             parsed_status["chatmix"] = max(0, min(128, chatmix_value))
-        else: # Already set chatmix to None if offline
+        else:
             pass
-
-        # Conditional logging for parsed status
         if parsed_status != self._last_hid_parsed_status:
             logger.debug(f"_get_parsed_status_hid: Parsed status: {parsed_status}")
-            self._last_hid_parsed_status = parsed_status.copy() # Store a copy
+            self._last_hid_parsed_status = parsed_status.copy()
         else:
             logger.debug("_get_parsed_status_hid: Parsed status: No change since last report.")
+        return parsed_status
 
-        return parsed_status # Return the current parsed_status regardless of whether it was logged
-
-    # Add example public methods that would use _get_parsed_status_hid()
     def get_battery_level_hid(self) -> int | None:
         logger.debug("get_battery_level_hid: Attempting to get battery via direct HID.")
         status = self._get_parsed_status_hid()
@@ -683,8 +438,8 @@ class HeadsetService:
         logger.warning("get_chatmix_hid: Could not retrieve chatmix via HID.")
         return None
 
-    def is_charging_hid(self) -> bool | None: # Renamed from is_charging
-        """Checks if the headset is currently charging using HID.""" # Docstring added
+    def is_charging_hid(self) -> bool | None:
+        """Checks if the headset is currently charging using HID."""
         logger.debug("is_charging_hid: Attempting to get charging status via direct HID.")
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_charging") is not None:
@@ -695,139 +450,57 @@ class HeadsetService:
     def get_chatmix_value(self) -> int | None:
         logger.debug("get_chatmix_value: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
-        # current_value = None
         if status and status.get("headset_online") and status.get("chatmix") is not None:
             current_value = status["chatmix"]
             if current_value != self._last_reported_chatmix:
-                logger.verbose(f"ChatMix value from HID: {current_value}")
+                logger.debug(f"ChatMix value from HID: {current_value}")
                 self._last_reported_chatmix = current_value
             else:
                 logger.debug(f"ChatMix value from HID: {current_value} (unchanged, VERBOSE suppressed).")
             return current_value
-
-        self._last_reported_chatmix = None # Reset if HID fails
-
-        if self.headsetcontrol_available:
-            logger.warning("get_chatmix_value: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
-            # ... (rest of fallback logic remains the same) ...
-            if not self.is_device_connected():
-                logger.debug("get_chatmix_value (fallback): Device not connected, skipping CLI call.")
-                return None
-
-            logger.debug("Attempting to get ChatMix value (fallback to headsetcontrol CLI).")
-            device_data = self._get_headset_device_json()
-            if device_data and "chatmix" in device_data:
-                chatmix_val = device_data["chatmix"]
-                if isinstance(chatmix_val, (int, float)):
-                    chatmix_int = int(chatmix_val)
-                    # logger.verbose(f"ChatMix value from CLI (-o json): {chatmix_int}")
-                    return chatmix_int
-                logger.warning(f"'chatmix' value is not a number in device_data (JSON): {chatmix_val}")
-            elif not device_data: # device_data is None
-                 logger.warning("get_chatmix_value (fallback): Could not get device_data for JSON.")
-        elif status is not None and not status.get("headset_online"):
-            logger.info("get_chatmix_value: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
-        else: # status is None (HID read failed) or other unexpected status
-            logger.warning("get_chatmix_value: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
-
+        self._last_reported_chatmix = None
+        if status is not None and not status.get("headset_online"):
+            logger.info("get_chatmix_value: Headset reported itself as offline via HID. No value retrieved from HID.")
+        else:
+            logger.warning("get_chatmix_value: HID communication failed (or status was unexpected). No value retrieved.")
         return None
 
     def is_charging(self) -> bool | None:
         logger.debug("is_charging: Attempting via direct HID.")
         status = self._get_parsed_status_hid()
-        # current_value = None
         if status and status.get("headset_online") and status.get("battery_charging") is not None:
             current_value = status["battery_charging"]
             if current_value != self._last_reported_charging_status:
-                logger.verbose(f"Charging status from HID: {current_value}")
+                logger.debug(f"Charging status from HID: {current_value}")
                 self._last_reported_charging_status = current_value
             else:
                 logger.debug(f"Charging status from HID: {current_value} (unchanged, VERBOSE suppressed).")
             return current_value
-
-        self._last_reported_charging_status = None # Reset if HID fails
-
-        if self.headsetcontrol_available:
-            logger.warning("is_charging: Could not retrieve via HID or HID reported offline. Falling back to headsetcontrol.")
-            # ... (rest of fallback logic remains the same) ...
-            if not self.is_device_connected():
-                 logger.debug("is_charging (fallback): Device not connected.")
-                 return None
-
-            device_data = self._get_headset_device_json()
-            if device_data and "battery" in device_data and isinstance(device_data["battery"], dict):
-                battery_info = device_data["battery"]
-                if "charging" in battery_info and isinstance(battery_info["charging"], bool):
-                    # logger.verbose(f"Charging status from headsetcontrol JSON: {battery_info['charging']}")
-                    return battery_info["charging"]
-                if "status" in battery_info and isinstance(battery_info["status"], str):
-                    is_charging_str = "charging" in battery_info["status"].lower()
-                    # logger.verbose(f"Charging status from headsetcontrol JSON (string parse): {is_charging_str}")
-                    return is_charging_str
-            logger.debug("is_charging (fallback): Could not determine charging status from headsetcontrol JSON.")
-        elif status is not None and not status.get("headset_online"):
-            logger.info("is_charging: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
-        else: # status is None (HID read failed) or other unexpected status
-            logger.warning("is_charging: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
-
+        self._last_reported_charging_status = None
+        if status is not None and not status.get("headset_online"):
+            logger.info("is_charging: Headset reported itself as offline via HID. No value retrieved from HID.")
+        else:
+            logger.warning("is_charging: HID communication failed (or status was unexpected). No value retrieved.")
         return None
 
     def get_sidetone_level(self) -> int | None:
-        # logger.debug("get_sidetone_level: Using headsetcontrol. Direct HID implementation pending configuration.") # This log is still relevant
-        if not self.is_device_connected():
-            logger.debug("get_sidetone_level: Device not connected, skipping.")
-            return None
-        device_data = self._get_headset_device_json()
-        if device_data and "sidetone" in device_data:
-            sidetone_val = device_data["sidetone"]
-            if isinstance(sidetone_val, int):
-                logger.verbose(f"Sidetone level from CLI (-o json): {sidetone_val}")
-                return sidetone_val
-            logger.warning(f"Sidetone value from JSON is not an int: {sidetone_val}")
-        elif not device_data:
-            logger.warning("get_sidetone_level: Could not get device_data for JSON.")
+        logger.warning("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
     def set_sidetone_level(self, level: int) -> bool:
         logger.debug(f"set_sidetone_level: Attempting to set level to {level} via direct HID.")
-
-        # Sanitize input level just in case, though HID mapping handles ranges.
         level = max(0, min(128, level))
-
         if self._set_sidetone_level_hid(level):
             return True
-
-        if self.headsetcontrol_available:
-            logger.warning(f"set_sidetone_level: Failed to set sidetone to {level} via HID. Falling back to headsetcontrol.")
-            # is_device_connected call here is mostly for logging consistency if HID failed due to disconnect
-            if not self.is_device_connected():
-                logger.warning("set_sidetone_level (fallback): Device not connected, cannot set via CLI.")
-                return False
-
-            logger.info(f"Setting sidetone level to {level} (fallback to headsetcontrol CLI).")
-            success_hc, _ = self._execute_headsetcontrol(["-s", str(level)])
-            if not success_hc:
-                logger.error(f"Failed to set sidetone level to {level} using headsetcontrol.")
-            return success_hc
-        logger.warning(f"set_sidetone_level: Direct HID failed for level {level} and headsetcontrol is not available.")
+        logger.warning(f"set_sidetone_level: Direct HID failed for level {level}.")
         return False
 
     def _set_sidetone_level_hid(self, level: int) -> bool:
-        """
-        Sets sidetone level via direct HID communication.
-        Returns True on success, False on failure.
-        """
         logger.debug(f"Attempting _set_sidetone_level_hid to {level}.")
         if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_set_sidetone_level_hid: No HID device connected or connection failed.")
             return False
-
-        # 1. Map the level (0-128) to hardware value (0-3)
-        # Mapping from headsetcontrol: 0-25->0, 26-50->1, 51-75->2, >75->3
         mapped_value = 0
-        # Refined mapping based on app_config comments (0-25->0x0, 26-50->0x1, 51-75->0x2, >75->0x3)
-        # Sidetone levels in app_config.SIDETONE_OPTIONS might be a better source for steps.
-        # For now, using the direct mapping from headsetcontrol C code:
         if level < 26:
             mapped_value = 0x00
         elif level < 51:
@@ -837,311 +510,117 @@ class HeadsetService:
         else:
             mapped_value = 0x03
         logger.debug(f"_set_sidetone_level_hid: Input level {level} mapped to hardware value {mapped_value}.")
-
-        # 2. Prepare the command
-        # Command is [HID_REPORT_FIXED_FIRST_BYTE, 0x39, mapped_value]
-        command_payload = list(app_config.HID_CMD_SET_SIDETONE_PREFIX) # Creates a mutable copy [0x00, 0x39]
+        command_payload = list(app_config.HID_CMD_SET_SIDETONE_PREFIX)
         command_payload.append(mapped_value)
-
         success = self._write_hid_report(
-            report_id=0, # Assuming 0x00 is part of data for unnumbered/implicit ID 0 report
+            report_id=0,
             data=command_payload,
             report_length=len(command_payload),
         )
-
         if success:
             logger.info(f"_set_sidetone_level_hid: Successfully sent command for level {level} (mapped: {mapped_value}).")
-            # Arctis Nova 7 sidetone does not seem to require a separate save command based on headsetcontrol.
         else:
             logger.warning(f"_set_sidetone_level_hid: Failed to send command for level {level}.")
-            # self.close() # Consider if closing is appropriate on write failure
         return success
 
     def _set_inactive_timeout_hid(self, minutes: int) -> bool:
-        """
-        Sets inactive timeout via direct HID communication.
-        Returns True on success, False on failure.
-        """
         logger.debug(f"Attempting _set_inactive_timeout_hid to {minutes} minutes.")
         if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_set_inactive_timeout_hid: No HID device connected or connection failed.")
             return False
-
-        # Validate minutes (0-90 as per headsetcontrol help text for this type of device)
-        # The raw command might support more, but stick to known safe values.
         if not (0 <= minutes <= 90):
             logger.warning(f"_set_inactive_timeout_hid: Invalid value for minutes ({minutes}). Must be 0-90.")
-            # Consider if this should return False or raise ValueError,
-            # For consistency with current set_inactive_timeout, it just logs and sends.
-            # Let's clamp it to be safe for the HID command.
-            # However, the original set_inactive_timeout also clamps.
-            # The C code for Arctis Nova 7 doesn't show explicit range checks for the byte value itself,
-            # but higher level headsetcontrol CLI does.
-            # For direct HID, it's good practice to validate/clamp if the hardware range is known.
-            # Assuming 'minutes' byte can take 0-255, but functional range is 0-90.
-            # We'll rely on the public method's clamping for now.
-
-
-        # Prepare the command: [HID_REPORT_FIXED_FIRST_BYTE, 0xa3, minutes]
-        command_payload = list(app_config.HID_CMD_SET_INACTIVE_TIME_PREFIX) # Creates [0x00, 0xa3]
+        command_payload = list(app_config.HID_CMD_SET_INACTIVE_TIME_PREFIX)
         command_payload.append(minutes)
-
         success = self._write_hid_report(
-            report_id=0, # Assuming 0x00 is part of data for unnumbered/implicit ID 0 report
+            report_id=0,
             data=command_payload,
             report_length=len(command_payload),
         )
-
         if success:
             logger.info(f"_set_inactive_timeout_hid: Successfully sent command for {minutes} minutes.")
-            # Based on headsetcontrol C code for Arctis Nova 7, no separate save command needed for this.
         else:
             logger.warning(f"_set_inactive_timeout_hid: Failed to send command for {minutes} minutes.")
-            # self.close() # Consider if closing is appropriate on write failure
         return success
 
     def get_inactive_timeout(self) -> int | None:
-        if not self.is_device_connected():
-            logger.debug("get_inactive_timeout: Device not connected, skipping.")
-            return None
-        device_data = self._get_headset_device_json()
-        if device_data and "inactive_time" in device_data:
-            timeout_val = device_data["inactive_time"]
-            if isinstance(timeout_val, int):
-                logger.verbose(f"Inactive timeout from CLI (-o json): {timeout_val} minutes")
-                return timeout_val
-            logger.warning(f"Inactive timeout from JSON is not an int: {timeout_val}")
-        elif not device_data:
-            logger.warning("get_inactive_timeout: Could not get device_data for JSON.")
+        logger.warning("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
     def set_inactive_timeout(self, minutes: int) -> bool:
-        # logger.debug("set_inactive_timeout: Using headsetcontrol. Direct HID implementation pending configuration.") # Old log
         logger.debug(f"set_inactive_timeout: Attempting to set to {minutes} minutes via direct HID.")
-
-        # Clamp minutes to the known safe and functional range (0-90 for headsetcontrol compatibility)
-        # The actual byte might support 0-255, but UI/HC uses 0-90.
         clamped_minutes = max(0, min(90, minutes))
         if clamped_minutes != minutes:
             logger.info(f"set_inactive_timeout: Requested minutes {minutes} clamped to {clamped_minutes}.")
-
         if self._set_inactive_timeout_hid(clamped_minutes):
             return True
-
-        if self.headsetcontrol_available:
-            logger.warning(f"set_inactive_timeout: Failed to set inactive timeout to {clamped_minutes} via HID. Falling back to headsetcontrol.")
-            if not self.is_device_connected():
-                logger.warning("set_inactive_timeout (fallback): Device not connected, cannot set via CLI.")
-                return False
-
-            logger.info(f"Setting inactive timeout to {clamped_minutes} minutes (fallback to headsetcontrol CLI).")
-            success_hc, _ = self._execute_headsetcontrol(["-i", str(clamped_minutes)])
-            if not success_hc:
-                logger.error(f"Failed to set inactive timeout to {clamped_minutes} using headsetcontrol.")
-            return success_hc
-        logger.warning(f"set_inactive_timeout: Direct HID failed for {clamped_minutes} minutes and headsetcontrol is not available.")
+        logger.warning(f"set_inactive_timeout: Direct HID failed for {clamped_minutes} minutes.")
         return False
 
     def _set_eq_values_hid(self, float_values: list[float]) -> bool:
-        """
-        Sets custom EQ bands via direct HID communication.
-        'float_values' is a list of 10 float values, typically from -10.0 to +10.0.
-        Returns True on success, False on failure.
-        """
         logger.debug(f"Attempting _set_eq_values_hid with bands: {float_values}")
         if not self._ensure_hid_connection() or not self.hid_device:
             logger.warning("_set_eq_values_hid: No HID device connected or connection failed.")
             return False
-
         if len(float_values) != 10:
             logger.error(f"_set_eq_values_hid: Invalid number of EQ bands. Expected 10, got {len(float_values)}.")
             return False
-
-        # Construct the HID report payload
-        # Report: { 0x00, 0x33, b0, b1, ..., b9, 0x00 } (total 13 bytes of payload data for this specific command, excluding padding for 64 byte report)
-        # where bX = int(0x14 + float_value_X)
-        command_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX)  # Starts with [0x00, 0x33]
-
+        command_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX)
         for val in float_values:
-            # Clamp float_value to typical effective range (e.g. -10 to 10, matching headsetcontrol C code for Arctis Nova 7)
-            # to prevent issues with byte conversion if values are wildly out of expected bounds.
-            # The C code implies band_value is float, and (0x14 + band_value) is cast to uint8_t.
-            # Min byte: 0x14 - 10 = 20 - 10 = 10 (0x0A)
-            # Max byte: 0x14 + 10 = 20 + 10 = 30 (0x1E)
             clamped_val = max(-10.0, min(10.0, val))
             byte_value = int(0x14 + clamped_val)
-            # Ensure it fits in a byte if clamping wasn't perfect or range is different
             byte_value = max(0, min(255, byte_value))
             command_payload.append(byte_value)
-
-        # Append the terminating 0x00 byte for the EQ command structure
-        # The total data related to EQ command: prefix (2 bytes) + 10 bands (10 bytes) + terminator (1 byte) = 13 bytes.
-        # From headsetcontrol C: data[i+2] for bands, then data[settings->size + 2] = 0x0 (using 0-indexed i for bands)
-        # data[0]=0x00, data[1]=0x33, data[2]=band0, ..., data[11]=band9, data[12]=0x00
-        if len(command_payload) == 12: # After prefix and 10 bands
-            command_payload.append(0x00) # Terminator
+        if len(command_payload) == 12:
+            command_payload.append(0x00)
         else:
-            # This case should not be reached if input validation (len(float_values) == 10) is correct.
             logger.error(f"_set_eq_values_hid: Error constructing EQ payload. Length before terminator: {len(command_payload)}")
             return False
-
         logger.debug(f"_set_eq_values_hid: Constructed payload: {command_payload}")
-
         success = self._write_hid_report(
-            report_id=0, # Assuming HID_CMD_SET_EQ_BANDS_PREFIX's first byte (0x00) is part of data for unnumbered/implicit ID 0 report
+            report_id=0,
             data=command_payload,
-            report_length=len(command_payload), # Send actual payload length; device/driver handles padding to 64 bytes if necessary for endpoint.
+            report_length=len(command_payload),
         )
-
         if success:
             logger.info(f"_set_eq_values_hid: Successfully sent custom EQ bands: {float_values}")
         else:
             logger.warning("_set_eq_values_hid: Failed to send custom EQ bands.")
         return success
 
-    def get_current_eq_values(self) -> list[float] | None: # Changed return hint to List[float] for consistency
-        logger.debug("get_current_eq_values: Attempting to get current EQ values.")
-        if not self.headsetcontrol_available:
-            logger.warning("get_current_eq_values: `headsetcontrol` is not available. Cannot determine current EQ values via HID with current knowledge.")
-            return None
-
-        if not self.is_device_connected():
-            logger.debug("get_current_eq_values: Device not connected, skipping.")
-            return None
-
-        # This feature in headsetcontrol -o json provides the 10 band values.
-        device_data = self._get_headset_device_json()
-        if device_data and "equalizer" in device_data and isinstance(device_data["equalizer"], dict):
-            eq_info = device_data["equalizer"]
-            if "values" in eq_info and isinstance(eq_info["values"], list):
-                # Ensure all values are floats, as headsetcontrol JSON provides them as numbers.
-                try:
-                    float_values = [float(v) for v in eq_info["values"]]
-                    if len(float_values) == 10:
-                        logger.verbose(f"Current EQ values from CLI (-o json): {float_values}")
-                        return float_values
-                    logger.warning(f"EQ values from JSON do not contain 10 bands: {float_values}")
-                except ValueError:
-                    logger.warning(f"Could not convert EQ values from JSON to float: {eq_info['values']}")
-            else:
-                logger.warning(f"'values' key missing or not a list in eq_info (JSON): {eq_info}")
-        elif not device_data and self.headsetcontrol_available: # Only warn about missing device_data if we expected it
-             logger.warning("get_current_eq_values: Could not get device_data for JSON via headsetcontrol.")
+    def get_current_eq_values(self) -> list[float] | None:
+        logger.warning("get_current_eq_values: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
-    def set_eq_values(self, values: list[float]) -> bool: # Changed List[int] to List[float]
+    def set_eq_values(self, values: list[float]) -> bool:
         logger.debug(f"set_eq_values: Attempting to set EQ bands to {values} via direct HID.")
-
-        # Input validation (e.g. length) is handled by _set_eq_values_hid
         if self._set_eq_values_hid(values):
-            # If config saving is desired after setting EQ, it would go here.
-            # For example, if these values should become the new "Custom" preset.
-            # self.config_manager.set_custom_eq_curve(app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME, values)
-            # logger.info(f"Saved EQ values as '{app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME}' preset in config.")
             return True
-
-        if self.headsetcontrol_available:
-            logger.warning("set_eq_values: Failed to set EQ bands via HID. Falling back to headsetcontrol.")
-            if not self.is_device_connected():
-                logger.warning("set_eq_values (fallback): Device not connected, cannot set via CLI.")
-                return False
-
-            logger.info(f"Setting EQ values to: {values} (fallback to headsetcontrol CLI).")
-            if not (isinstance(values, list) and len(values) == 10): # Original validation
-                logger.error(f"Invalid EQ values provided for headsetcontrol CLI: {values}")
-                return False
-            # headsetcontrol CLI expects float values as strings, space or comma separated
-            values_str = ",".join(map(str, values))
-            success_hc, _ = self._execute_headsetcontrol(["-e", values_str])
-            if not success_hc:
-                 logger.error(f"Failed to set EQ values using headsetcontrol: {values_str}")
-            return success_hc
-        logger.warning(f"set_eq_values: Direct HID failed for EQ bands {values} and headsetcontrol is not available.")
+        logger.warning(f"set_eq_values: Direct HID failed for EQ bands {values}.")
         return False
 
     def _set_eq_preset_hid(self, preset_id: int) -> bool:
-        """
-        Sets a hardware EQ preset via direct HID communication by sending its specific band values.
-        'preset_id' is typically 0-3.
-        Returns True on success, False on failure.
-        """
         logger.debug(f"Attempting _set_eq_preset_hid for preset ID: {preset_id}")
-
         if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
             logger.error(f"_set_eq_preset_hid: Invalid preset ID: {preset_id}. Not found in ARCTIS_NOVA_7_HW_PRESETS.")
             return False
-
         preset_data = app_config.ARCTIS_NOVA_7_HW_PRESETS[preset_id]
         float_values = preset_data.get("values")
-
         if not float_values or len(float_values) != 10:
             logger.error(f"_set_eq_preset_hid: Malformed preset data for ID {preset_id} in app_config.ARCTIS_NOVA_7_HW_PRESETS.")
             return False
-
         logger.info(f"_set_eq_preset_hid: Setting hardware preset '{preset_data.get('name', 'Unknown')}' (ID: {preset_id}) using its defined bands.")
         return self._set_eq_values_hid(float_values)
 
     def get_current_eq_preset_id(self) -> int | None:
-        logger.debug("get_current_eq_preset_id: Attempting to get current HW EQ preset ID.")
-        if not self.headsetcontrol_available:
-            logger.warning("get_current_eq_preset_id: `headsetcontrol` is not available. Cannot determine current EQ preset ID via HID with current knowledge.")
-            return None
-
-        # Existing logic that uses _get_headset_device_json()
-        if not self.is_device_connected(): # This check now also considers headsetcontrol_available
-            logger.debug("get_current_eq_preset_id: Device not connected, skipping.")
-            return None
-
-        device_data = self._get_headset_device_json()
-        if device_data and "equalizer" in device_data and isinstance(device_data["equalizer"], dict):
-            eq_info = device_data["equalizer"]
-            if "preset" in eq_info and isinstance(eq_info["preset"], int):
-                preset_id = eq_info["preset"]
-                logger.verbose(f"Current HW EQ Preset ID from CLI (-o json): {preset_id}")
-                return preset_id
-            logger.warning(f"'preset' key missing or not int in eq_info (JSON): {eq_info}")
-        elif not device_data and self.headsetcontrol_available: # Only warn about missing device_data if we expected it
-            logger.warning("get_current_eq_preset_id: Could not get device_data for JSON via headsetcontrol.")
+        logger.warning("get_current_eq_preset_id: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
         logger.debug(f"set_eq_preset_id: Attempting to set HW EQ preset to ID {preset_id} via direct HID.")
-
-        # Basic validation, though _set_eq_preset_hid will also check against defined presets
-        if not (0 <= preset_id <= 3): # Common range for 4 hardware presets
+        if not (0 <= preset_id <= 3):
             logger.error(f"set_eq_preset_id: Invalid HW EQ preset ID: {preset_id}. Typically 0-3.")
-            # return False # Or let _set_eq_preset_hid handle it if using app_config keys strictly
-
         if self._set_eq_preset_hid(preset_id):
             return True
-
-        if self.headsetcontrol_available:
-            logger.warning(f"set_eq_preset_id: Failed to set HW EQ preset ID {preset_id} via HID. Falling back to headsetcontrol.")
-            if not self.is_device_connected():
-                logger.warning("set_eq_preset_id (fallback): Device not connected, cannot set via CLI.")
-                return False
-
-            logger.info(f"Setting HW EQ preset to ID: {preset_id} (fallback to headsetcontrol CLI).")
-            # Original headsetcontrol logic (already clamps/validates in its own way for CLI)
-            success_hc, _ = self._execute_headsetcontrol(["-p", str(preset_id)])
-            if not success_hc:
-                logger.error(f"Failed to set HW EQ preset ID using headsetcontrol: {preset_id}")
-            return success_hc
-        logger.warning(f"set_eq_preset_id: Direct HID failed for HW EQ preset ID {preset_id} and headsetcontrol is not available.")
+        logger.warning(f"set_eq_preset_id: Direct HID failed for HW EQ preset ID {preset_id}.")
         return False
-
-# --- Methods Still Reliant on headsetcontrol CLI ---
-# The following public methods currently rely exclusively on parsing
-# the output of the `headsetcontrol` command-line tool.
-# Future work could involve implementing direct HID communication for them,
-# similar to battery, chatmix, sidetone, and inactive timeout.
-#
-# - get_sidetone_level() (reads from JSON, which is from headsetcontrol)
-# - get_inactive_timeout() (reads from JSON)
-# - get_current_eq_values() (placeholder, implies headsetcontrol or HID)
-# - set_eq_values()
-# - get_current_eq_preset_id() (reads from JSON)
-# - set_eq_preset_id()
-#
-# The is_device_connected() method also uses _get_headset_device_json()
-# as a primary way to check functional connectivity.

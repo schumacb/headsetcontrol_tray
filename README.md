@@ -1,6 +1,6 @@
 # HeadsetControl Tray
 
-A system tray application for controlling headsets, particularly those compatible with `headsetcontrol`.
+A system tray application for controlling SteelSeries headsets (and potentially others) via direct HID communication. It aims to provide features similar to those found in tools like `headsetcontrol`.
 
 ## Getting Started
 
@@ -136,10 +136,10 @@ This is the most common method for reverse-engineering USB protocols.
     3. Stop the capture and analyze the USB packets exchanged between the software and the headset. Look for patterns, specific byte sequences that change with different settings, and potential report IDs.
     4. Focus on `HID` class-specific requests, particularly `SET_REPORT` and `GET_REPORT` (or `Interrupt OUT` and `Interrupt IN` transfers for HID devices).
 
-### 2. Analyzing `headsetcontrol`
-The `headsetcontrol` utility (which this application currently uses) might already contain some of the necessary HID information or clues.
+### 2. Analyzing `headsetcontrol` Source Code
+The source code of the `headsetcontrol` utility can be a valuable resource, as it might already contain some of the necessary HID information or clues for supported devices. This application previously used `headsetcontrol` as a CLI fallback but now focuses on direct HID communication.
 - **Source Code:** Explore the source code of `headsetcontrol`: [https://github.com/Sapd/HeadsetControl](https://github.com/Sapd/HeadsetControl)
-- **Debugging:** Run `headsetcontrol` with verbose or debug flags if available, or use tools like `strace` (on Linux) or a debugger to observe its interactions with the HID device at a lower level.
+- **Debugging `headsetcontrol`:** Understanding how the `headsetcontrol` CLI tool interacts with devices (e.g., using `strace` on Linux or a debugger) can also provide insights into HID protocols, even though this tray application no longer executes the CLI tool.
 
 ### 3. Community Resources and Similar Projects
 - Search online forums (e.g., Reddit, hardware hacking forums) for discussions related to SteelSeries headsets or HID reverse-engineering.
