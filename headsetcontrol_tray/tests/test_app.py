@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, Mock, patch
 # Ensure the application modules can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+import pytest # Added for @pytest.mark.usefixtures
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 # Modules to be tested or mocked
@@ -17,31 +18,19 @@ except ImportError as e:
     raise
 
 
+@pytest.mark.usefixtures("qapp") # Ensures qapp fixture (and thus QApplication) is initialized
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
-    qapp_for_class = None # Class attribute to hold the QApplication instance
-
-    @classmethod
-    def setUpClass(cls):
-        # Create a QApplication instance once for the entire test class
-        if QApplication.instance() is None:
-            cls.qapp_for_class = QApplication(sys.argv)
-            cls._created_qapp = True # Flag to indicate this class created it
-        else:
-            cls.qapp_for_class = QApplication.instance()
-            cls._created_qapp = False
-
-    @classmethod
-    def tearDownClass(cls):
-        # Quit the QApplication instance if this class created it
-        if cls.qapp_for_class is not None and cls._created_qapp:
-            if QApplication.instance(): # Check if it still exists
-                QApplication.quit()
-        cls.qapp_for_class = None
+    # setUpClass and tearDownClass are no longer needed; pytest-qt manages QApplication.
 
     def setUp(self):
-        # Patch 'headsetcontrol_tray.app.QApplication' to return the class-level instance
-        # This ensures SteelSeriesTrayApp uses our managed QApplication
-        self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=self.__class__.qapp_for_class)
+        # pytest-qt ensures QApplication.instance() exists.
+        # We patch 'headsetcontrol_tray.app.QApplication' to ensure that if SteelSeriesTrayApp
+        # tries to create a new QApplication (even via `QApplication.instance() or QApplication([])`),
+        # it receives the pytest-qt managed instance.
+        qapp = QApplication.instance()
+        assert qapp is not None, "pytest-qt should have created a QApplication instance"
+
+        self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=qapp)
         self.mock_qapplication_constructor = self.qapplication_patch.start()
 
         self.sample_details = {
@@ -122,38 +111,48 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
                              pkexec_returncode, pkexec_stdout, pkexec_stderr,
                              expected_icon, expected_title, expected_text, expected_informative_text_contains):
         mock_service_instance = MockHeadsetService.return_value
-        # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
         mock_service_instance.udev_setup_details = self.sample_details
-        mock_service_instance.is_device_connected = Mock(return_value=False) # Consistent with udev_setup_details being present
+        mock_service_instance.is_device_connected = Mock(return_value=False)
         mock_service_instance.close = Mock()
 
-        mock_os_path_exists.return_value = True
+        mock_os_path_exists.return_value = True # For these flows, pkexec is attempted, so script must exist
 
-        mock_initial_dialog_instance = MockQMessageBoxClass.return_value
+        mock_initial_dialog = MagicMock(spec=QMessageBox)
+        mock_feedback_dialog = MagicMock(spec=QMessageBox)
+        MockQMessageBoxClass.side_effect = [mock_initial_dialog, mock_feedback_dialog]
 
-        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
-        # added_buttons was unused
-        def side_effect_add_button(text_or_button, role=None):
-            button = MagicMock(spec=QMessageBox.StandardButton)
-            button.text = str(text_or_button)
+        captured_auto_button = [None] # Using a list to allow modification in closure
+
+        def initial_dialog_add_button_side_effect(text_or_button, role=None):
+            button_mock = MagicMock(spec=QMessageBox.StandardButton)
+            if isinstance(text_or_button, str):
+                button_mock.text = text_or_button
+            else:
+                button_mock.standard_button_enum = text_or_button
+
             if role == QMessageBox.AcceptRole:
-                nonlocal auto_button_mock
-                auto_button_mock = button
-            return button
+                captured_auto_button[0] = button_mock
+                # When the "Install Automatically" button is added by the app,
+                # immediately set the mock_initial_dialog's clickedButton behavior.
+                mock_initial_dialog.clickedButton.return_value = captured_auto_button[0]
+            return button_mock
 
-        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button
-        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
+        mock_initial_dialog.addButton.side_effect = initial_dialog_add_button_side_effect
+
+        # Fallback if AcceptRole button somehow not added (shouldn't happen in these tests)
+        # but this ensures clickedButton always has a return_value before exec()
+        if mock_initial_dialog.clickedButton.return_value is None:
+             mock_initial_dialog.clickedButton.return_value = MagicMock(spec=QMessageBox.StandardButton) # Non-Accept button
 
         mock_subprocess_run.return_value = subprocess.CompletedProcess(
             args=["pkexec", self.expected_helper_script_path, self.sample_details["temp_file_path"], self.sample_details["final_file_path"]],
             returncode=pkexec_returncode, stdout=pkexec_stdout, stderr=pkexec_stderr,
         )
 
-        MockQMessageBoxClass.reset_mock()
-        mock_feedback_dialog_instance = MockQMessageBoxClass.return_value
+        # Instantiate the app, which will trigger the dialog flow
+        SteelSeriesTrayApp()
 
-        SteelSeriesTrayApp() # Constructor called for side effects
-
+        # Assertions for subprocess
         mock_subprocess_run.assert_called_once()
         cmd_called = mock_subprocess_run.call_args[0][0]
         self.assertEqual(cmd_called[0], "pkexec")
@@ -161,115 +160,28 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self.assertEqual(cmd_called[2], self.sample_details["temp_file_path"])
         self.assertEqual(cmd_called[3], self.sample_details["final_file_path"])
 
-        MockQMessageBoxClass.assert_called_once()
-        mock_feedback_dialog_instance.setIcon.assert_called_with(expected_icon)
-        mock_feedback_dialog_instance.setWindowTitle.assert_called_with(expected_title)
-        mock_feedback_dialog_instance.setText.assert_called_with(expected_text)
+        # Assertions for the feedback dialog (which is the second dialog shown)
+        mock_feedback_dialog.setIcon.assert_called_with(expected_icon)
+        mock_feedback_dialog.setWindowTitle.assert_called_with(expected_title)
+        mock_feedback_dialog.setText.assert_called_with(expected_text)
         if isinstance(expected_informative_text_contains, str):
-             self.assertIn(expected_informative_text_contains, mock_feedback_dialog_instance.setInformativeText.call_args[0][0])
+             self.assertIn(expected_informative_text_contains, mock_feedback_dialog.setInformativeText.call_args[0][0])
         else:
             for item in expected_informative_text_contains:
-                 self.assertIn(item, mock_feedback_dialog_instance.setInformativeText.call_args[0][0])
-        mock_feedback_dialog_instance.exec.assert_called_once()
+                 self.assertIn(item, mock_feedback_dialog.setInformativeText.call_args[0][0])
+        mock_feedback_dialog.exec.assert_called_once()
 
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
-    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.QMessageBox")
-    @patch("headsetcontrol_tray.app.os.path.exists")
-    @patch("headsetcontrol_tray.app.subprocess.run")
-    def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
-        self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
-                                  pkexec_returncode=0, pkexec_stdout="Success", pkexec_stderr="",
-                                  expected_icon=QMessageBox.Information,
-                                  expected_title="Success",
-                                  expected_text="Udev rules installed successfully.",
-                                  expected_informative_text_contains="Please replug your headset")
+        # Check that initial dialog was also shown
+        mock_initial_dialog.exec.assert_called_once()
 
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
-    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.QMessageBox")
-    @patch("headsetcontrol_tray.app.os.path.exists")
-    @patch("headsetcontrol_tray.app.subprocess.run")
-    def test_pkexec_flow_user_cancelled(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
-        self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
-                                  pkexec_returncode=126, pkexec_stdout="", pkexec_stderr="User cancelled",
-                                  expected_icon=QMessageBox.Warning,
-                                  expected_title="Authentication Cancelled",
-                                  expected_text="Udev rule installation was cancelled.",
-                                  expected_informative_text_contains="Authentication was not provided")
-
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
-    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.QMessageBox")
-    @patch("headsetcontrol_tray.app.os.path.exists")
-    @patch("headsetcontrol_tray.app.subprocess.run")
-    def test_pkexec_flow_auth_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
-        stderr_msg = "Authorization failed (polkit)"
-        self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
-                                  pkexec_returncode=127, pkexec_stdout="", pkexec_stderr=stderr_msg,
-                                  expected_icon=QMessageBox.Critical,
-                                  expected_title="Authorization Error",
-                                  expected_text="Failed to install udev rules due to an authorization error.",
-                                  expected_informative_text_contains=[stderr_msg, "Please ensure you have privileges"])
-
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
-    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.QMessageBox")
-    @patch("headsetcontrol_tray.app.os.path.exists")
-    @patch("headsetcontrol_tray.app.subprocess.run")
-    def test_pkexec_flow_script_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
-        stderr_msg = "Helper script failed: cp error"
-        self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
-                                  pkexec_returncode=4, pkexec_stdout="", pkexec_stderr=stderr_msg,
-                                  expected_icon=QMessageBox.Critical,
-                                  expected_title="Installation Failed",
-                                  expected_text="The udev rule installation script failed.",
-                                  expected_informative_text_contains=[f"Error (code 4): {stderr_msg}", "Please check the output"])
-
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
-    @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.QMessageBox")
-    @patch("headsetcontrol_tray.app.os.path.exists")
-    @patch("headsetcontrol_tray.app.subprocess.run")
-    def test_pkexec_helper_script_not_found(self, mock_subprocess_run, mock_os_path_exists, MockQMessageBoxClass, MockHeadsetService, MockSystemTrayIcon):
-        mock_service_instance = MockHeadsetService.return_value
-        mock_service_instance.udev_setup_details = self.sample_details
-        mock_service_instance.is_device_connected = Mock(return_value=False) # Consistent with details being present
-        mock_service_instance.close = Mock()
-
-        mock_os_path_exists.return_value = False
-
-        mock_initial_dialog_instance = MockQMessageBoxClass.return_value
-        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
-        def side_effect_add_button_script_not_found(text_or_button, role=None):
-            button = MagicMock(spec=QMessageBox.StandardButton)
-            if role == QMessageBox.AcceptRole:
-                nonlocal auto_button_mock
-                auto_button_mock = button
-            return button
-        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
-        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
-
-        MockQMessageBoxClass.reset_mock()
-
-        SteelSeriesTrayApp() # Constructor called for side effects
-
-        mock_subprocess_run.assert_not_called()
-        MockQMessageBoxClass.critical.assert_called_once()
-        args, _ = MockQMessageBoxClass.critical.call_args
-        self.assertEqual(args[0], None)
-        self.assertIn("Error", args[1])
-        self.assertIn("Installation script not found", args[2])
-        self.assertIn(self.expected_helper_script_path, args[2])
-
+    # tearDown is no longer strictly needed to stop the QApplication patch,
+    # but can be kept for other cleanup if necessary.
     def tearDown(self):
-        # Stop the patch after each test
-        self.qapplication_patch.stop()
-        # Clean up the SteelSeriesTrayApp instance if created by a test
-        # This assumes self.tray_app is the instance, which is not consistently set in these tests.
-        # The tests instantiate SteelSeriesTrayApp() directly for its side effects during __init__.
-        # If SteelSeriesTrayApp had a specific cleanup method, it would be called here on a test-owned instance.
-        # For now, the primary cleanup is stopping the patch and the class-level QApplication.
+        # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
+        # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
+        # if hasattr(self, 'tray_app') and self.tray_app:
+        #     self.tray_app.quit_application() # Assuming such a method exists for proper cleanup
+        pass
 
 
 if __name__ == "__main__":

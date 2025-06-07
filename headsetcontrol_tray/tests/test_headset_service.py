@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest import mock
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock # Added MagicMock
 
 # Attempt to import from the correct location
 try:
@@ -69,17 +69,16 @@ class TestHeadsetServiceCreateUdevRules(unittest.TestCase):
 
 class TestHeadsetServiceConnectionFailure(unittest.TestCase):
 
-    @patch("headsetcontrol_tray.headset_service.hid.Device")
-    @patch("headsetcontrol_tray.headset_service.hid.enumerate")
-    @patch.object(HeadsetService, "_create_udev_rules", return_value=True) # Mock _create_udev_rules
-    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
-        # Simulate hid.enumerate finding one or more potential devices
-        mock_hid_enumerate.return_value = [
+    @patch("headsetcontrol_tray.headset_service.hid") # Patch the hid module as imported in headset_service
+    @patch.object(HeadsetService, "_create_udev_rules", return_value=True)
+    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_create_rules, mock_hid_module):
+        # Simulate hid.enumerate (called as mock_hid_module.enumerate) finding devices
+        mock_hid_module.enumerate.return_value = [
             {"vendor_id": STEELSERIES_VID, "product_id": TARGET_PIDS[0], "path": b"path1", "interface_number": 0},
             {"vendor_id": STEELSERIES_VID, "product_id": TARGET_PIDS[0], "path": b"path2", "interface_number": 3},
         ]
-        # Simulate hid.Device constructor failing (raising an exception) for any path
-        mock_hid_device_class.side_effect = Exception("Failed to open HID device")
+        # Simulate hid.Device (called as mock_hid_module.Device) constructor failing
+        mock_hid_module.Device = MagicMock(side_effect=Exception("Failed to open HID device"))
 
         # Patch out the __init__ subprocess call for headsetcontrol availability for this specific test context
         with patch("subprocess.run") as mock_sub_run_init:
@@ -100,17 +99,23 @@ class TestHeadsetServiceConnectionFailure(unittest.TestCase):
         self.assertIsNone(service.hid_device) # Should not have connected
         mock_create_rules.assert_called_once() # Key assertion: _create_udev_rules was called
 
-    @patch("headsetcontrol_tray.headset_service.hid.Device")
-    @patch("headsetcontrol_tray.headset_service.hid.enumerate")
+    @patch("headsetcontrol_tray.headset_service.hid") # Patch the hid module as imported in headset_service
     @patch.object(HeadsetService, "_create_udev_rules", return_value=True)
-    def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
-        # Simulate hid.enumerate finding a device
-        mock_hid_enumerate.return_value = [
-             {"vendor_id": STEELSERIES_VID, "product_id": TARGET_PIDS[0], "path": b"path1", "interface_number": 0, "usage_page": 0xffc0, "usage": 0x0001},
+    def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_module):
+        # Simulate hid.enumerate (mock_hid_module.enumerate) finding a device
+        # Ensure this device matches the highest priority criteria in _sort_hid_devices
+        mock_hid_module.enumerate.return_value = [
+             {"vendor_id": STEELSERIES_VID, "product_id": TARGET_PIDS[0], "path": b"path1",
+              "interface_number": app_config.HID_REPORT_INTERFACE,
+              "usage_page": app_config.HID_REPORT_USAGE_PAGE,
+              "usage": app_config.HID_REPORT_USAGE_ID},
         ]
-        # Simulate hid.Device succeeding
-        mock_hid_device_instance = Mock()
-        mock_hid_device_class.return_value = mock_hid_device_instance
+        # Simulate hid.Device (mock_hid_module.Device) succeeding
+        # Note: if hid module itself is a C extension and hid.Device is a type,
+        #       spec=hid.Device might be useful if 'hid' can be imported in test context.
+        #       For now, a simple MagicMock is often sufficient.
+        mock_hid_device_instance = MagicMock()
+        mock_hid_module.Device.return_value = mock_hid_device_instance
 
         with patch("subprocess.run") as mock_sub_run_init:
             service = HeadsetService()
