@@ -12,10 +12,13 @@ try:
         UDEV_RULE_FILENAME,
         HeadsetService,
     )
-    # from headsetcontrol_tray import app_config # Unused direct import
+    from headsetcontrol_tray import app_config # Import app_config for HID constants
 except ImportError:
     import sys
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    # If this path is taken, app_config might need to be imported differently,
+    # assuming it's adjacent or in Python path. For this example, direct import.
+    import app_config
     from headset_service import (
         STEELSERIES_VID,  # Keep relevant imports
         TARGET_PIDS,
@@ -163,6 +166,121 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         self.mock_connect_hid = self.connect_patcher.start()
 
 
+class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
+    def setUp(self):
+        # Patch _connect_hid_device in HeadsetService's __init__ path to prevent it from running,
+        # as we want to test _find_potential_hid_devices in isolation.
+        self.connect_patcher = patch.object(HeadsetService, '_connect_hid_device', return_value=None)
+        self.mock_connect_hid_in_init = self.connect_patcher.start()
+        self.service = HeadsetService()
+
+    def tearDown(self):
+        self.connect_patcher.stop()
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    def test_find_potential_devices_enumerate_empty(self, mock_hid_enumerate):
+        mock_hid_enumerate.return_value = []
+        result = self.service._find_potential_hid_devices()
+        self.assertEqual(result, [])
+        mock_hid_enumerate.assert_called_once_with(STEELSERIES_VID, 0)
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    def test_find_potential_devices_enumerate_no_match(self, mock_hid_enumerate):
+        mock_hid_enumerate.return_value = [
+            {'vendor_id': 0x0001, 'product_id': 0x0001, 'path': b'path1', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'DeviceNonMatch'},
+            {'vendor_id': STEELSERIES_VID, 'product_id': 0x9999, 'path': b'path2', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'DeviceWrongPID'}
+        ]
+        result = self.service._find_potential_hid_devices()
+        self.assertEqual(result, [])
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    def test_find_potential_devices_enumerate_matches(self, mock_hid_enumerate):
+        # Ensure TARGET_PIDS has at least two distinct PIDs for a more robust test, or adjust if not.
+        pid1 = TARGET_PIDS[0]
+        pid2 = TARGET_PIDS[1] if len(TARGET_PIDS) > 1 else pid1 # Use first PID if only one defined
+        if pid1 == pid2 and len(TARGET_PIDS) > 1: # If first two PIDs are same, try to find a different one
+             pid2 = TARGET_PIDS[2] if len(TARGET_PIDS) > 2 else pid1
+
+
+        matching_device1 = {'vendor_id': STEELSERIES_VID, 'product_id': pid1, 'path': b'path1', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'MatchingDevice1'}
+        non_matching_device = {'vendor_id': 0x0001, 'product_id': 0x0001, 'path': b'path2', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'NonMatchingDevice'}
+        matching_device2 = {'vendor_id': STEELSERIES_VID, 'product_id': pid2, 'path': b'path3', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'MatchingDevice2'}
+
+        mock_hid_enumerate.return_value = [matching_device1, non_matching_device, matching_device2]
+
+        result = self.service._find_potential_hid_devices()
+
+        expected_devices = [matching_device1, matching_device2]
+        if pid1 == pid2: # If only one unique PID was available and used for both "matching" devices
+            expected_devices = [matching_device1] # Result might vary based on how TARGET_PIDS is structured
+            if matching_device1['path'] == matching_device2['path'] : # if they are identical due to pid1==pid2
+                 pass # expected_devices is fine
+            else: # if paths are different, both could be included if TARGET_PIDS allows duplicates implicitly
+                 expected_devices = [matching_device1, matching_device2]
+
+
+        self.assertEqual(len(result), len(expected_devices))
+        for dev in expected_devices:
+            self.assertIn(dev, result)
+        if pid1 != pid2 : # Only assert non-inclusion if it's truly different from the matched ones
+            self.assertNotIn(non_matching_device, result)
+
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch('headsetcontrol_tray.headset_service.logger')
+    def test_find_potential_devices_enumerate_exception(self, mock_logger, mock_hid_enumerate):
+        mock_hid_enumerate.side_effect = Exception("HID enumeration failed")
+        result = self.service._find_potential_hid_devices()
+        self.assertEqual(result, [])
+        mock_logger.error.assert_called_with("Error enumerating HID devices: HID enumeration failed")
+
+    # Tests for _sort_hid_devices
+    def test_sort_hid_devices_empty_list(self):
+        self.assertEqual(self.service._sort_hid_devices([]), [])
+
+    def test_sort_hid_devices_single_device(self):
+        single_device_list = [{'product_id': TARGET_PIDS[0], 'path': b'path1'}]
+        self.assertEqual(self.service._sort_hid_devices(single_device_list), single_device_list)
+
+    def test_sort_hid_devices_sorting_logic(self):
+        # Create devices with properties designed to trigger each sort tier
+        # Device E: Default priority (2)
+        dev_e_default = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathE', 'interface_number': 1, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'E_Default'}
+        # Device D: Usage page 0xFFC0 (1)
+        dev_d_usage_page = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathD', 'interface_number': 1, 'usage_page': app_config.HID_REPORT_USAGE_PAGE, 'usage': 0x0000, 'name': 'D_UsagePage'}
+        # Device C: Interface 3 (0)
+        dev_c_interface3 = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathC', 'interface_number': 3, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'C_Interface3'}
+        # Device B: PID 0x2202 (ARCTIS_NOVA_7_USER_PID) and interface 0 (-1)
+        dev_b_pid2202_if0 = {'vendor_id': STEELSERIES_VID, 'product_id': app_config.ARCTIS_NOVA_7_USER_PID, 'path': b'pathB', 'interface_number': 0, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'B_PID2202_IF0'}
+        # Device A: Exact match (-2) - assuming TARGET_PIDS[0] is not 0x2202 for this test case to be distinct from B
+        # If TARGET_PIDS[0] IS 0x2202, then dev_a and dev_b might be hard to distinguish or might merge.
+        # For this test, let's assume TARGET_PIDS[0] is a generic one for the "exact match" device.
+        # The key is that HID_REPORT_INTERFACE, HID_REPORT_USAGE_PAGE, HID_REPORT_USAGE_ID are matched.
+        target_pid_for_a = TARGET_PIDS[0]
+        if target_pid_for_a == app_config.ARCTIS_NOVA_7_USER_PID and len(TARGET_PIDS) > 1:
+            target_pid_for_a = TARGET_PIDS[1] # Try to pick a different PID for A if first is 0x2202
+
+        dev_a_exact = {'vendor_id': STEELSERIES_VID, 'product_id': target_pid_for_a, 'path': b'pathA',
+                       'interface_number': app_config.HID_REPORT_INTERFACE,
+                       'usage_page': app_config.HID_REPORT_USAGE_PAGE,
+                       'usage': app_config.HID_REPORT_USAGE_ID, 'name': 'A_Exact'}
+
+        # Device F: Another default priority device to check stability (should come after E if E was first)
+        dev_f_default_stable = {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'pathF', 'interface_number': 2, 'usage_page': 0x0001, 'usage': 0x0001, 'name': 'F_DefaultStable'}
+
+
+        # Intentionally unsorted list
+        devices_to_sort = [dev_e_default, dev_d_usage_page, dev_c_interface3, dev_b_pid2202_if0, dev_a_exact, dev_f_default_stable]
+
+        # Expected order after sorting (lowest sort key value first)
+        expected_order = [dev_a_exact, dev_b_pid2202_if0, dev_c_interface3, dev_d_usage_page, dev_e_default, dev_f_default_stable]
+
+        # Ensure no mutation of the input list if the method sorts in-place then returns (it does)
+        sorted_devices = self.service._sort_hid_devices(list(devices_to_sort)) # Pass a copy
+
+        # Assert based on the 'name' field for simplicity, assuming paths or other fields could be used too
+        self.assertEqual([d.get('name') for d in sorted_devices], [d.get('name') for d in expected_order])
+
     @patch("headsetcontrol_tray.headset_service.logger")
     def test_get_sidetone_level_returns_none_and_logs_warning(self, mock_logger):
         self.service.hid_device = None
@@ -234,6 +352,49 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
             args, _ = call_args
             if len(args) > 0 and isinstance(args[0], list) and "headsetcontrol" in args[0][0]:
                  self.fail("subprocess.run called with headsetcontrol")
+
+
+class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
+    def setUp(self):
+        # Patch _connect_hid_device to prevent it running during HeadsetService instantiation
+        self.connect_patcher = patch.object(HeadsetService, '_connect_hid_device', return_value=None)
+        self.mock_connect_hid_in_init = self.connect_patcher.start()
+        self.service = HeadsetService()
+
+    def tearDown(self):
+        self.connect_patcher.stop()
+
+    def _create_mock_response_data(self, status_byte_val: int) -> bytes:
+        """Helper to create mock response_data byte array."""
+        data = [0] * app_config.HID_INPUT_REPORT_LENGTH_STATUS
+        # Ensure status_byte_index is within the bounds of the data list
+        if app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE < len(data):
+            data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE] = status_byte_val
+        else:
+            # This case should ideally not happen if HID_INPUT_REPORT_LENGTH_STATUS is correctly defined
+            # and larger than HID_RES_STATUS_BATTERY_STATUS_BYTE.
+            # Handle error or adjust data creation as per actual structure if this assumption is wrong.
+            raise IndexError("HID_RES_STATUS_BATTERY_STATUS_BYTE is out of bounds for mock data array.")
+        return bytes(data)
+
+    def test_determine_headset_online_status_offline(self):
+        # Status byte 0x00 indicates offline
+        response_data_offline = self._create_mock_response_data(0x00)
+        self.assertFalse(self.service._determine_headset_online_status(response_data_offline))
+
+    def test_determine_headset_online_status_online_charging(self):
+        # Status byte 0x01 indicates charging (which implies online)
+        response_data_online_charging = self._create_mock_response_data(0x01)
+        self.assertTrue(self.service._determine_headset_online_status(response_data_online_charging))
+
+    def test_determine_headset_online_status_online_not_charging(self):
+        # Status byte 0x02 (or any non-zero other than 0x01) indicates online but not charging
+        response_data_online_not_charging = self._create_mock_response_data(0x02)
+        self.assertTrue(self.service._determine_headset_online_status(response_data_online_not_charging))
+
+        response_data_online_other = self._create_mock_response_data(0x03) # Example other online status
+        self.assertTrue(self.service._determine_headset_online_status(response_data_online_other))
+
 
 if __name__ == "__main__":
     unittest.main()
