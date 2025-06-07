@@ -29,12 +29,8 @@ workspace "HeadsetControl System" "User controlling SteelSeries headset via Head
             tags "External" "CLI"
         }
 
-        // Variable assignments for robust relationship definitions
-        targetSystemTrayUI = headsetControlTray.desktopApplication.systemTrayUI
-        targetSettingsDialogUI = headsetControlTray.desktopApplication.settingsDialogUI
-
-        user -> targetSystemTrayUI "Interacts with"
-        user -> targetSettingsDialogUI "Interacts with"
+        user -> headsetControlTray.desktopApplication.systemTrayUI "Interacts with"
+        user -> headsetControlTray.desktopApplication.settingsDialogUI "Interacts with"
 
         headsetControlTray.desktopApplication.mainApplication -> headsetControlTray.desktopApplication.systemTrayUI "Creates and shows"
         headsetControlTray.desktopApplication.mainApplication -> headsetControlTray.desktopApplication.headsetService "Initializes, uses for udev check"
