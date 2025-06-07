@@ -106,6 +106,14 @@ You can visualize and export the diagrams locally using the Structurizr Lite web
     ```
     This command mounts the `structurizr` directory (containing `workspace.dsl`) into the Docker container and starts the web server. The `-u "$(id -u):$(id -g)"` part ensures that any files created by Structurizr Lite (e.g., during export from the UI) will have the correct ownership on your host machine.
 
+### A Note on DSL Parsing
+
+Structurizr Lite's DSL parser can sometimes be sensitive to complex relationship definitions or specific syntax orderings. If you encounter parsing errors with the `workspace.dsl` file:
+
+*   Ensure all element names and paths in relationships are correct and case-sensitive.
+*   Try simplifying relationship definitions or re-ordering them within the `model {}` block.
+*   For more robust parsing, advanced diagramming features, and command-line exporting, consider using the official [Structurizr CLI](https://docs.structurizr.com/cli). It offers more comprehensive control over workspace parsing and diagram generation.
+
 2.  **Access the Web Interface:**
     Open your web browser and navigate to `http://localhost:8080`.
     The workspace defined in `structurizr/workspace.dsl` should be automatically loaded. You can explore the diagrams (System Context, Containers, Components) interactively.
