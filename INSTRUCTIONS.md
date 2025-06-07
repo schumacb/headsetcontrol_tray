@@ -15,6 +15,17 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
     *   Command to run formatter: `ruff format .` (for applying code style formatting, similar to Black)
     *   Command to run static type checker: `mypy .`
     *   Configuration files: `pyproject.toml (for ruff linting, formatting, and isort), mypy.ini (for mypy)`
+*   **Code Complexity Analysis:**
+    *   Tool: Radon
+    *   Purpose: Measures code complexity (e.g., Cyclomatic Complexity, Halstead metrics, Maintainability Index). Helps identify overly complex code that might be hard to maintain or test.
+    *   Command to run: `radon cc . -a -s` (for Cyclomatic Complexity with average and summary)
+    *   Command for all metrics: `radon mi . -s` (for Maintainability Index) or `radon raw . -s` (for raw metrics).
+    *   Configuration: Radon can be configured using a `pyproject.toml` file under `[tool.radon]`, but basic command-line usage is often sufficient.
+*   **Dead Code Detection:**
+    *   Tool: Vulture
+    *   Purpose: Finds unused code (dead code) in Python programs. Helps clean up the codebase by identifying functions, variables, classes, etc., that are defined but not used.
+    *   Command to run: `vulture .` (scans the current directory)
+    *   Configuration: Vulture can be configured by whitelisting false positives in a `.vulture_whitelist.py` file or through `pyproject.toml` under `[tool.vulture]`.
 *   **Testing:**
     *   Command to run all tests: `pytest`
     *   Command to run specific tests: `pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name`

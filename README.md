@@ -102,6 +102,15 @@ Alternatively, you can use `uv` to run scripts defined in `pyproject.toml` (if a
 uv run python -m headsetcontrol_tray
 ```
 
+## Code Quality and Analysis Tools
+
+This project utilizes several tools to maintain code quality, enforce consistency, and identify potential issues:
+
+*   **Ruff**: An extremely fast Python linter and formatter, written in Rust. Used for identifying code style issues, potential bugs, and for auto-formatting the code.
+*   **MyPy**: A static type checker for Python. Used to enforce type hints and catch type-related errors.
+*   **Radon**: A Python tool that computes various code metrics, including cyclomatic complexity and maintainability index. Used to identify overly complex code.
+*   **Vulture**: A tool for finding unused code (dead code) in Python programs. Used to help keep the codebase clean.
+
 ## Contributing
 
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
