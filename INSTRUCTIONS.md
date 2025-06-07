@@ -11,9 +11,10 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
     *   Virtual environment creation: `uv venv`
     *   Virtual environment activation: `source .venv/bin/activate (Linux/macOS) or .venv\Scripts\activate (Windows)`
 *   **Linting & Static Analysis:**
-    *   Command to run linters (e.g., Flake8, Ruff): `ruff check . --fix`
-    *   Command to run static type checker (e.g., MyPy): `mypy .`
-    *   Are there specific configuration files for these tools? `pyproject.toml (for ruff), mypy.ini (for mypy)`
+    *   Command to run linters: `ruff check . --fix` (for identifying and auto-fixing lint issues)
+    *   Command to run formatter: `ruff format .` (for applying code style formatting, similar to Black)
+    *   Command to run static type checker: `mypy .`
+    *   Configuration files: `pyproject.toml (for ruff linting, formatting, and isort), mypy.ini (for mypy)`
 *   **Testing:**
     *   Command to run all tests: `pytest`
     *   Command to run specific tests: `pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name`
