@@ -6,6 +6,30 @@ A system tray application for controlling SteelSeries headsets (and potentially 
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
+## Architecture
+
+The architecture of this project is documented using the C4 model with Structurizr.
+
+To view the architecture diagrams:
+
+1.  **Ensure Docker is installed and running.**
+2.  **Start the Structurizr Lite container:**
+    Open your terminal in the root directory of this project and run the following command:
+    ```bash
+    docker run -it --rm -p 8080:8080 -v ./docs/architecture/structurizr:/usr/local/structurizr structurizr/lite
+    ```
+    This command does the following:
+    *   `docker run`: Starts a new Docker container.
+    *   `-it`: Runs the container in interactive mode and allocates a pseudo-TTY.
+    *   `--rm`: Automatically removes the container when it exits.
+    *   `-p 8080:8080`: Maps port 8080 on your host machine to port 8080 in the container.
+    *   `-v ./docs/architecture/structurizr:/usr/local/structurizr`: Mounts the project's Structurizr workspace directory (`./docs/architecture/structurizr`) into the container at `/usr/local/structurizr`. This allows Structurizr Lite to read your `workspace.dsl` file.
+    *   `structurizr/lite`: Specifies the Docker image to use.
+
+3.  **Open your web browser** and navigate to `http://localhost:8080`.
+
+The Structurizr DSL files are located in the `docs/architecture/structurizr/` directory. You can modify the `workspace.dsl` file to update the diagrams.
+
 ### Prerequisites
 
 - Python 3.10 or higher
