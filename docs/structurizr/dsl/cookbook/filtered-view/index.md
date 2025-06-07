@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](../amazon-web-services/index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](../container-view-multiple-software-systems/index.md)
@@ -219,7 +219,7 @@ workspace {
 
 This DSL defines three software systems with relationships between them, and a system landscape view showing those software systems.
 
-[![](example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-1.dsl)
+[![](../../assets/dsl/cookbook/filtered-view/example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-1.dsl)
 
 The filtered view feature can be used to define views on top of this system landscape view. For example, the following DSL defines two filtered views:
 
@@ -262,7 +262,7 @@ filtered "landscape" include "Tag 1,Tag 2,Relationship" "landscape1"
 
 ```
 
-[![](example-2-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-2.dsl&view=landscape1)
+[![](../../assets/dsl/cookbook/filtered-view/example-2-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-2.dsl&view=landscape1)
 
 And the second excludes all elements/relationships that are tagged `Tag 1`.
 
@@ -271,7 +271,7 @@ filtered "landscape" exclude "Tag 1" "landscape2"
 
 ```
 
-[![](example-2-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-2.dsl&view=landscape2)
+[![](../../assets/dsl/cookbook/filtered-view/example-2-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-2.dsl&view=landscape2)
 
 When using filtered views, you’ll notice that the original “base view” no longer shows in the list of viewable diagrams. This is by design. If you’d like to see the base view, you will need to create another filtered view that shows all elements and relationships. For example:
 
@@ -280,11 +280,11 @@ filtered "landscape" include "Element,Relationship" "landscape-all"
 
 ```
 
-[![](example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-3.dsl&view=landscape-all)
+[![](../../assets/dsl/cookbook/filtered-view/example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/filtered-view/example-3.dsl&view=landscape-all)
 
 ## Links
 
-* [DSL language reference - filtered](../../language.md)
+* [DSL language reference - filtered](../../language/index.md)
 
 
 ---

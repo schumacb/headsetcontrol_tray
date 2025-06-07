@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](../amazon-web-services/index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](../container-view-multiple-software-systems/index.md)
@@ -213,7 +213,7 @@ workspace {
 
 Although the DSL does not define an explicit relationship between the person and the software system, this relationship is implied because of the relationship between the person and the container that resides inside the software system.
 
-[![](example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-1.dsl)
+[![](../../assets/dsl/cookbook/implied-relationships/example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-1.dsl)
 
 ## Disabling implied relationships
 
@@ -245,13 +245,13 @@ workspace {
 
 ```
 
-[![](example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-2.dsl)
+[![](../../assets/dsl/cookbook/implied-relationships/example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-2.dsl)
 
 With the implied relationships functionality disabled, you will need to explicitly define every relationship that you want to see on your diagrams.
 
 ## Multiple implied relationships
 
-The Structurizr DSL uses the [CreateImpliedRelationshipsUnlessAnyRelationshipExistsStrategy](https://docs.structurizr.com/java/implied-relationships#createimpliedrelationshipsunlessanyrelationshipexistsstrategy) from the Structurizr for Java library when creating implied relationships, which prevents multiple implied relationships from being created. For example, the following DSL will only create a single implied relationship between the person and the software system (the first that is defined in the DSL).
+The Structurizr DSL uses the [CreateImpliedRelationshipsUnlessAnyRelationshipExistsStrategy](https://docs.structurizr.com/java/implied-relationships) from the Structurizr for Java library when creating implied relationships, which prevents multiple implied relationships from being created. For example, the following DSL will only create a single implied relationship between the person and the software system (the first that is defined in the DSL).
 
 ```
 workspace {
@@ -277,7 +277,7 @@ workspace {
 
 ```
 
-[![](example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-3.dsl)
+[![](../../assets/dsl/cookbook/implied-relationships/example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-3.dsl)
 
 To show both relationships, you will need to explicitly define them, as follows:
 
@@ -307,13 +307,13 @@ workspace {
 
 ```
 
-[![](example-4.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-4.dsl)
+[![](../../assets/dsl/cookbook/implied-relationships/example-4.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/implied-relationships/example-4.dsl)
 
 A better approach is to collapse multiple relationships into a single description, modelling the summary of all relationships rather than each individual relationship. This leads to less cluttered diagrams. See [Modelling multiple relationships](https://dev.to/simonbrown/modelling-multiple-relationships-51bf) for more on this topic.
 
 ## Links
 
-* [Structurizr DSL - Implied relationships](../../implied-relationships.md)
+* [Structurizr DSL - Implied relationships](../../implied-relationships/index.md)
 * [Structurizr for Java - Implied relationships](https://docs.structurizr.com/java/implied-relationships)
 
 

@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](../amazon-web-services/index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](index.md)
@@ -214,7 +214,7 @@ workspace {
 
 ```
 
-[![](example-1.png)](https://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/container-view-multiple-software-systems/example-1.dsl)
+[![](../../assets/dsl/cookbook/container-view-multiple-software-systems/example-1.png)](https://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/container-view-multiple-software-systems/example-1.dsl)
 
 While sufficient for many purposes, there may be times when you want to show the dependency between the two containers, each of which resides in a separate software system. To do this, you can modify the `include` statement, as shown in the example below.
 
@@ -246,17 +246,17 @@ workspace {
 
 This in turn will now show the two containers.
 
-[![](example-2.png)](https://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/container-view-multiple-software-systems/example-2.dsl)
+[![](../../assets/dsl/cookbook/container-view-multiple-software-systems/example-2.png)](https://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/container-view-multiple-software-systems/example-2.dsl)
 
-If you’d rather not specify each container individually, you could utilise an [expression](../../expressions.md) and replace the `include` statement with one of the following:
+If you’d rather not specify each container individually, you could utilise an [expression](../../expressions/index.md) and replace the `include` statement with one of the following:
 
 * `include element.type==container`
 * `include element.parent==s1 element.parent==s2`
 
 ## Links
 
-* [DSL language reference - container](../../language.md)
-* [DSL - Expressions](../../expressions.md)
+* [DSL language reference - container](../../language/index.md)
+* [DSL - Expressions](../../expressions/index.md)
 
 
 ---

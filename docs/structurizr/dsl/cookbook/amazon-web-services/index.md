@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](../container-view-multiple-software-systems/index.md)
@@ -239,7 +239,7 @@ workspace {
 
 This DSL defines a deployment environment named `Live`, with a hierarchy of deployment nodes showing the various AWS services in use for deployment. It also defines some infrastructure nodes representing services that don’t have any software systems/containers deployed onto them.
 
-[![](example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-1.dsl)
+[![](../../assets/dsl/cookbook/amazon-web-services/example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-1.dsl)
 
 The [pre-built Amazon Web Services theme](https://structurizr.com/help/theme?url=https://static.structurizr.com/themes/amazon-web-services-2020.04.30/theme.json) can be used to add some colour, and make use of the AWS icon set.
 
@@ -310,11 +310,11 @@ workspace {
 
 This DSL adds some element tags, and a reference to the Amazon Web Services theme.
 
-[![](example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-2.dsl)
+[![](../../assets/dsl/cookbook/amazon-web-services/example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-2.dsl)
 
 Further styles can be added if desired too.
 
-[![](example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-3.dsl)
+[![](../../assets/dsl/cookbook/amazon-web-services/example-3.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/amazon-web-services/example-3.dsl)
 
 
 

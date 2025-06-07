@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](../amazon-web-services/index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](../container-view-multiple-software-systems/index.md)
@@ -228,7 +228,7 @@ workspace {
 
 The container instance to container instance relationships are based upon the container to container relationships defined in the static structure part of the model. While this works out of the box in many cases, here we can see that the “Service API” on “Server 1” has a connection to the “Database Schema” on “Server 2”, and vice versa.
 
-[![](example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/deployment-groups/example-1.dsl)
+[![](../../assets/dsl/cookbook/deployment-groups/example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/deployment-groups/example-1.dsl)
 
 If this is not the desired behaviour, you can use the “deployment group” feature, which provides a way to group software system/container instances and restrict how relationships are created between them. For example, we can create two deployment groups, and place one instance of both the “Service API” and “Database Schema” in each.
 
@@ -273,11 +273,11 @@ workspace {
 
 ```
 
-[![](example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/deployment-groups/example-2.dsl)
+[![](../../assets/dsl/cookbook/deployment-groups/example-2.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/deployment-groups/example-2.dsl)
 
 ## Links
 
-* [DSL language reference - deploymentGroup](../../language.md)
+* [DSL language reference - deploymentGroup](../../language/index.md)
 
 
 ---

@@ -13,27 +13,27 @@
   * [Team](https://docs.structurizr.com/usage/team)
   * [Enterprise](https://docs.structurizr.com/usage/enterprise)
 * [Structurizr DSL](../../index.md)
-  * [Example](../../example.md)
-  * [Tutorial](../../tutorial.md)
-  * [Basics](../../basics.md)
-  * [Defaults](../../defaults.md)
-  * [Identifiers](../../identifiers.md)
-  * [Archetypes](../../archetypes.md)
-  * [Implied relationships](../../implied-relationships.md)
-  * [Expressions](../../expressions.md)
-  * [Includes](../../includes.md)
-  * [Workspace extension](../../workspace-extension.md)
-  * [Markdown/Asciidoc documentation](../../docs.md)
-  * [Architecture Decision Records (ADRs)](../../adrs.md)
-  * [Scripts](../../scripts.md)
-  * [Plugins](../../plugins.md)
-    * [PlantUML](../../plugins/plantuml.md)
-    * [Mermaid](../../plugins/mermaid.md)
-  * [Language reference](../../language.md)
-  * [FAQ](../../faq.md)
+  * [Example](../../example/index.md)
+  * [Tutorial](../../tutorial/index.md)
+  * [Basics](../../basics/index.md)
+  * [Defaults](../../defaults/index.md)
+  * [Identifiers](../../identifiers/index.md)
+  * [Archetypes](../../archetypes/index.md)
+  * [Implied relationships](../../implied-relationships/index.md)
+  * [Expressions](../../expressions/index.md)
+  * [Includes](../../includes/index.md)
+  * [Workspace extension](../../workspace-extension/index.md)
+  * [Markdown/Asciidoc documentation](../../docs/index.md)
+  * [Architecture Decision Records (ADRs)](../../adrs/index.md)
+  * [Scripts](../../scripts/index.md)
+  * [Plugins](../../plugins/index.md)
+    * [PlantUML](../../plugins/plantuml/index.md)
+    * [Mermaid](../../plugins/mermaid/index.md)
+  * [Language reference](../../language/index.md)
+  * [FAQ](../../faq/index.md)
   * [Cookbook](../index.md)
     * [Amazon Web Services](../amazon-web-services/index.md)
-    * [Bulk operations - elements](../bulk-operations-elements.md)
+    * [Bulk operations - elements](../bulk-operations-elements/index.md)
     * [Component view](../component-view/index.md)
     * [Container view](../container-view/index.md)
     * [Container view (for multiple software systems)](../container-view-multiple-software-systems/index.md)
@@ -186,7 +186,7 @@
 
 # Dynamic view
 
-A [dynamic view](https://c4model.com/#DynamicDiagram) allows you to show a subset of the elements in a model, and the relationships between them, in order to describe how a particular use case/story/feature works. Dynamic views show ordered **instances** of relationships, therefore reducing the number of relationships you need to define in the static model - see [Modelling multiple relationships](https://dev.to/simonbrown/modelling-multiple-relationships-51bf) for more.
+A [dynamic view](https://c4model.com/) allows you to show a subset of the elements in a model, and the relationships between them, in order to describe how a particular use case/story/feature works. Dynamic views show ordered **instances** of relationships, therefore reducing the number of relationships you need to define in the static model - see [Modelling multiple relationships](https://dev.to/simonbrown/modelling-multiple-relationships-51bf) for more.
 
 ```
 workspace {
@@ -233,11 +233,11 @@ This DSL defines three views:
 2. A dynamic view for the “request past orders” feature.
 3. A dynamic view for the “browse top 20 books” feature.
 
-[![](example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/dynamic-view/example-1.dsl)
+[![](../../assets/dsl/cookbook/dynamic-view/example-1.png)](http://structurizr.com/dsl?src=https://docs.structurizr.com/dsl/cookbook/dynamic-view/example-1.dsl)
 
 ## Links
 
-* [DSL language reference - dynamic](../../language.md)
+* [DSL language reference - dynamic](../../language/index.md)
 
 
 ---
