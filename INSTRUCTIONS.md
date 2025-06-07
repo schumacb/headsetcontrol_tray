@@ -145,3 +145,28 @@ These are broader guidelines for effective operation.
     *   **Branching:** Use descriptive branch names if not specified.
 
 This document is a guideline. Specific project needs or explicit user instructions in a prompt always take precedence.
+
+## Structurizr DSL Notes
+
+When defining elements in your `workspace.dsl` file, pay close attention to the syntax specified in the Structurizr DSL documentation.
+
+### `person` Element Syntax
+
+A common element is `person`, which defines a user or role. The correct syntax is:
+
+`person <name> [description] [tags]`
+
+Where:
+- `<name>`: The name of the person (e.g., "Admin User"). This is a required field.
+- `[description]`: An optional description of the person, enclosed in double quotes (e.g., "An administrator responsible for system configuration.").
+- `[tags]`: Optional tags, enclosed in double quotes (e.g., "Internal, Privileged"). If no specific tags are needed beyond the defaults, you can use an empty string `""` or omit the tags part if no description is also provided.
+
+**Example of a parsing error to avoid:**
+Incorrect: `user = person "User" "A description." "" "ExtraToken"` (This has too many tokens)
+Correct:   `user = person "User" "A description." ""` (No extra tags)
+Correct:   `user = person "User" "A description." "Tag1, Tag2"` (With specific tags)
+Correct:   `user = person "User" "A description."` (Description provided, no specific tags beyond default)
+Correct:   `user = person "User"` (Name only, no description or specific tags beyond default)
+
+The parser is sensitive to the number of quoted strings (tokens) provided for each element type.
+```

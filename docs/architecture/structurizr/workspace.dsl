@@ -1,7 +1,7 @@
 workspace "HeadsetControl Architecture" "Describes the architecture of the HeadsetControl system and its related components." {
 
     model {
-        user = person "User" "A person using the HeadsetControl Tray application to manage their headset settings." "" "User"
+        user = person "User" "A person using the HeadsetControl Tray application to manage their headset settings." ""
         headsetControlTray = softwareSystem "HeadsetControl Tray" "A tray application that allows users to manage their headset settings and view status information." "" "Application"
         headsetControl = softwareSystem "HeadsetControl" "The core software/firmware responsible for managing the headset's functions, settings, and communication." "" "Software/Firmware"
 
