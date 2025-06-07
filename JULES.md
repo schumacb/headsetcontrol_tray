@@ -7,21 +7,24 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
 **Instructions for User:** Please fill in the commands and specific details for the current project in the placeholders below (e.g., `[TODO: ...]` ).
 
 *   **Dependency Management:**
-    *   Command to install/sync dependencies: `[TODO: e.g., uv pip sync --all-extras]`
-    *   Key dependency files: `[TODO: e.g., pyproject.toml, requirements.txt]`
+    *   Command to install/sync dependencies: `uv pip sync (or uv pip sync --all-extras if extras are used)`
+    *   Key dependency files: `pyproject.toml, uv.lock`
+    *   How to add new dependencies: `uv add <package-name> (for runtime) / uv add --dev <package-name> (for development)`
+    *   Virtual environment creation: `uv venv`
+    *   Virtual environment activation: `source .venv/bin/activate (Linux/macOS) or .venv\Scripts\activate (Windows)`
 *   **Linting & Static Analysis:**
-    *   Command to run linters (e.g., Flake8, Ruff): `[TODO: e.g., flake8 . or ruff check .]`
-    *   Command to run static type checker (e.g., MyPy): `[TODO: e.g., mypy .]`
-    *   Are there specific configuration files for these tools? `[TODO: e.g., .flake8, ruff.toml, mypy.ini]`
+    *   Command to run linters (e.g., Flake8, Ruff): `ruff check . --fix (or your preferred linter)`
+    *   Command to run static type checker (e.g., MyPy): `mypy headsetcontrol_tray/ (or your preferred type checker)`
+    *   Are there specific configuration files for these tools? `pyproject.toml (for ruff), mypy.ini (if used)`
 *   **Testing:**
-    *   Command to run all tests: `[TODO: e.g., pytest]`
-    *   Command to run specific tests: `[TODO: e.g., pytest path/to/test_file.py::test_name]`
-    *   Testing framework used: `[TODO: e.g., pytest, unittest]`
-    *   Are there specific test coverage requirements or tools? `[TODO: e.g., pytest-cov]`
+    *   Command to run all tests: `pytest`
+    *   Command to run specific tests: `pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name`
+    *   Testing framework used: `pytest`
+    *   Are there specific test coverage requirements or tools? `pytest-cov (after installing with uv add --dev pytest-cov)`
 *   **Running the Project (if applicable):**
-    *   Command to run the main application/service: `[TODO: e.g., python -m package.module or specific run script]`
+    *   Command to run the main application/service: `python -m headsetcontrol_tray (or using uv: uv run python -m headsetcontrol_tray)`
 *   **Project Style Guide (if distinct from general PEP8):**
-    *   Link to or summary of project-specific style nuances: `[TODO: if any]`
+    *   Link to or summary of project-specific style nuances: `Primarily PEP 8, enforced by Ruff/Black. Specific nuances TBD.`
 
 ---
 
