@@ -169,4 +169,24 @@ Correct:   `user = person "User" "A description."` (Description provided, no spe
 Correct:   `user = person "User"` (Name only, no description or specific tags beyond default)
 
 The parser is sensitive to the number of quoted strings (tokens) provided for each element type.
+
+### `softwareSystem` Element Syntax
+
+Another common element is `softwareSystem`. The correct syntax is:
+
+`softwareSystem <name> [description] [tags]`
+
+Where:
+- `<name>`: The name of the software system (e.g., "Payment Gateway"). Required.
+- `[description]`: An optional description, in double quotes.
+- `[tags]`: Optional tags, in double quotes (e.g., "External, Critical"). If you want to specify a type like "Application" or "Software/Firmware" as a tag, it should be the content of this tags string.
+
+**Example of a parsing error to avoid:**
+Incorrect: `mySystem = softwareSystem "My System" "A description." "" "SystemTypeTag"` (This has too many tokens)
+Correct:   `mySystem = softwareSystem "My System" "A description." "SystemTypeTag"` (SystemTypeTag is the tag)
+Correct:   `mySystem = softwareSystem "My System" "A description." "Tag1, Tag2"`
+Correct:   `mySystem = softwareSystem "My System" "A description."`
+Correct:   `mySystem = softwareSystem "My System"`
+
+Note: Unlike `container` elements, the `softwareSystem` definition does not have a separate `[technology]` field in its main definition line. Technology or type information should typically be included as a tag.
 ```
