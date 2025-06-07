@@ -26,33 +26,26 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
 
 ---
 
-## Structurizr
+## Generating Architecture Diagrams
 
-This project uses Structurizr for C4 model architecture diagrams.
+This project uses Structurizr for C4 model architecture diagrams. The diagrams are generated using a script that automates the process.
 
-### For Coding Agents
+To generate the architecture diagrams:
 
-To view the architecture diagrams:
-
-1.  **Ensure Docker is running.**
-2.  **Start the Structurizr Lite container:**
+1.  **Run the script:**
     ```bash
-    docker run -it --rm -p 8080:8080 -v $(pwd)/docs/architecture/structurizr:/usr/local/structurizr structurizr/lite
+    scripts/generate-structurizr-svg.sh
     ```
-3.  **Open your browser** and navigate to `http://localhost:8080`.
+    This script handles the following steps:
+    *   Starts the Structurizr Lite Docker container.
+    *   Exports the diagrams defined in the workspace to PlantUML format.
+    *   Converts the PlantUML files to SVG images.
+    *   Stops the Structurizr Lite Docker container.
 
-The `workspace.dsl` file defining the model is located at `docs/architecture/structurizr/workspace.dsl`.
+2.  **View the diagrams:**
+    The generated SVG files will be located in the `docs/architecture/structurizr/svg` directory.
 
-### Common Mistakes & Prevention
-
-*   **Error: `java.io.FileNotFoundException: /usr/local/structurizr/workspace.dsl` (or similar) when starting Docker.**
-    *   **Cause:** The volume mount `-v` path is incorrect. The Docker container cannot find the `workspace.dsl` file.
-    *   **Prevention:** Ensure you are running the `docker run` command from the root directory of this repository. The path `$(pwd)/docs/architecture/structurizr` must correctly point to the directory containing your `workspace.dsl`.
-*   **Diagram not updating after changes to `workspace.dsl`:**
-    *   **Cause:** The Structurizr Lite container might not automatically reload changes, or your browser might be caching the old version.
-    *   **Prevention:**
-        *   Restart the Docker container.
-        *   Do a hard refresh in your browser (Ctrl+Shift+R or Cmd+Shift+R).
+The Structurizr workspace definition file is located at `docs/architecture/structurizr/workspace.dsl`. Any changes to the architecture model should be made in this file. After modifying `workspace.dsl`, re-run the script to update the SVG diagrams.
 
 ---
 
