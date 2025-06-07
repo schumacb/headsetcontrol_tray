@@ -26,6 +26,36 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
 
 ---
 
+## Structurizr
+
+This project uses Structurizr for C4 model architecture diagrams.
+
+### For Coding Agents
+
+To view the architecture diagrams:
+
+1.  **Ensure Docker is running.**
+2.  **Start the Structurizr Lite container:**
+    ```bash
+    docker run -it --rm -p 8080:8080 -v $(pwd)/docs/architecture/structurizr:/usr/local/structurizr structurizr/lite
+    ```
+3.  **Open your browser** and navigate to `http://localhost:8080`.
+
+The `workspace.dsl` file defining the model is located at `docs/architecture/structurizr/workspace.dsl`.
+
+### Common Mistakes & Prevention
+
+*   **Error: `java.io.FileNotFoundException: /usr/local/structurizr/workspace.dsl` (or similar) when starting Docker.**
+    *   **Cause:** The volume mount `-v` path is incorrect. The Docker container cannot find the `workspace.dsl` file.
+    *   **Prevention:** Ensure you are running the `docker run` command from the root directory of this repository. The path `$(pwd)/docs/architecture/structurizr` must correctly point to the directory containing your `workspace.dsl`.
+*   **Diagram not updating after changes to `workspace.dsl`:**
+    *   **Cause:** The Structurizr Lite container might not automatically reload changes, or your browser might be caching the old version.
+    *   **Prevention:**
+        *   Restart the Docker container.
+        *   Do a hard refresh in your browser (Ctrl+Shift+R or Cmd+Shift+R).
+
+---
+
 ## 2. Core LLM Agent Directives
 
 These are primary rules to follow for all tasks.
