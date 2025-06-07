@@ -88,8 +88,10 @@ class EqualizerEditorWidget(QWidget):
             lbl_freq.setAlignment(Qt.AlignmentFlag.AlignCenter)
             slider_vbox.addWidget(lbl_freq)
             slider = QSlider(Qt.Orientation.Vertical)
-            slider.setRange(-10, 10); slider.setValue(0)
-            slider.setTickInterval(1); slider.setTickPosition(QSlider.TickPosition.TicksRight)
+            slider.setRange(-10, 10)
+            slider.setValue(0)
+            slider.setTickInterval(1)
+            slider.setTickPosition(QSlider.TickPosition.TicksRight)
             slider.valueChanged.connect(self._on_slider_value_changed)
             self.sliders.append(slider)
             slider_vbox.addWidget(slider, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -181,7 +183,8 @@ class EqualizerEditorWidget(QWidget):
             self._update_ui_for_active_eq(None, None) 
 
     def _on_eq_selected_in_combo(self, index: int):
-        if index == -1: return
+        if index == -1:
+            return
         selected_data = self.eq_combo.itemData(index)
         if not selected_data: 
             logger.warning("EQ combo selected item has no data.")
@@ -278,12 +281,12 @@ class EqualizerEditorWidget(QWidget):
 
         if is_custom_mode_active and self._current_custom_curve_original_name:
             self.eq_combo.blockSignals(True)
-            current_idx = self.eq_combo.currentIndex()
-            active_curve_found_in_combo = False
+            # current_idx was unused
+            # active_curve_found_in_combo was unused
             for i in range(self.eq_combo.count()):
                 item_data = self.eq_combo.itemData(i)
                 if item_data and item_data[0] == EQ_TYPE_CUSTOM and item_data[1] == self._current_custom_curve_original_name:
-                    active_curve_found_in_combo = True
+                    # active_curve_found_in_combo = True # Unused
                     text_to_display = self._current_custom_curve_original_name
                     if self._sliders_have_unsaved_changes:
                         text_to_display += "*"
@@ -322,7 +325,8 @@ class EqualizerEditorWidget(QWidget):
                 original_name = item_data[1]
                 if self.eq_combo.itemText(i).endswith("*"):
                     self.eq_combo.setItemText(i, original_name)
-        if current_idx != -1 : self.eq_combo.setCurrentIndex(current_idx)
+        if current_idx != -1:
+            self.eq_combo.setCurrentIndex(current_idx)
         self.eq_combo.blockSignals(False)
 
 
@@ -330,10 +334,12 @@ class EqualizerEditorWidget(QWidget):
 
     def _on_slider_value_changed(self, value: int):
         active_data = self.eq_combo.currentData()
-        if not active_data or active_data[0] != EQ_TYPE_CUSTOM: return 
+        if not active_data or active_data[0] != EQ_TYPE_CUSTOM:
+            return
 
         sender = self.sender()
-        if sender in self.sliders: self._update_slider_label(self.sliders.index(sender), value)
+        if sender in self.sliders:
+            self._update_slider_label(self.sliders.index(sender), value)
         # Mark unsaved changes immediately when slider moves
         current_slider_vals = self._get_slider_values()
         if self._current_custom_curve_original_name:
@@ -344,7 +350,8 @@ class EqualizerEditorWidget(QWidget):
 
     def _apply_sliders_to_headset_and_check_changes(self): # Renamed for clarity, only applies, doesn't re-check changes flag here
         active_data = self.eq_combo.currentData()
-        if not active_data or active_data[0] != EQ_TYPE_CUSTOM: return
+        if not active_data or active_data[0] != EQ_TYPE_CUSTOM:
+            return
 
         current_values = self._get_slider_values()
         logger.debug(f"Applying slider values to headset: {current_values}")
@@ -365,8 +372,10 @@ class EqualizerEditorWidget(QWidget):
 
     def _set_slider_visuals(self, values: List[int]):
         for i, value in enumerate(values):
-            self.sliders[i].blockSignals(True); self.sliders[i].setValue(value)
-            self.sliders[i].blockSignals(False); self._update_slider_label(i, value)
+            self.sliders[i].blockSignals(True)
+            self.sliders[i].setValue(value)
+            self.sliders[i].blockSignals(False)
+            self._update_slider_label(i, value)
 
     def _get_slider_values(self) -> List[int]: return [s.value() for s in self.sliders]
 
@@ -394,7 +403,8 @@ class EqualizerEditorWidget(QWidget):
     def _save_custom_curve(self):
         active_data = self.eq_combo.currentData()
         if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
-            QMessageBox.warning(self, "Save Error", "No custom curve active to save."); return
+            QMessageBox.warning(self, "Save Error", "No custom curve active to save.")
+            return
         
         name_to_save = self._current_custom_curve_original_name
         values = self._get_slider_values()
@@ -409,18 +419,21 @@ class EqualizerEditorWidget(QWidget):
             self.eq_applied.emit(name_to_save) 
             
             QMessageBox.information(self, "Saved", f"Curve '{name_to_save}' saved.")
-        except ValueError as e: QMessageBox.critical(self, "Save Error", str(e))
+        except ValueError as e:
+            QMessageBox.critical(self, "Save Error", str(e))
         # Update UI: remove '*', disable save button etc.
         self._update_ui_for_active_eq(EQ_TYPE_CUSTOM, name_to_save)
 
 
     def _save_custom_curve_as(self):
         new_name, ok = QInputDialog.getText(self, "Save Curve As", "Enter new curve name:")
-        if not (ok and new_name.strip()): return
+        if not (ok and new_name.strip()):
+            return
         new_name = new_name.strip()
         if new_name in self.config_manager.get_all_custom_eq_curves():
             if QMessageBox.question(self, "Overwrite", f"Curve '{new_name}' exists. Overwrite?",
-                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.No: return
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.No:
+                return
         
         values = self._get_slider_values() 
         try:
@@ -439,8 +452,11 @@ class EqualizerEditorWidget(QWidget):
                     break
             
             self.eq_combo.blockSignals(True)
-            if found_idx != -1: self.eq_combo.setCurrentIndex(found_idx) 
-            else: logger.error(f"Could not find newly saved curve '{new_name}' in combo."); self._select_initial_eq_from_config()
+            if found_idx != -1:
+                self.eq_combo.setCurrentIndex(found_idx)
+            else:
+                logger.error(f"Could not find newly saved curve '{new_name}' in combo.")
+                self._select_initial_eq_from_config()
             self.eq_combo.blockSignals(False)
 
             # After setCurrentIndex, _on_eq_selected_in_combo will fire,
@@ -457,16 +473,19 @@ class EqualizerEditorWidget(QWidget):
 
             QMessageBox.information(self, "Saved As", f"Curve '{new_name}' saved.")
 
-        except ValueError as e: QMessageBox.critical(self, "Save Error", str(e))
+        except ValueError as e:
+            QMessageBox.critical(self, "Save Error", str(e))
 
     def _delete_custom_curve(self):
         active_data = self.eq_combo.currentData()
         if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
-            QMessageBox.warning(self, "Delete Error", "No custom curve selected to delete."); return
+            QMessageBox.warning(self, "Delete Error", "No custom curve selected to delete.")
+            return
         
         name_to_delete = self._current_custom_curve_original_name
         if name_to_delete in app_config.DEFAULT_EQ_CURVES:
-             QMessageBox.warning(self, "Delete Error", f"Cannot delete default curve '{name_to_delete}'."); return
+             QMessageBox.warning(self, "Delete Error", f"Cannot delete default curve '{name_to_delete}'.")
+             return
         
         if QMessageBox.question(self, "Confirm Delete", f"Delete curve '{name_to_delete}'?",
                                  QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes:
@@ -481,7 +500,8 @@ class EqualizerEditorWidget(QWidget):
             idx_to_select = -1
             for i in range(self.eq_combo.count()):
                 if self.eq_combo.itemData(i) == flat_data:
-                    idx_to_select = i; break
+                    idx_to_select = i
+                    break
             
             if idx_to_select == -1 and self.eq_combo.count() > 0 : 
                 idx_to_select = 0 

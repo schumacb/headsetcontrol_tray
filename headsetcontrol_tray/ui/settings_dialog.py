@@ -1,11 +1,11 @@
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QDialogButtonBox,
+    QDialog, QVBoxLayout, QHBoxLayout, QDialogButtonBox,
     QRadioButton, QLabel, QButtonGroup, QSizePolicy, QMessageBox, QSlider, QSpacerItem,
     QGroupBox, QLineEdit
 )
 from PySide6.QtCore import Signal, Qt
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 from .equalizer_editor_widget import EqualizerEditorWidget
 from .. import config_manager as cfg_mgr

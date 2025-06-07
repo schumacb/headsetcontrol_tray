@@ -1,0 +1,656 @@
+Command: /home/jules/.local/bin/uv run ruff check . --fix
+
+Ruff check found issues or made changes (return code 1).
+Return Code: 1
+Stdout:
+headsetcontrol_tray/__main__.py:9:1: E402 Module level import not at top of file
+   |
+ 7 | verboselogs.install()
+ 8 |
+ 9 | from headsetcontrol_tray.app import SteelSeriesTrayApp
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E402
+10 |
+11 | def main():
+   |
+
+headsetcontrol_tray/headset_service.py:603:37: E701 Multiple statements on one line (colon)
+    |
+601 |         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
+602 |         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
+603 |         if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
+    |                                     ^ E701
+604 |         elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
+605 |         elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+    |
+
+headsetcontrol_tray/headset_service.py:604:39: E701 Multiple statements on one line (colon)
+    |
+602 |         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
+603 |         if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
+604 |         elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
+    |                                       ^ E701
+605 |         elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+606 |         elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
+    |
+
+headsetcontrol_tray/headset_service.py:605:39: E701 Multiple statements on one line (colon)
+    |
+603 |         if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
+604 |         elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
+605 |         elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+    |                                       ^ E701
+606 |         elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
+607 |         elif raw_battery_level == 0x04: parsed_status['battery_percent'] = 100
+    |
+
+headsetcontrol_tray/headset_service.py:606:39: E701 Multiple statements on one line (colon)
+    |
+604 |         elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
+605 |         elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+606 |         elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
+    |                                       ^ E701
+607 |         elif raw_battery_level == 0x04: parsed_status['battery_percent'] = 100
+608 |         else:
+    |
+
+headsetcontrol_tray/headset_service.py:607:39: E701 Multiple statements on one line (colon)
+    |
+605 |         elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
+606 |         elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
+607 |         elif raw_battery_level == 0x04: parsed_status['battery_percent'] = 100
+    |                                       ^ E701
+608 |         else:
+609 |             logger.warning(f"_get_parsed_status_hid: Unknown raw battery level: {raw_battery_level}")
+    |
+
+headsetcontrol_tray/headset_service.py:836:22: E701 Multiple statements on one line (colon)
+    |
+834 |         # Sidetone levels in app_config.SIDETONE_OPTIONS might be a better source for steps.
+835 |         # For now, using the direct mapping from headsetcontrol C code:
+836 |         if level < 26: mapped_value = 0x00
+    |                      ^ E701
+837 |         elif level < 51: mapped_value = 0x01
+838 |         elif level < 76: mapped_value = 0x02
+    |
+
+headsetcontrol_tray/headset_service.py:837:24: E701 Multiple statements on one line (colon)
+    |
+835 |         # For now, using the direct mapping from headsetcontrol C code:
+836 |         if level < 26: mapped_value = 0x00
+837 |         elif level < 51: mapped_value = 0x01
+    |                        ^ E701
+838 |         elif level < 76: mapped_value = 0x02
+839 |         else: mapped_value = 0x03
+    |
+
+headsetcontrol_tray/headset_service.py:838:24: E701 Multiple statements on one line (colon)
+    |
+836 |         if level < 26: mapped_value = 0x00
+837 |         elif level < 51: mapped_value = 0x01
+838 |         elif level < 76: mapped_value = 0x02
+    |                        ^ E701
+839 |         else: mapped_value = 0x03
+840 |         logger.debug(f"_set_sidetone_level_hid: Input level {level} mapped to hardware value {mapped_value}.")
+    |
+
+headsetcontrol_tray/headset_service.py:839:13: E701 Multiple statements on one line (colon)
+    |
+837 |         elif level < 51: mapped_value = 0x01
+838 |         elif level < 76: mapped_value = 0x02
+839 |         else: mapped_value = 0x03
+    |             ^ E701
+840 |         logger.debug(f"_set_sidetone_level_hid: Input level {level} mapped to hardware value {mapped_value}.")
+    |
+
+headsetcontrol_tray/tests/test_app.py:51:9: F841 Local variable `close_button_mock` is assigned to but never used
+   |
+49 |         mock_dialog_instance = MockQMessageBoxClass.return_value
+50 |
+51 |         close_button_mock = MagicMock(spec=QMessageBox.StandardButton)
+   |         ^^^^^^^^^^^^^^^^^ F841
+52 |         added_buttons_initial = []
+53 |         def side_effect_add_button_initial(text_or_button, role=None):
+   |
+   = help: Remove assignment to unused variable `close_button_mock`
+
+headsetcontrol_tray/tests/test_app.py:74:9: F841 Local variable `tray_app_instance` is assigned to but never used
+   |
+72 |         mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
+73 |
+74 |         tray_app_instance = SteelSeriesTrayApp()
+   |         ^^^^^^^^^^^^^^^^^ F841
+75 |
+76 |         MockQMessageBoxClass.assert_called_once()
+   |
+   = help: Remove assignment to unused variable `tray_app_instance`
+
+headsetcontrol_tray/tests/test_app.py:99:9: F841 Local variable `tray_app_instance` is assigned to but never used
+    |
+ 97 |         mock_service_instance.close = Mock()
+ 98 |
+ 99 |         tray_app_instance = SteelSeriesTrayApp()
+    |         ^^^^^^^^^^^^^^^^^ F841
+100 |         MockQMessageBoxClass.assert_not_called()
+    |
+    = help: Remove assignment to unused variable `tray_app_instance`
+
+headsetcontrol_tray/tests/test_app.py:116:9: F841 Local variable `added_buttons` is assigned to but never used
+    |
+115 |         auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
+116 |         added_buttons = []
+    |         ^^^^^^^^^^^^^ F841
+117 |         def side_effect_add_button(text_or_button, role=None):
+118 |             button = MagicMock(spec=QMessageBox.StandardButton)
+    |
+    = help: Remove assignment to unused variable `added_buttons`
+
+headsetcontrol_tray/tests/test_app.py:136:9: F841 Local variable `tray_app_instance` is assigned to but never used
+    |
+134 |         mock_feedback_dialog_instance = MockQMessageBoxClass.return_value
+135 |
+136 |         tray_app_instance = SteelSeriesTrayApp()
+    |         ^^^^^^^^^^^^^^^^^ F841
+137 |
+138 |         mock_subprocess_run.assert_called_once()
+    |
+    = help: Remove assignment to unused variable `tray_app_instance`
+
+headsetcontrol_tray/tests/test_app.py:227:46: E701 Multiple statements on one line (colon)
+    |
+225 |         def side_effect_add_button_script_not_found(text_or_button, role=None):
+226 |             button = MagicMock(spec=QMessageBox.StandardButton)
+227 |             if role == QMessageBox.AcceptRole: nonlocal auto_button_mock; auto_button_mock = button
+    |                                              ^ E701
+228 |             return button
+229 |         mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
+    |
+
+headsetcontrol_tray/tests/test_app.py:227:73: E702 Multiple statements on one line (semicolon)
+    |
+225 |         def side_effect_add_button_script_not_found(text_or_button, role=None):
+226 |             button = MagicMock(spec=QMessageBox.StandardButton)
+227 |             if role == QMessageBox.AcceptRole: nonlocal auto_button_mock; auto_button_mock = button
+    |                                                                         ^ E702
+228 |             return button
+229 |         mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
+    |
+
+headsetcontrol_tray/tests/test_app.py:234:9: F841 Local variable `tray_app_instance` is assigned to but never used
+    |
+232 |         MockQMessageBoxClass.reset_mock()
+233 |
+234 |         tray_app_instance = SteelSeriesTrayApp()
+    |         ^^^^^^^^^^^^^^^^^ F841
+235 |
+236 |         mock_subprocess_run.assert_not_called()
+    |
+    = help: Remove assignment to unused variable `tray_app_instance`
+
+headsetcontrol_tray/tests/test_headset_service.py:9:37: F401 `headsetcontrol_tray.app_config` imported but unused; consider using `importlib.util.find_spec` to test for availability
+   |
+ 7 | try:
+ 8 |     from headsetcontrol_tray.headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
+ 9 |     from headsetcontrol_tray import app_config
+   |                                     ^^^^^^^^^^ F401
+10 | except ImportError:
+11 |     import sys
+   |
+   = help: Remove unused import: `headsetcontrol_tray.app_config`
+
+headsetcontrol_tray/tests/test_headset_service.py:27:88: F841 Local variable `mock_connect` is assigned to but never used
+   |
+25 |         # However, _create_udev_rules sets an instance variable `self.udev_setup_details`.
+26 |         # Patching __init__ to do nothing simplifies this.
+27 |         with patch.object(HeadsetService, '_connect_hid_device', return_value=None) as mock_connect:
+   |                                                                                        ^^^^^^^^^^^^ F841
+28 |             self.service = HeadsetService()
+29 |             # If __init__ was more complex, we might need more elaborate __init__ mocking.
+   |
+   = help: Remove assignment to unused variable `mock_connect`
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:91:37: E702 Multiple statements on one line (semicolon)
+   |
+89 |             slider_vbox.addWidget(lbl_freq)
+90 |             slider = QSlider(Qt.Orientation.Vertical)
+91 |             slider.setRange(-10, 10); slider.setValue(0)
+   |                                     ^ E702
+92 |             slider.setTickInterval(1); slider.setTickPosition(QSlider.TickPosition.TicksRight)
+93 |             slider.valueChanged.connect(self._on_slider_value_changed)
+   |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:92:38: E702 Multiple statements on one line (semicolon)
+   |
+90 |             slider = QSlider(Qt.Orientation.Vertical)
+91 |             slider.setRange(-10, 10); slider.setValue(0)
+92 |             slider.setTickInterval(1); slider.setTickPosition(QSlider.TickPosition.TicksRight)
+   |                                      ^ E702
+93 |             slider.valueChanged.connect(self._on_slider_value_changed)
+94 |             self.sliders.append(slider)
+   |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:184:23: E701 Multiple statements on one line (colon)
+    |
+183 |     def _on_eq_selected_in_combo(self, index: int):
+184 |         if index == -1: return
+    |                       ^ E701
+185 |         selected_data = self.eq_combo.itemData(index)
+186 |         if not selected_data:
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:281:13: F841 Local variable `current_idx` is assigned to but never used
+    |
+279 |         if is_custom_mode_active and self._current_custom_curve_original_name:
+280 |             self.eq_combo.blockSignals(True)
+281 |             current_idx = self.eq_combo.currentIndex()
+    |             ^^^^^^^^^^^ F841
+282 |             active_curve_found_in_combo = False
+283 |             for i in range(self.eq_combo.count()):
+    |
+    = help: Remove assignment to unused variable `current_idx`
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:286:21: F841 Local variable `active_curve_found_in_combo` is assigned to but never used
+    |
+284 |                 item_data = self.eq_combo.itemData(i)
+285 |                 if item_data and item_data[0] == EQ_TYPE_CUSTOM and item_data[1] == self._current_custom_curve_original_name:
+286 |                     active_curve_found_in_combo = True
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ F841
+287 |                     text_to_display = self._current_custom_curve_original_name
+288 |                     if self._sliders_have_unsaved_changes:
+    |
+    = help: Remove assignment to unused variable `active_curve_found_in_combo`
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:325:30: E701 Multiple statements on one line (colon)
+    |
+323 |                 if self.eq_combo.itemText(i).endswith("*"):
+324 |                     self.eq_combo.setItemText(i, original_name)
+325 |         if current_idx != -1 : self.eq_combo.setCurrentIndex(current_idx)
+    |                              ^ E701
+326 |         self.eq_combo.blockSignals(False)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:333:63: E701 Multiple statements on one line (colon)
+    |
+331 |     def _on_slider_value_changed(self, value: int):
+332 |         active_data = self.eq_combo.currentData()
+333 |         if not active_data or active_data[0] != EQ_TYPE_CUSTOM: return
+    |                                                               ^ E701
+334 |
+335 |         sender = self.sender()
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:336:34: E701 Multiple statements on one line (colon)
+    |
+335 |         sender = self.sender()
+336 |         if sender in self.sliders: self._update_slider_label(self.sliders.index(sender), value)
+    |                                  ^ E701
+337 |         # Mark unsaved changes immediately when slider moves
+338 |         current_slider_vals = self._get_slider_values()
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:347:63: E701 Multiple statements on one line (colon)
+    |
+345 |     def _apply_sliders_to_headset_and_check_changes(self): # Renamed for clarity, only applies, doesn't re-check changes flag here
+346 |         active_data = self.eq_combo.currentData()
+347 |         if not active_data or active_data[0] != EQ_TYPE_CUSTOM: return
+    |                                                               ^ E701
+348 |
+349 |         current_values = self._get_slider_values()
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:368:47: E702 Multiple statements on one line (semicolon)
+    |
+366 |     def _set_slider_visuals(self, values: List[int]):
+367 |         for i, value in enumerate(values):
+368 |             self.sliders[i].blockSignals(True); self.sliders[i].setValue(value)
+    |                                               ^ E702
+369 |             self.sliders[i].blockSignals(False); self._update_slider_label(i, value)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:369:48: E702 Multiple statements on one line (semicolon)
+    |
+367 |         for i, value in enumerate(values):
+368 |             self.sliders[i].blockSignals(True); self.sliders[i].setValue(value)
+369 |             self.sliders[i].blockSignals(False); self._update_slider_label(i, value)
+    |                                                ^ E702
+370 |
+371 |     def _get_slider_values(self) -> List[int]: return [s.value() for s in self.sliders]
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:397:87: E702 Multiple statements on one line (semicolon)
+    |
+395 |         active_data = self.eq_combo.currentData()
+396 |         if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
+397 |             QMessageBox.warning(self, "Save Error", "No custom curve active to save."); return
+    |                                                                                       ^ E702
+398 |
+399 |         name_to_save = self._current_custom_curve_original_name
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:412:31: E701 Multiple statements on one line (colon)
+    |
+411 |             QMessageBox.information(self, "Saved", f"Curve '{name_to_save}' saved.")
+412 |         except ValueError as e: QMessageBox.critical(self, "Save Error", str(e))
+    |                               ^ E701
+413 |         # Update UI: remove '*', disable save button etc.
+414 |         self._update_ui_for_active_eq(EQ_TYPE_CUSTOM, name_to_save)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:419:41: E701 Multiple statements on one line (colon)
+    |
+417 |     def _save_custom_curve_as(self):
+418 |         new_name, ok = QInputDialog.getText(self, "Save Curve As", "Enter new curve name:")
+419 |         if not (ok and new_name.strip()): return
+    |                                         ^ E701
+420 |         new_name = new_name.strip()
+421 |         if new_name in self.config_manager.get_all_custom_eq_curves():
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:423:130: E701 Multiple statements on one line (colon)
+    |
+421 | …s():
+422 | …ew_name}' exists. Overwrite?",
+423 | …QMessageBox.StandardButton.No) == QMessageBox.StandardButton.No: return
+    |                                                                 ^ E701
+424 | …
+425 | …
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:442:31: E701 Multiple statements on one line (colon)
+    |
+441 |             self.eq_combo.blockSignals(True)
+442 |             if found_idx != -1: self.eq_combo.setCurrentIndex(found_idx)
+    |                               ^ E701
+443 |             else: logger.error(f"Could not find newly saved curve '{new_name}' in combo."); self._select_initial_eq_from_config()
+444 |             self.eq_combo.blockSignals(False)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:443:17: E701 Multiple statements on one line (colon)
+    |
+441 |             self.eq_combo.blockSignals(True)
+442 |             if found_idx != -1: self.eq_combo.setCurrentIndex(found_idx)
+443 |             else: logger.error(f"Could not find newly saved curve '{new_name}' in combo."); self._select_initial_eq_from_config()
+    |                 ^ E701
+444 |             self.eq_combo.blockSignals(False)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:443:91: E702 Multiple statements on one line (semicolon)
+    |
+441 |             self.eq_combo.blockSignals(True)
+442 |             if found_idx != -1: self.eq_combo.setCurrentIndex(found_idx)
+443 |             else: logger.error(f"Could not find newly saved curve '{new_name}' in combo."); self._select_initial_eq_from_config()
+    |                                                                                           ^ E702
+444 |             self.eq_combo.blockSignals(False)
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:460:31: E701 Multiple statements on one line (colon)
+    |
+458 |             QMessageBox.information(self, "Saved As", f"Curve '{new_name}' saved.")
+459 |
+460 |         except ValueError as e: QMessageBox.critical(self, "Save Error", str(e))
+    |                               ^ E701
+461 |
+462 |     def _delete_custom_curve(self):
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:465:93: E702 Multiple statements on one line (semicolon)
+    |
+463 |         active_data = self.eq_combo.currentData()
+464 |         if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
+465 |             QMessageBox.warning(self, "Delete Error", "No custom curve selected to delete."); return
+    |                                                                                             ^ E702
+466 |
+467 |         name_to_delete = self._current_custom_curve_original_name
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:469:107: E702 Multiple statements on one line (semicolon)
+    |
+467 |         name_to_delete = self._current_custom_curve_original_name
+468 |         if name_to_delete in app_config.DEFAULT_EQ_CURVES:
+469 |              QMessageBox.warning(self, "Delete Error", f"Cannot delete default curve '{name_to_delete}'."); return
+    |                                                                                                           ^ E702
+470 |
+471 |         if QMessageBox.question(self, "Confirm Delete", f"Delete curve '{name_to_delete}'?",
+    |
+
+headsetcontrol_tray/ui/equalizer_editor_widget.py:484:38: E702 Multiple statements on one line (semicolon)
+    |
+482 |             for i in range(self.eq_combo.count()):
+483 |                 if self.eq_combo.itemData(i) == flat_data:
+484 |                     idx_to_select = i; break
+    |                                      ^ E702
+485 |
+486 |             if idx_to_select == -1 and self.eq_combo.count() > 0 :
+    |
+
+headsetcontrol_tray/ui/settings_dialog.py:160:31: E701 Multiple statements on one line (colon)
+    |
+159 |     def get_chatmix_tooltip_string(self, chatmix_val: Optional[int]) -> str:
+160 |         if chatmix_val is None: return "ChatMix: N/A (Headset disconnected?)"
+    |                               ^ E701
+161 |         percentage = round((chatmix_val / 128) * 100)
+162 |         if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/settings_dialog.py:162:28: E701 Multiple statements on one line (colon)
+    |
+160 |         if chatmix_val is None: return "ChatMix: N/A (Headset disconnected?)"
+161 |         percentage = round((chatmix_val / 128) * 100)
+162 |         if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
+    |                            ^ E701
+163 |         elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+164 |         elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/settings_dialog.py:163:31: E701 Multiple statements on one line (colon)
+    |
+161 |         percentage = round((chatmix_val / 128) * 100)
+162 |         if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
+163 |         elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+    |                               ^ E701
+164 |         elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+165 |         else: return f"ChatMix: Custom Mix ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/settings_dialog.py:164:32: E701 Multiple statements on one line (colon)
+    |
+162 |         if chatmix_val == 0: return f"ChatMix: Full Chat ({percentage}%)"
+163 |         elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+164 |         elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+    |                                ^ E701
+165 |         else: return f"ChatMix: Custom Mix ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/settings_dialog.py:165:13: E701 Multiple statements on one line (colon)
+    |
+163 |         elif chatmix_val == 64: return f"ChatMix: Balanced ({percentage}%)"
+164 |         elif chatmix_val == 128: return f"ChatMix: Full Game ({percentage}%)"
+165 |         else: return f"ChatMix: Custom Mix ({percentage}%)"
+    |             ^ E701
+166 |
+167 |     def refresh_chatmix_display(self):
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:126:43: E701 Multiple statements on one line (colon)
+    |
+124 |             if self.battery_level is not None:
+125 |                 fill_color = QColor(Qt.GlobalColor.gray)
+126 |                 if self.battery_level > 70: fill_color = QColor(Qt.GlobalColor.green)
+    |                                           ^ E701
+127 |                 elif self.battery_level > 25: fill_color = QColor(Qt.GlobalColor.yellow) # Changed from 30 to 25 for critical
+128 |                 else: fill_color = QColor(Qt.GlobalColor.red)
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:127:45: E701 Multiple statements on one line (colon)
+    |
+125 |                 fill_color = QColor(Qt.GlobalColor.gray)
+126 |                 if self.battery_level > 70: fill_color = QColor(Qt.GlobalColor.green)
+127 |                 elif self.battery_level > 25: fill_color = QColor(Qt.GlobalColor.yellow) # Changed from 30 to 25 for critical
+    |                                             ^ E701
+128 |                 else: fill_color = QColor(Qt.GlobalColor.red)
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:128:21: E701 Multiple statements on one line (colon)
+    |
+126 |                 if self.battery_level > 70: fill_color = QColor(Qt.GlobalColor.green)
+127 |                 elif self.battery_level > 25: fill_color = QColor(Qt.GlobalColor.yellow) # Changed from 30 to 25 for critical
+128 |                 else: fill_color = QColor(Qt.GlobalColor.red)
+    |                     ^ E701
+129 |
+130 |                 border_thickness = 1
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:266:31: E701 Multiple statements on one line (colon)
+    |
+265 |     def _get_chatmix_display_string_for_tray(self, chatmix_val: Optional[int]) -> str:
+266 |         if chatmix_val is None: return "N/A"
+    |                               ^ E701
+267 |         percentage = round((chatmix_val / 128) * 100)
+268 |         if chatmix_val == 0: return f"Chat ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:268:28: E701 Multiple statements on one line (colon)
+    |
+266 |         if chatmix_val is None: return "N/A"
+267 |         percentage = round((chatmix_val / 128) * 100)
+268 |         if chatmix_val == 0: return f"Chat ({percentage}%)"
+    |                            ^ E701
+269 |         if chatmix_val == 64: return f"Balanced ({percentage}%)"
+270 |         if chatmix_val == 128: return f"Game ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:269:29: E701 Multiple statements on one line (colon)
+    |
+267 |         percentage = round((chatmix_val / 128) * 100)
+268 |         if chatmix_val == 0: return f"Chat ({percentage}%)"
+269 |         if chatmix_val == 64: return f"Balanced ({percentage}%)"
+    |                             ^ E701
+270 |         if chatmix_val == 128: return f"Game ({percentage}%)"
+271 |         return f"{chatmix_val} ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:270:30: E701 Multiple statements on one line (colon)
+    |
+268 |         if chatmix_val == 0: return f"Chat ({percentage}%)"
+269 |         if chatmix_val == 64: return f"Balanced ({percentage}%)"
+270 |         if chatmix_val == 128: return f"Game ({percentage}%)"
+    |                              ^ E701
+271 |         return f"{chatmix_val} ({percentage}%)"
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:338:54: E741 Ambiguous variable name: `l`
+    |
+336 |             action.setData(level)
+337 |             action.setChecked(level == current_sidetone_val_from_config)
+338 |             action.triggered.connect(lambda checked, l=level: self._set_sidetone_from_menu(l))
+    |                                                      ^ E741
+339 |             sidetone_menu.addAction(action)
+340 |             self.sidetone_action_group.append(action)
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:392:49: E701 Multiple statements on one line (colon)
+    |
+390 |         logger.debug("Updating menu checks based on ConfigManager.")
+391 |         current_sidetone = self.config_manager.get_last_sidetone_level()
+392 |         for action in self.sidetone_action_group: action.setChecked(action.data() == current_sidetone)
+    |                                                 ^ E701
+393 |
+394 |         current_timeout = self.config_manager.get_last_inactive_timeout()
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:395:48: E701 Multiple statements on one line (colon)
+    |
+394 |         current_timeout = self.config_manager.get_last_inactive_timeout()
+395 |         for action in self.timeout_action_group: action.setChecked(action.data() == current_timeout)
+    |                                                ^ E701
+396 |
+397 |         active_eq_type = self.config_manager.get_active_eq_type()
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:403:31: E701 Multiple statements on one line (colon)
+    |
+401 |         for action in self.unified_eq_action_group:
+402 |             action_data = action.data()
+403 |             if not action_data: continue
+    |                               ^ E701
+404 |             eq_type, identifier = action_data
+405 |             if eq_type == EQ_TYPE_CUSTOM:
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:470:56: E701 Multiple statements on one line (colon)
+    |
+468 |             new_chatmix_text = f"ChatMix: {chatmix_display_str}"
+469 |
+470 |             if self.battery_level != prev_battery_level: data_changed_while_connected = True
+    |                                                        ^ E701
+471 |             if self.battery_status_text != prev_battery_status_text: data_changed_while_connected = True
+472 |             if self.chatmix_value != prev_chatmix_value: data_changed_while_connected = True
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:471:68: E701 Multiple statements on one line (colon)
+    |
+470 |             if self.battery_level != prev_battery_level: data_changed_while_connected = True
+471 |             if self.battery_status_text != prev_battery_status_text: data_changed_while_connected = True
+    |                                                                    ^ E701
+472 |             if self.chatmix_value != prev_chatmix_value: data_changed_while_connected = True
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:472:56: E701 Multiple statements on one line (colon)
+    |
+470 |             if self.battery_level != prev_battery_level: data_changed_while_connected = True
+471 |             if self.battery_status_text != prev_battery_status_text: data_changed_while_connected = True
+472 |             if self.chatmix_value != prev_chatmix_value: data_changed_while_connected = True
+    |                                                        ^ E701
+473 |
+474 |         # Update menu item texts if they changed
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:576:17: E701 Multiple statements on one line (colon)
+    |
+574 |                 message = f"Custom EQ '{curve_name}' applied."
+575 |                 success = True
+576 |             else: message = f"Failed to apply custom EQ '{curve_name}'."
+    |                 ^ E701
+577 |
+578 |         elif eq_type == EQ_TYPE_HARDWARE:
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:586:17: E701 Multiple statements on one line (colon)
+    |
+584 |                 message = f"Hardware EQ '{preset_display_name}' applied."
+585 |                 success = True
+586 |             else: message = f"Failed to apply hardware EQ preset ID {preset_id}."
+    |                 ^ E701
+587 |
+588 |         if success:
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:619:62: E701 Multiple statements on one line (colon)
+    |
+618 |     def _on_activated(self, reason):
+619 |         if reason == QSystemTrayIcon.ActivationReason.Trigger: self._open_settings_dialog()
+    |                                                              ^ E701
+620 |         elif reason == QSystemTrayIcon.ActivationReason.Context: self.context_menu.popup(QCursor.pos())
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:620:64: E701 Multiple statements on one line (colon)
+    |
+618 |     def _on_activated(self, reason):
+619 |         if reason == QSystemTrayIcon.ActivationReason.Trigger: self._open_settings_dialog()
+620 |         elif reason == QSystemTrayIcon.ActivationReason.Context: self.context_menu.popup(QCursor.pos())
+    |                                                                ^ E701
+621 |
+622 |     def set_initial_headset_settings(self):
+    |
+
+headsetcontrol_tray/ui/system_tray_icon.py:625:83: E702 Multiple statements on one line (semicolon)
+    |
+623 |         logger.info("Attempting to apply initial headset settings.")
+624 |         if not self.headset_service.is_device_connected():
+625 |             logger.warning("Cannot apply initial settings, device not connected."); return
+    |                                                                                   ^ E702
+626 |
+627 |         self.headset_service.set_sidetone_level(self.config_manager.get_last_sidetone_level())
+    |
+
+Found 89 errors (23 fixed, 66 remaining).
+No fixes available (9 hidden fixes can be enabled with the `--unsafe-fixes` option).

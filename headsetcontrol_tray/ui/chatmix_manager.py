@@ -162,7 +162,7 @@ class ChatMixManager:
             logger.debug(f"pw-cli set-param for stream {stream_id} successful. Output: {process.stdout.strip()}")
             self._last_set_stream_volumes[stream_id] = target_volumes_list # Update last set volumes
         except FileNotFoundError:
-            logger.error(f"pw-cli command not found. Please ensure PipeWire utilities are installed and in PATH.")
+            logger.error("pw-cli command not found. Please ensure PipeWire utilities are installed and in PATH.")
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting volume for stream {stream_id} using pw-cli (exit code {e.returncode}): {e.stderr.strip()}")
         except Exception as e:

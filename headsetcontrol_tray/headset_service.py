@@ -532,9 +532,9 @@ class HeadsetService:
                      logger.warning("get_battery_level (fallback): Could not get device_data for JSON fallback.")
         else: # headsetcontrol is not available, and direct HID failed or reported offline
             if status is not None and not status.get('headset_online'):
-                logger.info(f"get_battery_level: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+                logger.info("get_battery_level: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
             else: # status is None (HID read failed) or other unexpected status
-                logger.warning(f"get_battery_level: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
+                logger.warning("get_battery_level: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
         
         return None
 
@@ -600,11 +600,16 @@ class HeadsetService:
 
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
-        if raw_battery_level == 0x00: parsed_status['battery_percent'] = 0
-        elif raw_battery_level == 0x01: parsed_status['battery_percent'] = 25
-        elif raw_battery_level == 0x02: parsed_status['battery_percent'] = 50
-        elif raw_battery_level == 0x03: parsed_status['battery_percent'] = 75
-        elif raw_battery_level == 0x04: parsed_status['battery_percent'] = 100
+        if raw_battery_level == 0x00:
+            parsed_status['battery_percent'] = 0
+        elif raw_battery_level == 0x01:
+            parsed_status['battery_percent'] = 25
+        elif raw_battery_level == 0x02:
+            parsed_status['battery_percent'] = 50
+        elif raw_battery_level == 0x03:
+            parsed_status['battery_percent'] = 75
+        elif raw_battery_level == 0x04:
+            parsed_status['battery_percent'] = 100
         else:
             logger.warning(f"_get_parsed_status_hid: Unknown raw battery level: {raw_battery_level}")
             parsed_status['battery_percent'] = None
@@ -728,9 +733,9 @@ class HeadsetService:
                  logger.warning("get_chatmix_value (fallback): Could not get device_data for JSON.")
         else: # headsetcontrol is not available, and direct HID failed or reported offline
             if status is not None and not status.get('headset_online'):
-                logger.info(f"get_chatmix_value: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+                logger.info("get_chatmix_value: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
             else: # status is None (HID read failed) or other unexpected status
-                logger.warning(f"get_chatmix_value: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
+                logger.warning("get_chatmix_value: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
 
         return None
 
@@ -769,9 +774,9 @@ class HeadsetService:
             logger.debug("is_charging (fallback): Could not determine charging status from headsetcontrol JSON.")
         else: # headsetcontrol is not available, and direct HID failed or reported offline
             if status is not None and not status.get('headset_online'):
-                logger.info(f"is_charging: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
+                logger.info("is_charging: Headset reported itself as offline via HID, and headsetcontrol is not available. No value retrieved from HID.")
             else: # status is None (HID read failed) or other unexpected status
-                logger.warning(f"is_charging: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
+                logger.warning("is_charging: HID communication failed (or status was unexpected) and headsetcontrol is not available. No value retrieved.")
 
         return None
 
@@ -833,10 +838,14 @@ class HeadsetService:
         # Refined mapping based on app_config comments (0-25->0x0, 26-50->0x1, 51-75->0x2, >75->0x3)
         # Sidetone levels in app_config.SIDETONE_OPTIONS might be a better source for steps.
         # For now, using the direct mapping from headsetcontrol C code:
-        if level < 26: mapped_value = 0x00
-        elif level < 51: mapped_value = 0x01
-        elif level < 76: mapped_value = 0x02
-        else: mapped_value = 0x03
+        if level < 26:
+            mapped_value = 0x00
+        elif level < 51:
+            mapped_value = 0x01
+        elif level < 76:
+            mapped_value = 0x02
+        else:
+            mapped_value = 0x03
         logger.debug(f"_set_sidetone_level_hid: Input level {level} mapped to hardware value {mapped_value}.")
 
         # 2. Prepare the command
@@ -1000,7 +1009,7 @@ class HeadsetService:
         if success:
             logger.info(f"_set_eq_values_hid: Successfully sent custom EQ bands: {float_values}")
         else:
-            logger.warning(f"_set_eq_values_hid: Failed to send custom EQ bands.")
+            logger.warning("_set_eq_values_hid: Failed to send custom EQ bands.")
         return success
 
     def get_current_eq_values(self) -> Optional[List[float]]: # Changed return hint to List[float] for consistency
@@ -1046,7 +1055,7 @@ class HeadsetService:
             return True
 
         if self.headsetcontrol_available:
-            logger.warning(f"set_eq_values: Failed to set EQ bands via HID. Falling back to headsetcontrol.")
+            logger.warning("set_eq_values: Failed to set EQ bands via HID. Falling back to headsetcontrol.")
             if not self.is_device_connected():
                 logger.warning("set_eq_values (fallback): Device not connected, cannot set via CLI.")
                 return False

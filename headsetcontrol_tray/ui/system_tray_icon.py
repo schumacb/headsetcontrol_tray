@@ -1,8 +1,8 @@
 import logging
 from PySide6.QtWidgets import (
-    QSystemTrayIcon, QMenu, QMessageBox
+    QSystemTrayIcon, QMenu
 )
-from PySide6.QtGui import QIcon, QAction, QPainter, QPixmap, QColor, QCursor, QFontMetrics, QPen, qGray, qAlpha, QPainterPath
+from PySide6.QtGui import QIcon, QAction, QPainter, QColor, QCursor, QPen, QPainterPath
 from PySide6.QtCore import Qt, QTimer, Slot, QRect
 from typing import Optional, List, Tuple
 
@@ -207,7 +207,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
                 # The previous closeSubpath one was complex. Let's use an even simpler one from an example:
                 # A very simple bolt: top-center, middle-left, middle-right, bottom-center
-                bolt_path.clear();
+                bolt_path.clear()
                 bolt_path.moveTo(cx, battery_body_rect.top() + 1) # Top of battery body
                 bolt_path.lineTo(cx - bolt_point_offset_x, cy )
                 bolt_path.lineTo(cx + bolt_point_offset_x, cy )
@@ -537,7 +537,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         logger.info(f"Setting sidetone to {level} via menu.")
         if self.headset_service.set_sidetone_level(level): # Checks connection internally
             self.config_manager.set_last_sidetone_level(level)
-            self.showMessage("Success", f"Sidetone set.", QSystemTrayIcon.MessageIcon.Information, 1500)
+            self.showMessage("Success", "Sidetone set.", QSystemTrayIcon.MessageIcon.Information, 1500)
             self.refresh_status() 
         else:
             self.showMessage("Error", "Failed to set sidetone. Headset connected?", QSystemTrayIcon.MessageIcon.Warning, 2000)
@@ -547,7 +547,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         logger.info(f"Setting inactive timeout to {minutes} minutes via menu.")
         if self.headset_service.set_inactive_timeout(minutes): # Checks connection internally
             self.config_manager.set_last_inactive_timeout(minutes)
-            self.showMessage("Success", f"Inactive timeout set.", QSystemTrayIcon.MessageIcon.Information, 1500)
+            self.showMessage("Success", "Inactive timeout set.", QSystemTrayIcon.MessageIcon.Information, 1500)
             self.refresh_status()
         else:
             self.showMessage("Error", "Failed to set inactive timeout. Headset connected?", QSystemTrayIcon.MessageIcon.Warning, 2000)

@@ -2,17 +2,15 @@ import unittest
 from unittest import mock
 from unittest.mock import Mock, patch
 import os
-import tempfile
 
 # Attempt to import from the correct location
 try:
     from headsetcontrol_tray.headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
-    from headsetcontrol_tray import app_config
+    # from headsetcontrol_tray import app_config # Unused direct import
 except ImportError:
     import sys
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from headset_service import HeadsetService, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME, STEELSERIES_VID, TARGET_PIDS
-    import app_config
 
 # Original TestHeadsetServiceUdevRules is removed as _check_udev_rules no longer exists.
 # Tests for _create_udev_rules are still relevant as the method itself was not removed,
@@ -26,7 +24,7 @@ class TestHeadsetServiceCreateUdevRules(unittest.TestCase):
         # which we might not want for these specific tests if they focus *only* on _create_udev_rules.
         # However, _create_udev_rules sets an instance variable `self.udev_setup_details`.
         # Patching __init__ to do nothing simplifies this.
-        with patch.object(HeadsetService, '_connect_hid_device', return_value=None) as mock_connect:
+        with patch.object(HeadsetService, '_connect_hid_device', return_value=None): # mock_connect was unused
             self.service = HeadsetService()
             # If __init__ was more complex, we might need more elaborate __init__ mocking.
             # For now, this ensures _connect_hid_device within __init__ doesn't run its full course.

@@ -1,0 +1,64 @@
+Command: /home/jules/.local/bin/uv run mypy headsetcontrol_tray/
+
+MyPy analysis complete.
+Exit Code: 1
+----- MyPy Output (stdout) -----
+headsetcontrol_tray/headset_service.py:2: error: Skipping analyzing "hid": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+headsetcontrol_tray/headset_service.py:69: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:70: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:72: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:73: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:74: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:75: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:76: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:77: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:78: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:79: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/headset_service.py:487: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:511: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:514: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:527: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:604: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:606: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:608: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:610: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:612: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:615: error: Incompatible types in assignment (expression has type "None", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:623: error: Incompatible types in assignment (expression has type "None", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:625: error: Incompatible types in assignment (expression has type "None", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:626: error: Incompatible types in assignment (expression has type "None", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:661: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+headsetcontrol_tray/headset_service.py:707: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:749: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:792: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:922: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:1034: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/headset_service.py:1097: error: Argument 1 to "_set_eq_values_hid" of "HeadsetService" has incompatible type "Sequence[object]"; expected "list[float]"  [arg-type]
+headsetcontrol_tray/headset_service.py:1115: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/config_manager.py:15: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/config_manager.py:16: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/ui/chatmix_manager.py:27: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/ui/chatmix_manager.py:28: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+headsetcontrol_tray/ui/chatmix_manager.py:154: error: "Logger" has no attribute "verbose"  [attr-defined]
+headsetcontrol_tray/ui/equalizer_editor_widget.py:196: error: Function "builtins.any" is not valid as a type  [valid-type]
+headsetcontrol_tray/ui/equalizer_editor_widget.py:196: note: Perhaps you meant "typing.Any" instead of "any"?
+headsetcontrol_tray/ui/equalizer_editor_widget.py:225: error: Argument 1 to "set_eq_values" of "HeadsetService" has incompatible type "list[int]"; expected "list[float]"  [arg-type]
+headsetcontrol_tray/ui/equalizer_editor_widget.py:225: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+headsetcontrol_tray/ui/equalizer_editor_widget.py:225: note: Consider using "Sequence" instead, which is covariant
+headsetcontrol_tray/ui/equalizer_editor_widget.py:262: error: Function "builtins.any" is not valid as a type  [valid-type]
+headsetcontrol_tray/ui/equalizer_editor_widget.py:262: note: Perhaps you meant "typing.Any" instead of "any"?
+headsetcontrol_tray/ui/equalizer_editor_widget.py:342: error: Argument 1 to "index" of "list" has incompatible type "QObject"; expected "QSlider"  [arg-type]
+headsetcontrol_tray/ui/system_tray_icon.py:556: error: Function "builtins.any" is not valid as a type  [valid-type]
+headsetcontrol_tray/ui/system_tray_icon.py:556: note: Perhaps you meant "typing.Any" instead of "any"?
+headsetcontrol_tray/ui/system_tray_icon.py:571: error: Argument 1 to "set_eq_values" of "HeadsetService" has incompatible type "list[int]"; expected "list[float]"  [arg-type]
+headsetcontrol_tray/ui/system_tray_icon.py:571: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+headsetcontrol_tray/ui/system_tray_icon.py:571: note: Consider using "Sequence" instead, which is covariant
+headsetcontrol_tray/__main__.py:3: error: Skipping analyzing "verboselogs": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Cannot find implementation or library stub for module named "headset_service"  [import-not-found]
+headsetcontrol_tray/tests/test_headset_service.py:13: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Name "HeadsetService" already defined (possibly by an import)  [no-redef]
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Name "UDEV_RULE_CONTENT" already defined (possibly by an import)  [no-redef]
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Name "UDEV_RULE_FILENAME" already defined (possibly by an import)  [no-redef]
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Name "STEELSERIES_VID" already defined (possibly by an import)  [no-redef]
+headsetcontrol_tray/tests/test_headset_service.py:13: error: Name "TARGET_PIDS" already defined (possibly by an import)  [no-redef]
+Found 36 errors in 6 files (checked 14 source files)

@@ -48,7 +48,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_dialog_instance = MockQMessageBoxClass.return_value
 
-        close_button_mock = MagicMock(spec=QMessageBox.StandardButton)
+        # close_button_mock was unused
         added_buttons_initial = []
         def side_effect_add_button_initial(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
@@ -71,7 +71,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             mock_dialog_instance.clickedButton.return_value = found_close_button
         mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
 
-        tray_app_instance = SteelSeriesTrayApp()
+        SteelSeriesTrayApp() # Constructor called for side effects
 
         MockQMessageBoxClass.assert_called_once()
         mock_dialog_instance.exec.assert_called_once()
@@ -96,7 +96,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_service_instance.is_device_connected = Mock(return_value=True) # Or False, shouldn't matter if details are None
         mock_service_instance.close = Mock()
 
-        tray_app_instance = SteelSeriesTrayApp()
+        SteelSeriesTrayApp() # Constructor called for side effects
         MockQMessageBoxClass.assert_not_called()
 
     def run_pkexec_test_flow(self, mock_subprocess_run, mock_os_path_exists, MockQMessageBoxClass, MockHeadsetService, MockSystemTrayIcon,
@@ -113,7 +113,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_initial_dialog_instance = MockQMessageBoxClass.return_value
 
         auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
-        added_buttons = []
+        # added_buttons was unused
         def side_effect_add_button(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
             button.text = str(text_or_button)
@@ -133,7 +133,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         MockQMessageBoxClass.reset_mock()
         mock_feedback_dialog_instance = MockQMessageBoxClass.return_value
 
-        tray_app_instance = SteelSeriesTrayApp()
+        SteelSeriesTrayApp() # Constructor called for side effects
 
         mock_subprocess_run.assert_called_once()
         cmd_called = mock_subprocess_run.call_args[0][0]
@@ -224,14 +224,16 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
         def side_effect_add_button_script_not_found(text_or_button, role=None):
             button = MagicMock(spec=QMessageBox.StandardButton)
-            if role == QMessageBox.AcceptRole: nonlocal auto_button_mock; auto_button_mock = button
+            if role == QMessageBox.AcceptRole:
+                nonlocal auto_button_mock
+                auto_button_mock = button
             return button
         mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
         mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
 
         MockQMessageBoxClass.reset_mock()
 
-        tray_app_instance = SteelSeriesTrayApp()
+        SteelSeriesTrayApp() # Constructor called for side effects
 
         mock_subprocess_run.assert_not_called()
         MockQMessageBoxClass.critical.assert_called_once()

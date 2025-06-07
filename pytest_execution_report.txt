@@ -1,0 +1,1348 @@
+--- Command: /home/jules/.local/bin/uv run pytest ---
+Return Code: 1
+----- Stdout -----
+============================= test session starts ==============================
+platform linux -- Python 3.10.17, pytest-8.4.0, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: cov-6.1.1
+collected 12 items
+
+headsetcontrol_tray/tests/test_app.py FFFFFFF                            [ 58%]
+headsetcontrol_tray/tests/test_headset_service.py ..FFF                  [100%]
+
+=================================== FAILURES ===================================
+_ TestSteelSeriesTrayAppUdevDialog.test_initial_dialog_not_shown_when_details_absent _
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_initial_dialog_not_shown_when_details_absent>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139938654518576'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139938652570528'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139938654322160'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    def test_initial_dialog_not_shown_when_details_absent(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance.udev_setup_details = None
+        mock_service_instance.is_device_connected = Mock(return_value=True) # Or False, shouldn't matter if details are None
+        mock_service_instance.close = Mock()
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:99:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f4601c71fc0>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+----------------------------- Captured stderr call -----------------------------
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms" ...
+qt.core.plugin.factoryloader: looking at "libqvnc.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqvnc.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "vnc"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QVncIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("vnc")
+qt.core.plugin.factoryloader: looking at "libqwayland-egl.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqwayland-egl.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "wayland-egl"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QWaylandEglPlatformIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("wayland-egl")
+qt.core.plugin.factoryloader: looking at "libqwayland-generic.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqwayland-generic.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "wayland"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QWaylandIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("wayland")
+qt.core.plugin.factoryloader: looking at "libqminimal.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqminimal.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "minimal"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QMinimalIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("minimal")
+qt.core.plugin.factoryloader: looking at "libqoffscreen.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "offscreen"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QOffscreenIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("offscreen")
+qt.core.plugin.factoryloader: looking at "libqxcb.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqxcb.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "xcb"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QXcbIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("xcb")
+qt.core.plugin.factoryloader: looking at "libqvkkhrdisplay.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqvkkhrdisplay.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "vkkhrdisplay"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QVkKhrDisplayIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("vkkhrdisplay")
+qt.core.plugin.factoryloader: looking at "libqminimalegl.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqminimalegl.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "minimalegl"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QMinimalEglIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("minimalegl")
+qt.core.plugin.factoryloader: looking at "libqeglfs.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqeglfs.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "eglfs"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QEglFSIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("eglfs")
+qt.core.plugin.factoryloader: looking at "libqlinuxfb.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqlinuxfb.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "linuxfb"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QLinuxFbIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("linuxfb")
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/platforms" ...
+qt.core.library: "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so" loaded library
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes" ...
+qt.core.plugin.factoryloader: looking at "libqgtk3.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes/libqgtk3.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformThemeFactoryInterface.5.1",
+    "MetaData": {
+        "Keys": [
+            "gtk3"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QGtk3ThemePlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("gtk3")
+qt.core.plugin.factoryloader: looking at "libqxdgdesktopportal.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes/libqxdgdesktopportal.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformThemeFactoryInterface.5.1",
+    "MetaData": {
+        "Keys": [
+            "xdgdesktopportal",
+            "flatpak",
+            "snap"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QXdgDesktopPortalThemePlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("xdgdesktopportal", "flatpak", "snap")
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/platformthemes" ...
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/styles" ...
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/styles" ...
+_ TestSteelSeriesTrayAppUdevDialog.test_initial_dialog_shown_when_details_present _
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_initial_dialog_shown_when_details_present>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139938652265328'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139938652412928'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139938651322448'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    def test_initial_dialog_shown_when_details_present(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
+        mock_service_instance.udev_setup_details = self.sample_details
+        # is_device_connected would likely be false if udev_setup_details is populated due to connection failure
+        mock_service_instance.is_device_connected = Mock(return_value=False)
+        mock_service_instance.close = Mock()
+
+        mock_dialog_instance = MockQMessageBoxClass.return_value
+
+        # close_button_mock was unused
+        added_buttons_initial = []
+        def side_effect_add_button_initial(text_or_button, role=None):
+            button = MagicMock(spec=QMessageBox.StandardButton)
+            if isinstance(text_or_button, QMessageBox.StandardButton):
+                 button.standard_button_enum = text_or_button
+            else:
+                button.text = text_or_button
+            added_buttons_initial.append({"button": button, "role": role, "text_or_enum": text_or_button})
+            return button
+        mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
+
+        def set_clicked_button_to_close_equivalent(*args, **kwargs):
+            found_close_button = None
+            for b_info in added_buttons_initial:
+                if b_info.get("text_or_enum") == QMessageBox.Close:
+                    found_close_button = b_info["button"]
+                    break
+            if not found_close_button:
+                 found_close_button = MagicMock(spec=QMessageBox.StandardButton)
+            mock_dialog_instance.clickedButton.return_value = found_close_button
+        mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:74:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f46019de470>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_________ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_auth_error _________
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_auth_error>
+m_run = <MagicMock name='run' id='139938651565136'>
+m_exists = <MagicMock name='exists' id='139938654264080'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139938651797824'>
+MHsvc = <MagicMock name='HeadsetService' id='139938651786688'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139938652030096'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_auth_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+        stderr_msg = "Authorization failed (polkit)"
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=127, pkexec_stdout="", pkexec_stderr=stderr_msg,
+                                  expected_icon=QMessageBox.Critical,
+                                  expected_title="Authorization Error",
+                                  expected_text="Failed to install udev rules due to an authorization error.",
+                                  expected_informative_text_contains=[stderr_msg, "Please ensure you have privileges"])
+
+headsetcontrol_tray/tests/test_app.py:189:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f46019bd4e0>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+________ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_script_error ________
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_script_error>
+m_run = <MagicMock name='run' id='139938651806624'>
+m_exists = <MagicMock name='exists' id='139938651809792'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139938651438912'>
+MHsvc = <MagicMock name='HeadsetService' id='139938651966336'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139938652028640'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_script_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+        stderr_msg = "Helper script failed: cp error"
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=4, pkexec_stdout="", pkexec_stderr=stderr_msg,
+                                  expected_icon=QMessageBox.Critical,
+                                  expected_title="Installation Failed",
+                                  expected_text="The udev rule installation script failed.",
+                                  expected_informative_text_contains=[f"Error (code 4): {stderr_msg}", "Please check the output"])
+
+headsetcontrol_tray/tests/test_app.py:203:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f4601a14970>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+____ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_success_and_feedback ____
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_success_and_feedback>
+m_run = <MagicMock name='run' id='139938651437472'>
+m_exists = <MagicMock name='exists' id='139938654518336'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139938651794368'>
+MHsvc = <MagicMock name='HeadsetService' id='139938651569648'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139938654260000'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=0, pkexec_stdout="Success", pkexec_stderr="",
+                                  expected_icon=QMessageBox.Information,
+                                  expected_title="Success",
+                                  expected_text="Udev rules installed successfully.",
+                                  expected_informative_text_contains="Please replug your headset")
+
+headsetcontrol_tray/tests/test_app.py:162:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f460186c220>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_______ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_user_cancelled _______
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_user_cancelled>
+m_run = <MagicMock name='run' id='139938652419264'>
+m_exists = <MagicMock name='exists' id='139938652023696'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139938649975360'>
+MHsvc = <MagicMock name='HeadsetService' id='139938649967632'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139938650054688'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_user_cancelled(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=126, pkexec_stdout="", pkexec_stderr="User cancelled",
+                                  expected_icon=QMessageBox.Warning,
+                                  expected_title="Authentication Cancelled",
+                                  expected_text="Udev rule installation was cancelled.",
+                                  expected_informative_text_contains="Authentication was not provided")
+
+headsetcontrol_tray/tests/test_app.py:175:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f46018c7c40>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_____ TestSteelSeriesTrayAppUdevDialog.test_pkexec_helper_script_not_found _____
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_helper_script_not_found>
+mock_subprocess_run = <MagicMock name='run' id='139938650111424'>
+mock_os_path_exists = <MagicMock name='exists' id='139938650098176'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139938650423152'>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139938650135504'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139938650141696'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_helper_script_not_found(self, mock_subprocess_run, mock_os_path_exists, MockQMessageBoxClass, MockHeadsetService, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance.udev_setup_details = self.sample_details
+        mock_service_instance.is_device_connected = Mock(return_value=False) # Consistent with details being present
+        mock_service_instance.close = Mock()
+
+        mock_os_path_exists.return_value = False
+
+        mock_initial_dialog_instance = MockQMessageBoxClass.return_value
+        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
+        def side_effect_add_button_script_not_found(text_or_button, role=None):
+            button = MagicMock(spec=QMessageBox.StandardButton)
+            if role == QMessageBox.AcceptRole:
+                nonlocal auto_button_mock
+                auto_button_mock = button
+            return button
+        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
+        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
+
+        MockQMessageBoxClass.reset_mock()
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:236:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f46018f1ab0>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_enumerate_empty_calls_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_enumerate_empty_calls_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139938650693136'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139938650815552'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
+    def test_connect_device_enumerate_empty_calls_create_rules(self, mock_create_rules, mock_hid_enumerate):
+        # Simulate hid.enumerate finding no devices
+        mock_hid_enumerate.return_value = []
+
+        service = HeadsetService() # __init__ calls _connect_hid_device
+
+        self.assertIsNone(service.hid_device) # Should not have connected
+>       mock_create_rules.assert_called_once() # Key assertion: _create_udev_rules was called
+
+headsetcontrol_tray/tests/test_headset_service.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='_create_udev_rules' id='139938650693136'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected '_create_udev_rules' to have been called once. Called 0 times.
+
+/usr/lib/python3.10/unittest/mock.py:908: AssertionError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_fails_all_attempts_calls_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_fails_all_attempts_calls_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139938650804704'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139938650763040'>
+mock_hid_device_class = <MagicMock name='Device' id='139938650755984'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.Device')
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
+    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+        # Simulate hid.enumerate finding one or more potential devices
+        mock_hid_enumerate.return_value = [
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0},
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path2', 'interface_number': 3}
+        ]
+        # Simulate hid.Device constructor failing (raising an exception) for any path
+        mock_hid_device_class.side_effect = Exception("Failed to open HID device")
+
+>       service = HeadsetService() # __init__ calls _connect_hid_device
+
+headsetcontrol_tray/tests/test_headset_service.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/headset_service.py:107: in __init__
+    self._connect_hid_device()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.headset_service.HeadsetService object at 0x7f4601925210>
+
+    def _connect_hid_device(self) -> bool:
+        """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # Udev check removed from here
+
+        if self.hid_device:
+            logger.debug("_connect_hid_device: Already connected.")
+            return True
+
+        logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
+        try:
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
+            logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
+        except Exception as e_enum:
+            logger.error(f"Error enumerating HID devices: {e_enum}")
+            devices_enum = []
+
+        potential_devices_to_try = []
+        for dev_info in devices_enum:
+>           logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info['release_number']:04x}, "
+                         f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
+                         f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
+                         f"Product='{dev_info.get('product_string', 'N/A')}'")
+E           KeyError: 'release_number'
+
+headsetcontrol_tray/headset_service.py:168: KeyError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_success_does_not_call_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_success_does_not_call_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139938649159808'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139938649151120'>
+mock_hid_device_class = <MagicMock name='Device' id='139938650723504'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.Device')
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True)
+    def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+        # Simulate hid.enumerate finding a device
+        mock_hid_enumerate.return_value = [
+             {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0}
+        ]
+        # Simulate hid.Device succeeding
+        mock_hid_device_instance = Mock()
+        mock_hid_device_class.return_value = mock_hid_device_instance
+
+>       service = HeadsetService()
+
+headsetcontrol_tray/tests/test_headset_service.py:103:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/headset_service.py:107: in __init__
+    self._connect_hid_device()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.headset_service.HeadsetService object at 0x7f4601913f40>
+
+    def _connect_hid_device(self) -> bool:
+        """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # Udev check removed from here
+
+        if self.hid_device:
+            logger.debug("_connect_hid_device: Already connected.")
+            return True
+
+        logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
+        try:
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
+            logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
+        except Exception as e_enum:
+            logger.error(f"Error enumerating HID devices: {e_enum}")
+            devices_enum = []
+
+        potential_devices_to_try = []
+        for dev_info in devices_enum:
+>           logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info['release_number']:04x}, "
+                         f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
+                         f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
+                         f"Product='{dev_info.get('product_string', 'N/A')}'")
+E           KeyError: 'release_number'
+
+headsetcontrol_tray/headset_service.py:168: KeyError
+=========================== short test summary info ============================
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_initial_dialog_not_shown_when_details_absent
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_initial_dialog_shown_when_details_present
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_auth_error
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_script_error
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_success_and_feedback
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_user_cancelled
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_helper_script_not_found
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_enumerate_empty_calls_create_rules
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_fails_all_attempts_calls_create_rules
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_success_does_not_call_create_rules
+========================= 10 failed, 2 passed in 0.67s =========================
+----- Stderr -----
+"/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so" unloaded library
+
+--- Command: /home/jules/.local/bin/uv run pytest --cov=headsetcontrol_tray ---
+Return Code: 1
+----- Stdout -----
+============================= test session starts ==============================
+platform linux -- Python 3.10.17, pytest-8.4.0, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: cov-6.1.1
+collected 12 items
+
+headsetcontrol_tray/tests/test_app.py FFFFFFF                            [ 58%]
+headsetcontrol_tray/tests/test_headset_service.py ..FFF                  [100%]
+
+=================================== FAILURES ===================================
+_ TestSteelSeriesTrayAppUdevDialog.test_initial_dialog_not_shown_when_details_absent _
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_initial_dialog_not_shown_when_details_absent>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139651795131776'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139651795139840'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139651795852288'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    def test_initial_dialog_not_shown_when_details_absent(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance.udev_setup_details = None
+        mock_service_instance.is_device_connected = Mock(return_value=True) # Or False, shouldn't matter if details are None
+        mock_service_instance.close = Mock()
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:99:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f0337af99f0>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+----------------------------- Captured stderr call -----------------------------
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms" ...
+qt.core.plugin.factoryloader: looking at "libqvnc.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqvnc.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "vnc"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QVncIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("vnc")
+qt.core.plugin.factoryloader: looking at "libqwayland-egl.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqwayland-egl.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "wayland-egl"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QWaylandEglPlatformIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("wayland-egl")
+qt.core.plugin.factoryloader: looking at "libqwayland-generic.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqwayland-generic.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "wayland"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QWaylandIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("wayland")
+qt.core.plugin.factoryloader: looking at "libqminimal.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqminimal.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "minimal"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QMinimalIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("minimal")
+qt.core.plugin.factoryloader: looking at "libqoffscreen.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "offscreen"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QOffscreenIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("offscreen")
+qt.core.plugin.factoryloader: looking at "libqxcb.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqxcb.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "xcb"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QXcbIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("xcb")
+qt.core.plugin.factoryloader: looking at "libqvkkhrdisplay.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqvkkhrdisplay.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "vkkhrdisplay"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QVkKhrDisplayIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("vkkhrdisplay")
+qt.core.plugin.factoryloader: looking at "libqminimalegl.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqminimalegl.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "minimalegl"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QMinimalEglIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("minimalegl")
+qt.core.plugin.factoryloader: looking at "libqeglfs.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqeglfs.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "eglfs"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QEglFSIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("eglfs")
+qt.core.plugin.factoryloader: looking at "libqlinuxfb.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqlinuxfb.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "linuxfb"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QLinuxFbIntegrationPlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("linuxfb")
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/platforms" ...
+qt.core.library: "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so" loaded library
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes" ...
+qt.core.plugin.factoryloader: looking at "libqgtk3.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes/libqgtk3.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformThemeFactoryInterface.5.1",
+    "MetaData": {
+        "Keys": [
+            "gtk3"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QGtk3ThemePlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("gtk3")
+qt.core.plugin.factoryloader: looking at "libqxdgdesktopportal.so"
+qt.core.plugin.loader: Found metadata in lib /app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platformthemes/libqxdgdesktopportal.so, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformThemeFactoryInterface.5.1",
+    "MetaData": {
+        "Keys": [
+            "xdgdesktopportal",
+            "flatpak",
+            "snap"
+        ]
+    },
+    "archlevel": 1,
+    "className": "QXdgDesktopPortalThemePlugin",
+    "debug": false,
+    "version": 395520
+}
+
+
+qt.core.plugin.factoryloader: Got keys from plugin meta data QList("xdgdesktopportal", "flatpak", "snap")
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/platformthemes" ...
+qt.core.plugin.factoryloader: checking directory path "/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/styles" ...
+qt.core.plugin.factoryloader: checking directory path "/usr/bin/styles" ...
+_ TestSteelSeriesTrayAppUdevDialog.test_initial_dialog_shown_when_details_present _
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_initial_dialog_shown_when_details_present>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139651793965920'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139651793970000'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139651795887216'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    def test_initial_dialog_shown_when_details_present(self, MockHeadsetService, MockQMessageBoxClass, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
+        mock_service_instance.udev_setup_details = self.sample_details
+        # is_device_connected would likely be false if udev_setup_details is populated due to connection failure
+        mock_service_instance.is_device_connected = Mock(return_value=False)
+        mock_service_instance.close = Mock()
+
+        mock_dialog_instance = MockQMessageBoxClass.return_value
+
+        # close_button_mock was unused
+        added_buttons_initial = []
+        def side_effect_add_button_initial(text_or_button, role=None):
+            button = MagicMock(spec=QMessageBox.StandardButton)
+            if isinstance(text_or_button, QMessageBox.StandardButton):
+                 button.standard_button_enum = text_or_button
+            else:
+                button.text = text_or_button
+            added_buttons_initial.append({"button": button, "role": role, "text_or_enum": text_or_button})
+            return button
+        mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
+
+        def set_clicked_button_to_close_equivalent(*args, **kwargs):
+            found_close_button = None
+            for b_info in added_buttons_initial:
+                if b_info.get("text_or_enum") == QMessageBox.Close:
+                    found_close_button = b_info["button"]
+                    break
+            if not found_close_button:
+                 found_close_button = MagicMock(spec=QMessageBox.StandardButton)
+            mock_dialog_instance.clickedButton.return_value = found_close_button
+        mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:74:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f03379a3a00>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_________ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_auth_error _________
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_auth_error>
+m_run = <MagicMock name='run' id='139651794582640'>
+m_exists = <MagicMock name='exists' id='139651794568528'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139651794484480'>
+MHsvc = <MagicMock name='HeadsetService' id='139651794368736'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139651794475600'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_auth_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+        stderr_msg = "Authorization failed (polkit)"
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=127, pkexec_stdout="", pkexec_stderr=stderr_msg,
+                                  expected_icon=QMessageBox.Critical,
+                                  expected_title="Authorization Error",
+                                  expected_text="Failed to install udev rules due to an authorization error.",
+                                  expected_informative_text_contains=[stderr_msg, "Please ensure you have privileges"])
+
+headsetcontrol_tray/tests/test_app.py:189:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f033792cc40>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+________ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_script_error ________
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_script_error>
+m_run = <MagicMock name='run' id='139651793975904'>
+m_exists = <MagicMock name='exists' id='139651793974464'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139651794895632'>
+MHsvc = <MagicMock name='HeadsetService' id='139651794903504'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139651794878576'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_script_error(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+        stderr_msg = "Helper script failed: cp error"
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=4, pkexec_stdout="", pkexec_stderr=stderr_msg,
+                                  expected_icon=QMessageBox.Critical,
+                                  expected_title="Installation Failed",
+                                  expected_text="The udev rule installation script failed.",
+                                  expected_informative_text_contains=[f"Error (code 4): {stderr_msg}", "Please check the output"])
+
+headsetcontrol_tray/tests/test_app.py:203:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f03379e9b70>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+____ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_success_and_feedback ____
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_success_and_feedback>
+m_run = <MagicMock name='run' id='139651794583120'>
+m_exists = <MagicMock name='exists' id='139651794472768'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139651794837632'>
+MHsvc = <MagicMock name='HeadsetService' id='139651794829616'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139651794770752'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_success_and_feedback(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=0, pkexec_stdout="Success", pkexec_stderr="",
+                                  expected_icon=QMessageBox.Information,
+                                  expected_title="Success",
+                                  expected_text="Udev rules installed successfully.",
+                                  expected_informative_text_contains="Please replug your headset")
+
+headsetcontrol_tray/tests/test_app.py:162:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f0337a02e00>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_______ TestSteelSeriesTrayAppUdevDialog.test_pkexec_flow_user_cancelled _______
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_flow_user_cancelled>
+m_run = <MagicMock name='run' id='139651794785024'>
+m_exists = <MagicMock name='exists' id='139651794789632'>
+MQMsgBox = <MagicMock name='QMessageBox' id='139651794869488'>
+MHsvc = <MagicMock name='HeadsetService' id='139651794873232'>
+MSTIcon = <MagicMock name='SystemTrayIcon' id='139651794423040'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_flow_user_cancelled(self, m_run, m_exists, MQMsgBox, MHsvc, MSTIcon):
+>       self.run_pkexec_test_flow(m_run, m_exists, MQMsgBox, MHsvc, MSTIcon,
+                                  pkexec_returncode=126, pkexec_stdout="", pkexec_stderr="User cancelled",
+                                  expected_icon=QMessageBox.Warning,
+                                  expected_title="Authentication Cancelled",
+                                  expected_text="Udev rule installation was cancelled.",
+                                  expected_informative_text_contains="Authentication was not provided")
+
+headsetcontrol_tray/tests/test_app.py:175:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/tests/test_app.py:136: in run_pkexec_test_flow
+    SteelSeriesTrayApp() # Constructor called for side effects
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f033798c790>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_____ TestSteelSeriesTrayAppUdevDialog.test_pkexec_helper_script_not_found _____
+
+self = <headsetcontrol_tray.tests.test_app.TestSteelSeriesTrayAppUdevDialog testMethod=test_pkexec_helper_script_not_found>
+mock_subprocess_run = <MagicMock name='run' id='139651794821440'>
+mock_os_path_exists = <MagicMock name='exists' id='139651794820480'>
+MockQMessageBoxClass = <MagicMock name='QMessageBox' id='139651794851088'>
+MockHeadsetService = <MagicMock name='HeadsetService' id='139651794855984'>
+MockSystemTrayIcon = <MagicMock name='SystemTrayIcon' id='139651794388400'>
+
+    @patch('headsetcontrol_tray.app.sti.SystemTrayIcon')
+    @patch('headsetcontrol_tray.app.hs_svc.HeadsetService')
+    @patch('headsetcontrol_tray.app.QMessageBox')
+    @patch('headsetcontrol_tray.app.os.path.exists')
+    @patch('headsetcontrol_tray.app.subprocess.run')
+    def test_pkexec_helper_script_not_found(self, mock_subprocess_run, mock_os_path_exists, MockQMessageBoxClass, MockHeadsetService, MockSystemTrayIcon):
+        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance.udev_setup_details = self.sample_details
+        mock_service_instance.is_device_connected = Mock(return_value=False) # Consistent with details being present
+        mock_service_instance.close = Mock()
+
+        mock_os_path_exists.return_value = False
+
+        mock_initial_dialog_instance = MockQMessageBoxClass.return_value
+        auto_button_mock = MagicMock(spec=QMessageBox.StandardButton)
+        def side_effect_add_button_script_not_found(text_or_button, role=None):
+            button = MagicMock(spec=QMessageBox.StandardButton)
+            if role == QMessageBox.AcceptRole:
+                nonlocal auto_button_mock
+                auto_button_mock = button
+            return button
+        mock_initial_dialog_instance.addButton.side_effect = side_effect_add_button_script_not_found
+        mock_initial_dialog_instance.clickedButton.return_value = auto_button_mock
+
+        MockQMessageBoxClass.reset_mock()
+
+>       SteelSeriesTrayApp() # Constructor called for side effects
+
+headsetcontrol_tray/tests/test_app.py:236:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.app.SteelSeriesTrayApp object at 0x7f0337a02f50>
+
+    def __init__(self):
+        logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
+>       self.qt_app = QApplication(sys.argv)
+E       RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
+
+headsetcontrol_tray/app.py:30: RuntimeError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_enumerate_empty_calls_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_enumerate_empty_calls_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139651794826144'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139651793377872'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
+    def test_connect_device_enumerate_empty_calls_create_rules(self, mock_create_rules, mock_hid_enumerate):
+        # Simulate hid.enumerate finding no devices
+        mock_hid_enumerate.return_value = []
+
+        service = HeadsetService() # __init__ calls _connect_hid_device
+
+        self.assertIsNone(service.hid_device) # Should not have connected
+>       mock_create_rules.assert_called_once() # Key assertion: _create_udev_rules was called
+
+headsetcontrol_tray/tests/test_headset_service.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='_create_udev_rules' id='139651794826144'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected '_create_udev_rules' to have been called once. Called 0 times.
+
+/usr/lib/python3.10/unittest/mock.py:908: AssertionError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_fails_all_attempts_calls_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_fails_all_attempts_calls_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139651793337360'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139651793323872'>
+mock_hid_device_class = <MagicMock name='Device' id='139651793353120'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.Device')
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True) # Mock _create_udev_rules
+    def test_connect_device_fails_all_attempts_calls_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+        # Simulate hid.enumerate finding one or more potential devices
+        mock_hid_enumerate.return_value = [
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0},
+            {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path2', 'interface_number': 3}
+        ]
+        # Simulate hid.Device constructor failing (raising an exception) for any path
+        mock_hid_device_class.side_effect = Exception("Failed to open HID device")
+
+>       service = HeadsetService() # __init__ calls _connect_hid_device
+
+headsetcontrol_tray/tests/test_headset_service.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/headset_service.py:107: in __init__
+    self._connect_hid_device()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.headset_service.HeadsetService object at 0x7f033788bbb0>
+
+    def _connect_hid_device(self) -> bool:
+        """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # Udev check removed from here
+
+        if self.hid_device:
+            logger.debug("_connect_hid_device: Already connected.")
+            return True
+
+        logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
+        try:
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
+            logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
+        except Exception as e_enum:
+            logger.error(f"Error enumerating HID devices: {e_enum}")
+            devices_enum = []
+
+        potential_devices_to_try = []
+        for dev_info in devices_enum:
+>           logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info['release_number']:04x}, "
+                         f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
+                         f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
+                         f"Product='{dev_info.get('product_string', 'N/A')}'")
+E           KeyError: 'release_number'
+
+headsetcontrol_tray/headset_service.py:168: KeyError
+_ TestHeadsetServiceConnectionFailure.test_connect_device_success_does_not_call_create_rules _
+
+self = <headsetcontrol_tray.tests.test_headset_service.TestHeadsetServiceConnectionFailure testMethod=test_connect_device_success_does_not_call_create_rules>
+mock_create_rules = <MagicMock name='_create_udev_rules' id='139651794614880'>
+mock_hid_enumerate = <MagicMock name='enumerate' id='139651793448736'>
+mock_hid_device_class = <MagicMock name='Device' id='139651793447872'>
+
+    @patch('headsetcontrol_tray.headset_service.hid.Device')
+    @patch('headsetcontrol_tray.headset_service.hid.enumerate')
+    @patch.object(HeadsetService, '_create_udev_rules', return_value=True)
+    def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_enumerate, mock_hid_device_class):
+        # Simulate hid.enumerate finding a device
+        mock_hid_enumerate.return_value = [
+             {'vendor_id': STEELSERIES_VID, 'product_id': TARGET_PIDS[0], 'path': b'path1', 'interface_number': 0}
+        ]
+        # Simulate hid.Device succeeding
+        mock_hid_device_instance = Mock()
+        mock_hid_device_class.return_value = mock_hid_device_instance
+
+>       service = HeadsetService()
+
+headsetcontrol_tray/tests/test_headset_service.py:103:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+headsetcontrol_tray/headset_service.py:107: in __init__
+    self._connect_hid_device()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <headsetcontrol_tray.headset_service.HeadsetService object at 0x7f03378a1c00>
+
+    def _connect_hid_device(self) -> bool:
+        """Attempts to connect to the headset via HID by trying suitable interfaces."""
+        # Udev check removed from here
+
+        if self.hid_device:
+            logger.debug("_connect_hid_device: Already connected.")
+            return True
+
+        logger.debug(f"_connect_hid_device: Trying to connect. Target PIDs: {app_config.TARGET_PIDS}")
+        try:
+            devices_enum = hid.enumerate(STEELSERIES_VID, 0) # Use imported STEELSERIES_VID
+            logger.debug(f"Found {len(devices_enum)} SteelSeries VID devices during enumeration.")
+        except Exception as e_enum:
+            logger.error(f"Error enumerating HID devices: {e_enum}")
+            devices_enum = []
+
+        potential_devices_to_try = []
+        for dev_info in devices_enum:
+>           logger.debug(f"  Enumerated device: PID=0x{dev_info['product_id']:04x}, Release=0x{dev_info['release_number']:04x}, "
+                         f"Interface={dev_info.get('interface_number', 'N/A')}, UsagePage=0x{dev_info.get('usage_page', 0):04x}, "
+                         f"Usage=0x{dev_info.get('usage', 0):04x}, Path={dev_info['path'].decode('utf-8', errors='replace')}, "
+                         f"Product='{dev_info.get('product_string', 'N/A')}'")
+E           KeyError: 'release_number'
+
+headsetcontrol_tray/headset_service.py:168: KeyError
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.10.17-final-0 _______________
+
+Name                                                Stmts   Miss  Cover
+-----------------------------------------------------------------------
+headsetcontrol_tray/__init__.py                         0      0   100%
+headsetcontrol_tray/__main__.py                        11     11     0%
+headsetcontrol_tray/app.py                            110     90    18%
+headsetcontrol_tray/app_config.py                      43      0   100%
+headsetcontrol_tray/config_manager.py                  75     50    33%
+headsetcontrol_tray/headset_service.py                679    581    14%
+headsetcontrol_tray/tests/__init__.py                   0      0   100%
+headsetcontrol_tray/tests/test_app.py                 164     58    65%
+headsetcontrol_tray/tests/test_headset_service.py      65      9    86%
+headsetcontrol_tray/ui/__init__.py                      0      0   100%
+headsetcontrol_tray/ui/chatmix_manager.py             125    113    10%
+headsetcontrol_tray/ui/equalizer_editor_widget.py     357    326     9%
+headsetcontrol_tray/ui/settings_dialog.py             155    134    14%
+headsetcontrol_tray/ui/system_tray_icon.py            452    418     8%
+-----------------------------------------------------------------------
+TOTAL                                                2236   1790    20%
+=========================== short test summary info ============================
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_initial_dialog_not_shown_when_details_absent
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_initial_dialog_shown_when_details_present
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_auth_error
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_script_error
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_success_and_feedback
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_flow_user_cancelled
+FAILED headsetcontrol_tray/tests/test_app.py::TestSteelSeriesTrayAppUdevDialog::test_pkexec_helper_script_not_found
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_enumerate_empty_calls_create_rules
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_fails_all_attempts_calls_create_rules
+FAILED headsetcontrol_tray/tests/test_headset_service.py::TestHeadsetServiceConnectionFailure::test_connect_device_success_does_not_call_create_rules
+========================= 10 failed, 2 passed in 1.29s =========================
+----- Stderr -----
+"/app/.venv/lib/python3.10/site-packages/PySide6/Qt/plugins/platforms/libqoffscreen.so" unloaded library
