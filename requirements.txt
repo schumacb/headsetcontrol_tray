@@ -78,7 +78,7 @@ tomli==2.2.1
 tomlkit==0.13.2
 tornado==6.4.2
 tox==4.25.0
-trove-classifiers==2025.5.1.12
+trove-classifiers==2025.5.9.12
 typing_extensions==4.13.2
 unattended-upgrades==0.1
 urllib3==2.4.0
