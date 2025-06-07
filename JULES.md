@@ -1,65 +1,113 @@
-
 # JULES.md - Python Project Rules for LLM Agents
 
-This document outlines a set of general, project-agnostic rules and guidelines for an LLM agent (like Jules) when working on Python software development tasks. The goal is to ensure clarity, quality, safety, and effective collaboration.
+This document outlines rules and guidelines for an LLM agent (like Jules) when working on Python software development tasks. It's designed to be project-agnostic in its core directives but includes a section for project-specific setup.
 
-## Core Principles
+## 1. Project-Specific Configuration & Setup
+
+**Instructions for User:** Please fill in the commands and specific details for the current project in the placeholders below (e.g., `[TODO: ...]` ).
+
+*   **Dependency Management:**
+    *   Command to install/sync dependencies: `[TODO: e.g., uv pip sync --all-extras]`
+    *   Key dependency files: `[TODO: e.g., pyproject.toml, requirements.txt]`
+*   **Linting & Static Analysis:**
+    *   Command to run linters (e.g., Flake8, Ruff): `[TODO: e.g., flake8 . or ruff check .]`
+    *   Command to run static type checker (e.g., MyPy): `[TODO: e.g., mypy .]`
+    *   Are there specific configuration files for these tools? `[TODO: e.g., .flake8, ruff.toml, mypy.ini]`
+*   **Testing:**
+    *   Command to run all tests: `[TODO: e.g., pytest]`
+    *   Command to run specific tests: `[TODO: e.g., pytest path/to/test_file.py::test_name]`
+    *   Testing framework used: `[TODO: e.g., pytest, unittest]`
+    *   Are there specific test coverage requirements or tools? `[TODO: e.g., pytest-cov]`
+*   **Running the Project (if applicable):**
+    *   Command to run the main application/service: `[TODO: e.g., python -m package.module or specific run script]`
+*   **Project Style Guide (if distinct from general PEP8):**
+    *   Link to or summary of project-specific style nuances: `[TODO: if any]`
+
+---
+
+## 2. Core LLM Agent Directives
+
+These are primary rules to follow for all tasks.
+
+1.  **Focused Changes (Minimal Diff):**
+    *   Only implement changes directly required by the user's request.
+    *   Do **not** perform opportunistic refactoring or optimization of unrelated code. The goal is to keep diffs minimal, focused, and easy to review.
+    *   If unrelated issues or potential improvements are identified, mention them as recommendations (with priority/value if possible) rather than implementing them directly.
+
+2.  **Scoped Analysis & Modification:**
+    *   When performing linting, static code analysis, or applying fixes based on such tools, **only act on code written or directly modified by you (the AI agent) within the current task.**
+    *   Do **not** fix warnings or style issues in existing code that you did not change for the current task, unless explicitly requested by the user.
+    *   You may recommend addressing pre-existing issues in unchanged code separately.
+
+3.  **Documentation:**
+    *   **Docstrings:** Add or update clear, concise docstrings (PEP 257) for all new or modified public classes, methods, and functions. Explain purpose, arguments, and return values.
+    *   **Inline Comments:** Use inline comments sparingly. Only add them if they clarify complex or non-obvious logic that cannot be made clear by good naming and structure.
+    *   **No Meta-Comments:** Do **not** add comments that describe your changes (e.g., `# Added this import`, `# Refactored this loop`). Commit messages serve this purpose.
+
+4.  **README.md Updates:**
+    *   If your changes affect project setup, features, usage, or external dependencies, update `README.md` accordingly to reflect these changes accurately.
+
+5.  **Testing:**
+    *   **Write/Update Tests:** For new features or bug fixes, always write or update relevant unit tests.
+    *   **Testable Code:** Strive to write code that is inherently testable (e.g., favoring pure functions, clear interfaces, dependency injection where appropriate).
+    *   **Tests Must Pass:** Before committing or submitting changes, ensure all existing and newly added tests pass. If you cannot make them pass, report the issue.
+
+6.  **Adherence to Core Principles:**
+    *   **KISS (Keep It Simple, Stupid):** Favor simple, straightforward solutions over unnecessarily complex ones.
+    *   **SOLID:** Apply SOLID principles where appropriate to create maintainable and flexible object-oriented designs.
+
+---
+
+## 3. General LLM Agent Coding Principles
+
+These are broader guidelines for effective operation.
 
 1.  **Understand First, Then Act:**
-    *   **Clarify Ambiguity:** If a request is unclear, ambiguous, or seems to have conflicting requirements, explicitly ask for clarification before proceeding with implementation.
-    *   **Summarize Understanding:** For complex tasks, summarize your understanding of the requirements and the proposed approach before diving into detailed coding.
-    *   **Scope Confirmation:** Confirm the scope of changes. Ask if peripheral changes (e.g., extensive refactoring, dependency updates) are desired if not explicitly stated.
+    *   **Clarify Ambiguity:** If a request is unclear or ambiguous, explicitly ask for clarification.
+    *   **Summarize Understanding:** For complex tasks, summarize your understanding of requirements and your proposed approach before coding.
 
 2.  **Plan Systematically:**
-    *   **Break Down Tasks:** Decompose complex requests into smaller, manageable steps or subtasks.
-    *   **Outline Changes:** For non-trivial changes, outline the intended modifications (e.g., which files/functions will be affected, new components to be added).
-    *   **Seek Plan Approval:** Present the plan for user approval before executing major changes or creating multiple new files.
+    *   **Break Down Tasks:** Decompose complex requests into smaller, manageable steps.
+    *   **Outline Changes:** For non-trivial changes, outline intended modifications (files, functions, new components).
+    *   **Seek Plan Approval:** Present the plan for user approval before executing major changes.
 
-3.  **Code with Quality and Clarity:**
-    *   **Readability:** Write clean, readable, and maintainable Python code. Prioritize clarity even if it means slightly more verbose code in some cases.
-    *   **PEP 8 (General Adherence):** Strive to follow PEP 8 guidelines for code style (naming, layout, comments) as a general best practice, unless project-specific styles dictate otherwise.
-    *   **Modularity (SRP):** Design functions and classes with a single, well-defined responsibility. Favor creating small, focused, and reusable components.
-    *   **Type Hinting:** Utilize Python type hints for function signatures and important variables to improve code clarity and aid static analysis, where appropriate.
-    *   **Docstrings & Comments:** Write clear docstrings for public modules, classes, functions, and methods. Use inline comments to explain complex or non-obvious logic.
-    *   **Avoid Over-Engineering:** Implement solutions that meet the current requirements without adding unnecessary complexity or features not explicitly requested.
+3.  **Code Quality (General):**
+    *   **Readability:** Prioritize readable code through clear naming, logical structure, and appropriate use of whitespace.
+    *   **PEP 8 (Foundation):** Use PEP 8 as a baseline for Python code style, but defer to project-specific styles if defined in Section 1.
+    *   **Modularity:** Design functions and classes with well-defined responsibilities.
+    *   **Type Hinting:** Use Python type hints for function signatures and key variables.
+    *   **Avoid Over-Engineering:** Implement what is required; do not add features not explicitly requested.
 
 4.  **Utilize Tools Effectively and Honestly:**
-    *   **File System Operations:** Use provided tools (`ls`, `read_files`, `write_file`, etc.) for all interactions with the file system.
-    *   **Code Execution:** If execution tools are available, use them to test snippets or verify behavior.
-    *   **State Awareness:** Maintain awareness of the current state of the repository and files. Re-read files if unsure about their current content after modifications.
-    *   **No Hallucination:** Do not assume the existence of files, functions, or tool capabilities not explicitly listed or verified. If unsure, ask or use tools to check.
+    *   **Adhere to Provided Tools:** Use only the tools explicitly available in your environment.
+    *   **File System Operations:** Rely on provided tools (`ls`, `read_files`, `write_file`, etc.) for all file system interactions.
+    *   **State Awareness:** Re-read files if unsure about their current content after modifications or if a long time has passed.
+    *   **No Hallucination:** Do not assume files, functions, or tool capabilities not verified. Ask or use tools to check.
 
-5.  **Test Diligently:**
-    *   **Propose Tests:** For new features or bug fixes, propose and (if approved) write unit tests.
-    *   **Focus on Core Logic:** Tests should primarily cover core functionality, edge cases, and business logic.
-    *   **Testable Code:** Write code in a way that is amenable to unit testing (e.g., by avoiding tight coupling, using dependency injection where appropriate).
+5.  **Handle Errors Robustly:**
+    *   **Anticipate Failures:** Implement error handling for operations prone to failure.
+    *   **Specific Exceptions:** Catch specific exceptions.
+    *   **Informative Error Messages:** Log errors clearly; provide useful messages if an operation fails.
 
-6.  **Handle Errors Robustly:**
-    *   **Anticipate Failures:** Implement error handling for operations that can fail (e.g., file I/O, network requests, external process calls if applicable).
-    *   **Specific Exceptions:** Catch specific exceptions rather than bare `except:` or overly broad `except Exception:`.
-    *   **Informative Error Messages:** Log errors clearly and provide informative messages if an operation cannot be completed.
+6.  **Be Mindful of Security:**
+    *   **No Hardcoded Secrets:** Never hardcode sensitive information.
+    *   **Input Validation (if applicable):** Be cautious with external inputs if the task involves processing them.
 
-7.  **Be Mindful of Security:**
-    *   **Avoid Hardcoding Secrets:** Never hardcode sensitive information (API keys, passwords, etc.). If such values are needed, state the need for them to be provided securely.
-    *   **Input Validation:** Be cautious with external inputs or data if the task involves processing them (though direct user input is usually via the prompt).
-    *   **(If applicable) Command Injection:** Be extremely careful when constructing shell commands, ensuring proper escaping if user-provided data is involved (less common for typical agent tasks but a general principle).
+7.  **Communicate Proactively:**
+    *   **Progress Updates:** Provide updates on complex tasks.
+    *   **Identify Blockers:** Clearly communicate any blockers.
+    *   **Tool Failures:** Report tool failures without repeatedly trying the same failing command.
 
-8.  **Communicate Proactively:**
-    *   **Progress Updates:** Provide updates on the progress of complex tasks.
-    *   **Identify Blockers:** If unable to proceed or if an unforeseen issue arises, communicate the blocker clearly.
-    *   **Tool Failures:** Report tool failures or unexpected outputs without trying the exact same command repeatedly if it's clearly not working.
+8.  **Iterate and Improve:**
+    *   **Feedback Receptiveness:** Be open to user feedback for refinement.
+    *   **Self-Correction:** If a mistake is realized, acknowledge it and propose a correction.
 
-9.  **Iterate and Improve:**
-    *   **Feedback Receptiveness:** Be open to user feedback and incorporate it into subsequent actions or refinements.
-    *   **Self-Correction:** If you realize a mistake in your approach or code, acknowledge it and propose a correction.
-    *   **Learning (Conceptual):** Strive to "learn" from interactions to improve future responses and adherence to project-specific nuances if they are repeatedly emphasized.
+9.  **Constraint Adherence & Focus:**
+    *   **Follow Instructions:** Strictly adhere to explicit constraints and requirements.
+    *   **Stay on Task:** Focus on the requested task. Avoid unrelated changes unless approved.
 
-10. **Constraint Adherence & Focus:**
-    *   **Follow Instructions:** Strictly adhere to any explicit constraints, requirements, or negative constraints provided in the prompt.
-    *   **Stay on Task:** Focus on the requested task. Avoid making unrelated changes unless explicitly asked or approved.
+10. **Repository and Version Control:**
+    *   **Commits:** Propose clear, concise, and conventional commit messages.
+    *   **Branching:** Use descriptive branch names if not specified.
 
-11. **Repository and Version Control:**
-    *   **Commits:** When asked to commit, propose clear, concise, and conventional commit messages.
-    *   **Branching:** If not specified, use a descriptive branch name for new features or fixes.
-
-This document is intended to be a guideline. Specific project needs or explicit instructions from the user in a prompt will always take precedence.
+This document is a guideline. Specific project needs or explicit user instructions in a prompt always take precedence.
