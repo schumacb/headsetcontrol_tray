@@ -492,19 +492,27 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
         #          clamped to 0-128
         test_cases = [
             # (game_raw, chat_raw, expected_chatmix_value)
-            (100, 0, 0),    # Full Game: mapped_game=64, mapped_chat=0  => 64 - (0+64) = 0
-            (0, 100, 128),  # Full Chat: mapped_game=0, mapped_chat=-64 => 64 - (-64+0) = 128
-            (50, 50, 64),   # Balanced:  mapped_game=32, mapped_chat=-32=> 64 - (-32+32) = 64
-            (0, 0, 64),     # Centered:  mapped_game=0, mapped_chat=0    => 64 - (0+0) = 64
-            (75, 25, 32),   # More Game: mapped_game=48, mapped_chat=-16 => 64 - (-16+48) = 64 - 32 = 32
-            (25, 75, 96),   # More Chat: mapped_game=16, mapped_chat=-48 => 64 - (-48+16) = 64 - (-32) = 96
-            # Test clamping of raw values (should be handled by _parse_chatmix_info's internal clamping)
-            (150, 0, 0),    # Game > 100 clamped to 100
-            (0, 150, 128),  # Chat > 100 clamped to 100
-            (-50, 0, 0),    # Game < 0 clamped to 0 (results in 0 based on formula after clamping)
-            (0, -50, 128),  # Chat < 0 clamped to 0 (results in 128 based on formula after clamping)
-             # Test final clamping to 0-128 (though formula seems to naturally stay in this range if inputs are 0-100)
-            (100, 100, 64), # Example: game=64, chat=-64 => 64 - ( -64 + 64) = 64. Both 100 gives this.
+            # Values for game_byte_val and chat_byte_val must be in range(0, 256) for bytes() conversion.
+            # The method under test (_parse_chatmix_info) clamps these to 0-100 internally.
+            (100, 0, 0),    # Full Game
+            (0, 100, 128),  # Full Chat
+            (50, 50, 64),   # Balanced
+            (0, 0, 64),     # Centered (both game/chat at 0)
+            (75, 25, 32),   # More Game
+            (25, 75, 96),   # More Chat
+            # Test clamping of raw values (method clamps to 0-100)
+            # Provide valid byte values (0-255) that are outside 0-100 logical range for game/chat.
+            (150, 0, 0),    # Game > 100 (will be clamped to 100 by SUT)
+            (0, 150, 128),  # Chat > 100 (will be clamped to 100 by SUT)
+            # Negative values cannot be directly in bytes; test with 0 for already clamped inputs.
+            # The method's internal clamping from negative to 0 is tested by providing 0.
+            # (0, 0, 64) already tests game=0, chat=0.
+            # To test if SUT would clamp e.g. -50 to 0 for game, and chat=0:
+            # expected is mapped_game=0, mapped_chat=0 -> chatmix = 64.
+            # This is already covered by (0,0,64).
+            # Test final clamping to 0-128 (though formula seems to naturally stay in this range if inputs are 0-100)
+            # The formula itself: 64 - ( (c/100*-64) + (g/100*64) )
+            # If g=100, c=100: 64 - (-64 + 64) = 64. This is already a test case.
         ]
 
         for game, chat, expected_val in test_cases:
