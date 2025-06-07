@@ -56,13 +56,6 @@ workspace "HeadsetControl System" "User controlling SteelSeries headset via Head
         headsetControlTray.desktopApplication.configManager -> configurationStorage "Reads from/Writes to"
 
         headsetControlTray.desktopApplication.chatmixAudioManager -> pipewireAudioServer "Manages audio levels of applications"
-
-        // Relationships from parent container "Desktop Application" - these might become redundant or need refinement
-        // headsetControlTray.desktopApplication -> configurationStorage "Reads from/Writes to" // Covered by ConfigManager
-        // headsetControlTray.desktopApplication -> steelSeriesHeadset "Controls/Monitors via HID or CLI" // Covered by HeadsetService
-        // headsetControlTray.desktopApplication -> operatingSystem "Uses for UI, HID, PolicyKit, file system access" // Covered by MainApplication and HeadsetService
-        // headsetControlTray.desktopApplication -> pipewireAudioServer "Manages audio levels" // Covered by ChatmixAudioManager
-        // headsetControlTray.desktopApplication -> headsetcontrolCLI "Delegates control to / Fallback for" // Covered by HeadsetService
     }
 
     views {

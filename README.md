@@ -91,38 +91,34 @@ uv run python -m headsetcontrol_tray
 
 ## Visualizing the Architecture (C4 Model)
 
-The architecture of this application is documented using the C4 model. The model is defined in the `architecture.dsl` file using the Structurizr DSL.
+The architecture of this application is documented using the C4 model. The model is defined in the `structurizr/workspace.dsl` file using the Structurizr DSL.
 
 Structurizr is a lightweight, code-based approach to creating software architecture diagrams. The C4 model (Context, Containers, Components, and Code) provides a hierarchical way to describe software architecture at different levels of detail.
 
-### Rendering the Diagrams
+### Visualizing and Exporting Diagrams
 
-You can render these diagrams locally using Structurizr Lite, which can be run via Docker.
+You can visualize and export the diagrams locally using the Structurizr Lite web server, which can be run via Docker.
 
-1.  **Export Diagrams (PlantUML & Mermaid):**
-    The following commands will export the diagrams defined in `architecture.dsl` into PlantUML and Mermaid formats. The exported files will be placed in a `structurizr-exports` directory.
+1.  **Start the Structurizr Lite Web Server:**
+    Run the following command in your terminal from the root of the project:
     ```bash
-    # Export to PlantUML
-    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite export -format plantuml -workspace architecture.dsl
-    # Export to Mermaid
-    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite export -format mermaid -workspace architecture.dsl
+    docker run -it --rm -p 8080:8080 -v "$(pwd)/structurizr:/usr/local/structurizr:z" -u "$(id -u):$(id -g)" structurizr/lite
     ```
+    This command mounts the `structurizr` directory (containing `workspace.dsl`) into the Docker container and starts the web server. The `-u "$(id -u):$(id -g)"` part ensures that any files created by Structurizr Lite (e.g., during export from the UI) will have the correct ownership on your host machine.
 
-2.  **Render PlantUML to SVG:**
-    After exporting, you can render the PlantUML files into SVG images. For example, to render the System Context diagram:
-    ```bash
-    docker run -it --rm -v $(pwd):/usr/local/structurizr structurizr/lite render -format plantuml -path architecture.dsl/structurizr-PlantUMLSystemContext-001.puml
-    ```
-    You'll need to adjust the path for other diagrams (e.g., `structurizr-PlantUMLContainerView-001.puml`, `structurizr-PlantUMLComponentView-001.puml`). The rendered SVG files will be placed in the same directory as the `.puml` files (i.e., within `architecture.dsl/`).
+2.  **Access the Web Interface:**
+    Open your web browser and navigate to `http://localhost:8080`.
+    The workspace defined in `structurizr/workspace.dsl` should be automatically loaded. You can explore the diagrams (System Context, Containers, Components) interactively.
 
-3.  **Using Structurizr Lite Web Interface:**
-    Alternatively, you can run the Structurizr Lite web server to view and interact with the diagrams in your browser:
-    ```bash
-    docker run -it --rm -p 8080:8080 -v $(pwd):/usr/local/structurizr structurizr/lite
-    ```
-    Then, open `http://localhost:8080` in your web browser. The workspace should be automatically loaded from `architecture.dsl`.
+3.  **Exporting Diagrams:**
+    From the Structurizr Lite web interface, you can export the diagrams into various formats, including:
+    - PlantUML
+    - Mermaid
+    - PNG
+    - SVG
+    Look for the export options within the UI (usually available when viewing a diagram or from the workspace overview).
 
-This allows for easy visualization and exploration of the system's architecture at various levels of detail.
+This method provides a user-friendly way to both view and export the architecture diagrams as needed.
 
 ## Contributing
 
