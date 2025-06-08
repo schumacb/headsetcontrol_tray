@@ -164,22 +164,6 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         # Restart the class setUp patcher
         self.mock_connect_hid = self.connect_patcher.start()
 
-    @patch("headsetcontrol_tray.headset_service.logger")
-    def test_get_sidetone_level_returns_none_and_logs_warning(self, mock_logger):
-        self.service.hid_device = None # Ensure service thinks device is not connected for this test path
-        self.mock_connect_hid.return_value = False # _ensure_hid_connection returns False
-        result = self.service.get_sidetone_level()
-        self.assertIsNone(result)
-        mock_logger.warning.assert_any_call("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-
-    @patch("headsetcontrol_tray.headset_service.logger")
-    def test_get_inactive_timeout_returns_none_and_logs_warning(self, mock_logger):
-        self.service.hid_device = None
-        self.mock_connect_hid.return_value = False
-        result = self.service.get_inactive_timeout()
-        self.assertIsNone(result)
-        mock_logger.warning.assert_any_call("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-
     @patch.object(HeadsetService, "_set_sidetone_level_hid", return_value=True)
     @patch("subprocess.run") # To ensure CLI is not called
     def test_set_sidetone_level_uses_hid_only_success(self, mock_subprocess_run, mock_set_sidetone_hid):

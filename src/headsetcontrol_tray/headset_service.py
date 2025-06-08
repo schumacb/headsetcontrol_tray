@@ -222,7 +222,7 @@ class HeadsetService:
         else:
             logger.debug("Close called, but no HID device was open.")
 
-    def _write_hid_report(self, report_id: int, data: list[int], report_length: int = 64) -> bool:
+    def _write_hid_report(self, report_id: int, data: list[int]) -> bool:
         """
         Writes a report to the HID device.
         Prepends report_id if it's > 0.
@@ -385,7 +385,6 @@ class HeadsetService:
         success_write = self._write_hid_report(
             report_id=0,
             data=command_payload,
-            report_length=len(command_payload),
         )
         if not success_write:
             logger.warning("_get_parsed_status_hid: Failed to write HID status request command.")
@@ -489,14 +488,6 @@ class HeadsetService:
             logger.warning("is_charging: HID communication failed (or status was unexpected). No value retrieved.")
         return None
 
-    def get_sidetone_level(self) -> int | None:
-        logger.warning("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-        return None
-
-    def get_inactive_timeout(self) -> int | None:
-        logger.warning("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
-        return None
-
     # TODO: Create a GitHub issue to track implementation for methods that currently cannot read values via HID.
     # These methods currently return None and log a warning. Examples include:
     # get_sidetone_level, get_inactive_timeout, get_current_eq_values, get_current_eq_preset_id.
@@ -531,7 +522,6 @@ class HeadsetService:
         success = self._write_hid_report(
             report_id=0,
             data=command_payload,
-            report_length=len(command_payload),
         )
         if success:
             logger.info(f"_set_sidetone_level_hid: Successfully sent command for level {level} (mapped: {mapped_value}).")
@@ -551,7 +541,6 @@ class HeadsetService:
         success = self._write_hid_report(
             report_id=0,
             data=command_payload,
-            report_length=len(command_payload),
         )
         if success:
             logger.info(f"_set_inactive_timeout_hid: Successfully sent command for {minutes} minutes.")
@@ -592,7 +581,6 @@ class HeadsetService:
         success = self._write_hid_report(
             report_id=0,
             data=command_payload,
-            report_length=len(command_payload),
         )
         if success:
             logger.info(f"_set_eq_values_hid: Successfully sent custom EQ bands: {float_values}")
