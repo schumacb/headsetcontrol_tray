@@ -1,3 +1,8 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+backend-path = "."
+
 [project]
 name = "app"
 version = "0.1.0"
@@ -95,5 +100,8 @@ convention = "google"
 force-sort-within-sections = true
 known-first-party = ["headsetcontrol_tray", "tests"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+packages = ["headsetcontrol_tray"]
+
+[tool.setuptools.package-dir]
+"" = "src"

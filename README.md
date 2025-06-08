@@ -135,6 +135,10 @@ This project utilizes several tools to maintain code quality, enforce consistenc
 *   **Radon**: A Python tool that computes various code metrics, including cyclomatic complexity and maintainability index. Used to identify overly complex code.
 *   **Vulture**: A tool for finding unused code (dead code) in Python programs. Used to help keep the codebase clean.
 
+## Contributing
+
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE.md file for details.
