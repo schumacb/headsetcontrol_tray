@@ -59,7 +59,7 @@ class SteelSeriesTrayApp:
         self.tray_icon = sti.SystemTrayIcon(
             self.headset_service,
             self.config_manager,
-            self.quit_application, # type: Callable[[], None]
+            self.quit_application
         )
         self.tray_icon.show()
 
