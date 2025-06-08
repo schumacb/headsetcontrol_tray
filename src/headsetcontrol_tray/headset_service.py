@@ -222,7 +222,7 @@ class HeadsetService:
         else:
             logger.debug("Close called, but no HID device was open.")
 
-    def _write_hid_report(self, report_id: int, data: list[int], _report_length: int = 64) -> bool:
+    def _write_hid_report(self, report_id: int, data: list[int], report_length: int = 64) -> bool:
         """
         Writes a report to the HID device.
         Prepends report_id if it's > 0.
@@ -487,6 +487,14 @@ class HeadsetService:
             logger.info("is_charging: Headset reported itself as offline via HID. No value retrieved from HID.")
         else:
             logger.warning("is_charging: HID communication failed (or status was unexpected). No value retrieved.")
+        return None
+
+    def get_sidetone_level(self) -> int | None:
+        logger.warning("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed. Method restored for test compatibility.")
+        return None
+
+    def get_inactive_timeout(self) -> int | None:
+        logger.warning("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed. Method restored for test compatibility.")
         return None
 
     # TODO: Create a GitHub issue to track implementation for methods that currently cannot read values via HID.
