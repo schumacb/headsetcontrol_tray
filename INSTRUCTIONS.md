@@ -27,8 +27,8 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
     *   Command to run: `vulture .` (scans the current directory)
     *   Configuration: Vulture can be configured by whitelisting false positives in a `.vulture_whitelist.py` file or through `pyproject.toml` under `[tool.vulture]`.
 *   **Testing:**
-    *   Command to run all tests: `pytest`
-    *   Command to run specific tests: `pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name`
+    *   Command to run all tests: `uv run pytest` (preferred method) or `pytest` (if `uv` is not used for task execution)
+    *   Command to run specific tests: `uv run pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name` (or using `pytest` directly)
     *   Testing framework used: `pytest`
     *   Are there specific test coverage requirements or tools? `pytest-cov (after installing with uv add --dev pytest-cov)`
 *   **Running the Project (if applicable):**
