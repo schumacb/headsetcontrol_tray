@@ -339,7 +339,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(text, sidetone_menu, checkable=True)
             action.setData(level)
             action.setChecked(level == current_sidetone_val_from_config)
-            action.triggered.connect(lambda checked, l=level: self._set_sidetone_from_menu(l))
+            action.triggered.connect(lambda _checked, l=level: self._set_sidetone_from_menu(l))
             sidetone_menu.addAction(action)
             self.sidetone_action_group.append(action)
 
@@ -350,7 +350,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(text, timeout_menu, checkable=True)
             action.setData(minutes)
             action.setChecked(minutes == current_timeout_val_from_config)
-            action.triggered.connect(lambda checked, m=minutes: self._set_inactive_timeout(m))
+            action.triggered.connect(lambda _checked, m=minutes: self._set_inactive_timeout(m))
             timeout_menu.addAction(action)
             self.timeout_action_group.append(action)
 
@@ -365,7 +365,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(name, eq_menu, checkable=True)
             action.setData((EQ_TYPE_CUSTOM, name))
             action.setChecked(active_eq_type == EQ_TYPE_CUSTOM and name == active_custom_name)
-            action.triggered.connect(lambda checked, data=(EQ_TYPE_CUSTOM, name): self._apply_eq_from_menu(data))
+            action.triggered.connect(lambda _checked, data=(EQ_TYPE_CUSTOM, name): self._apply_eq_from_menu(data))
             eq_menu.addAction(action)
             self.unified_eq_action_group.append(action)
 
@@ -377,7 +377,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(display_name, eq_menu, checkable=True)
             action.setData((EQ_TYPE_HARDWARE, preset_id))
             action.setChecked(active_eq_type == EQ_TYPE_HARDWARE and preset_id == active_hw_id)
-            action.triggered.connect(lambda checked, data=(EQ_TYPE_HARDWARE, preset_id): self._apply_eq_from_menu(data))
+            action.triggered.connect(lambda _checked, data=(EQ_TYPE_HARDWARE, preset_id): self._apply_eq_from_menu(data))
             eq_menu.addAction(action)
             self.unified_eq_action_group.append(action)
 

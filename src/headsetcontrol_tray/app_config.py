@@ -3,7 +3,6 @@ from pathlib import Path
 
 # Application Details
 APP_NAME = "SteelSeries Arctis Nova 7"
-ORGANIZATION_NAME = "YourOrganization" # Optional: For QSettings
 
 # Headset USB Identifiers
 STEELSERIES_VID = 0x1038
@@ -138,23 +137,16 @@ HID_CMD_SET_EQ_BANDS_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x33] # Append 10 ba
 # Each band_value = 0x14 + float_value (-10 to +10)
 
 # Bluetooth When Powered On
-HID_CMD_SET_BT_POWER_ON_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xb2] # Append status (0x00 or 0x01)
-HID_CMD_SAVE_SETTINGS = [0x06, 0x09] # Separate command, different first byte (potential Report ID 0x06)
 
 # Bluetooth Call Volume Configuration
-HID_CMD_SET_BT_CALL_VOLUME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xb3] # Append level (0x00-0x02)
 
 # Microphone Mute LED Brightness
-HID_CMD_SET_MIC_LED_BRIGHTNESS_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xae] # Append brightness (0x00-0x03)
 
 # Microphone Volume
-HID_CMD_SET_MIC_VOLUME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x37] # Append mapped level (0x00-0x07)
 
 # Volume Limiter
-HID_CMD_SET_VOLUME_LIMITER_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x3a] # Append status (0x00 or 0x01)
 
 # REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
 # Kept for potential other uses or if a fixed interval is ever needed again.
-REFRESH_INTERVAL_MS = 1000
 
 DEFAULT_CHAT_APP_IDENTIFIERS = ["Discord"]

@@ -269,7 +269,7 @@ class EqualizerEditorWidget(QWidget):
         self._update_ui_for_active_eq(eq_type, eq_identifier)
 
 
-    def _update_ui_for_active_eq(self, active_eq_type: str | None, active_identifier: Any | None):
+    def _update_ui_for_active_eq(self, active_eq_type: str | None, _active_identifier: Any | None):
         is_custom_mode_active = (active_eq_type == EQ_TYPE_CUSTOM)
 
         for slider in self.sliders:

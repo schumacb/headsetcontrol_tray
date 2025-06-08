@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch # Removed Any from here
 from typing import Any # Added typing.Any
 
 # Ensure the application modules can be imported
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 import pytest # Added for @pytest.mark.usefixtures
 from PySide6.QtWidgets import QApplication, QMessageBox

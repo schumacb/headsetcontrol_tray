@@ -24,7 +24,6 @@ class ChatMixManager:
         ]
         # Reference volume for 100% (PipeWire uses floats, typically 0.0 to 1.0 for normal range)
         self.reference_volume = 1.0
-        self._pipewire_nodes: dict[str, Any] = {} # Assuming this was intended to be here, based on your prompt. If not, it should be removed.
         self._last_set_stream_volumes: dict[str, list[float]] = {} # New attribute
         logger.info(f"ChatMixManager initialized. Chat app identifiers: {self.chat_app_identifiers_config}")
 

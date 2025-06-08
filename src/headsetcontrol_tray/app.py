@@ -2,7 +2,6 @@ import logging
 import os
 import subprocess  # Added for pkexec
 import sys
-from typing import Callable
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox

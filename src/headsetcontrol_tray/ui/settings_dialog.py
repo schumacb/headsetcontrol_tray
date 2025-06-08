@@ -121,7 +121,7 @@ class SettingsDialog(QDialog):
         timeout_group_layout = QHBoxLayout(timeout_groupbox)
 
         self.timeout_button_group = QButtonGroup(self)
-        for idx, (text, minutes) in enumerate(app_config.INACTIVE_TIMEOUT_OPTIONS.items()):
+        for text, minutes in app_config.INACTIVE_TIMEOUT_OPTIONS.items():
             rb = QRadioButton(text)
             timeout_group_layout.addWidget(rb)
             self.timeout_button_group.addButton(rb, minutes)
