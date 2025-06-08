@@ -13,7 +13,7 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
 *   **Linting & Static Analysis:**
     *   Command to run linters: `ruff check . --fix` (for identifying and auto-fixing lint issues)
     *   Command to run formatter: `ruff format .` (for applying code style formatting, similar to Black)
-    *   Command to run static type checker: `mypy .`
+    *   Command to run static type checker: `uv run mypy .` (preferred method) or `mypy .` (if `uv` is not used for task execution)
     *   Configuration files: `pyproject.toml (for ruff linting, formatting, and isort), mypy.ini (for mypy)`
 *   **Code Complexity Analysis:**
     *   Tool: Radon

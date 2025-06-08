@@ -59,7 +59,7 @@ class SteelSeriesTrayApp:
             if create_new_qapp:
                 self.qt_app = QApplication([])
             else:
-                self.qt_app = _q_instance
+                self.qt_app = _q_instance # type: ignore [assignment]
         else: # No pre-existing instance
             self.qt_app = QApplication([])
 
@@ -139,7 +139,7 @@ Without these rules, the application might not be able to detect or control your
 
             if not os.path.exists(helper_script_path):
                 logger.error(f"Helper script not found at {helper_script_path}")
-                QMessageBox.critical(None, "Error", f"Installation script not found at:\n{helper_script_path}\n\nPlease report this issue.")
+                QMessageBox.critical(None, "Error", f"Installation script not found at:\n{helper_script_path}\n\nPlease report this issue.") # type: ignore [arg-type]
             else:
                 cmd = ["pkexec", helper_script_path, temp_file_path, final_file_path]
                 logger.info(f"Attempting to execute: {' '.join(cmd)}")
@@ -185,10 +185,10 @@ Without these rules, the application might not be able to detect or control your
                         feedback_dialog.exec()
                 except FileNotFoundError:
                     logger.error("pkexec command not found. Please ensure PolicyKit agent and pkexec are installed.")
-                    QMessageBox.critical(None, "Error", "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.")
+                    QMessageBox.critical(None, "Error", "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.") # type: ignore [arg-type]
                 except Exception as e:
                     logger.error(f"An unexpected error occurred during pkexec execution: {e}")
-                    QMessageBox.critical(None, "Error", f"An unexpected error occurred while trying to run the helper script:\n{e}")
+                    QMessageBox.critical(None, "Error", f"An unexpected error occurred while trying to run the helper script:\n{e}") # type: ignore [arg-type]
         else:
             logger.info("User closed or cancelled the udev rules dialog, or did not choose automatic install.")
 
