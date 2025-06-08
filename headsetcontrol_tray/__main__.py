@@ -10,7 +10,7 @@ verboselogs.install()
 from headsetcontrol_tray.app import SteelSeriesTrayApp  # noqa: E402
 
 
-def main():
+def main() -> None:
     # Graceful exit on Ctrl+C
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
