@@ -94,3 +94,6 @@ convention = "google"
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
 known-first-party = ["headsetcontrol_tray", "tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
