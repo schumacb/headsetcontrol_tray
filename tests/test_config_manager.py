@@ -163,7 +163,7 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager(); cm._custom_eq_curves = {}; cm._settings = {}
         with self.assertRaises(ValueError): cm.save_custom_eq_curve("InvalidCurveShort", [0]*5)
         with self.assertRaises(ValueError): cm.save_custom_eq_curve("InvalidCurveLong", [0]*11)
-        with self.assertRaises(ValueError): cm.save_custom_eq_curve("InvalidCurveType", ["a"]*10)
+        with self.assertRaises(ValueError): cm.save_custom_eq_curve("InvalidCurveType", ["a"]*10)  # type: ignore[list-item]
         with self.assertRaises(ValueError): cm.save_custom_eq_curve("NoValues", [])
 
     @mock.patch.object(ConfigManager, '_save_json_file')
