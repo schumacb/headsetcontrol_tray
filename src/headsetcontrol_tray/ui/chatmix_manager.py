@@ -151,7 +151,7 @@ class ChatMixManager:
         payload_dict = {"channelVolumes": target_volumes_list}
         payload_json = json.dumps(payload_dict) # Ensure json is imported
 
-        logger.verbose(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {payload_json}")
+        logger.debug(f"Setting volume for stream ID {stream_id} ({num_channels} channels) to {target_volume:.2f} with payload: {payload_json}")
 
         # Construct the command
         cmd = ["pw-cli", "set-param", str(stream_id), "Props", payload_json]

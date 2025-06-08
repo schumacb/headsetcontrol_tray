@@ -1,31 +1,31 @@
 import os
 import unittest
+import sys # Moved sys import
 from unittest import mock
-from unittest.mock import Mock, patch, MagicMock # Added MagicMock
+from unittest.mock import Mock, patch, MagicMock
 
-# Attempt to import from the correct location
-try:
-    from headsetcontrol_tray.headset_service import (
-        STEELSERIES_VID,  # Keep relevant imports
-        TARGET_PIDS,
-        UDEV_RULE_CONTENT,
-        UDEV_RULE_FILENAME,
-        HeadsetService,
-    )
-    from headsetcontrol_tray import app_config # Import app_config for HID constants
-except ImportError:
-    import sys
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    # If this path is taken, app_config might need to be imported differently,
-    # assuming it's adjacent or in Python path. For this example, direct import.
-    import app_config
-    from headset_service import (
-        STEELSERIES_VID,  # Keep relevant imports
-        TARGET_PIDS,
-        UDEV_RULE_CONTENT,
-        UDEV_RULE_FILENAME,
-        HeadsetService,
-    )
+# Ensure the package root (src directory) is in path for mypy and runtime
+# This assumes 'tests' is one level down from repo root, and 'src' is at repo root.
+# Adjust if structure is tests/headsetcontrol_tray and src/headsetcontrol_tray
+# Based on other files, it seems headsetcontrol_tray is directly in src/
+# So, tests/ is sibling to src/
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+# Correcting path based on typical project structure where tests/ is sibling to src/
+# If tests/ is inside src/, then ".." would be src/, and "../.." would be repo root.
+# Assuming tests/ is at repo_root/tests/ and package is repo_root/src/headsetcontrol_tray/
+# Then path should be repo_root/src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+
+from headsetcontrol_tray.headset_service import (
+    STEELSERIES_VID,
+    TARGET_PIDS,
+    UDEV_RULE_CONTENT,
+    UDEV_RULE_FILENAME,
+    HeadsetService,
+)
+from headsetcontrol_tray import app_config # Import app_config for HID constants
+
 
 class TestHeadsetServiceCreateUdevRules(unittest.TestCase):
     def setUp(self):
@@ -50,6 +50,7 @@ class TestHeadsetServiceCreateUdevRules(unittest.TestCase):
 
         self.assertTrue(self.service._create_udev_rules())
         self.assertIsNotNone(self.service.udev_setup_details)
+        assert self.service.udev_setup_details is not None # For mypy
         self.assertEqual(self.service.udev_setup_details["temp_file_path"], "/tmp/fake_temp_rule_file.rules")
         self.assertEqual(self.service.udev_setup_details["rule_filename"], UDEV_RULE_FILENAME)
         mock_temp_fd_context_manager.write.assert_called_once_with(UDEV_RULE_CONTENT + "\n")
@@ -104,8 +105,9 @@ class TestHeadsetServiceConnectionFailure(unittest.TestCase):
     def test_connect_device_success_does_not_call_create_rules(self, mock_create_rules, mock_hid_module):
         # Simulate hid.enumerate (mock_hid_module.enumerate) finding a device
         # Ensure this device matches the highest priority criteria in _sort_hid_devices
+        pid_for_test = TARGET_PIDS[0] if TARGET_PIDS else 0x1234 # Ensure TARGET_PIDS is not empty
         mock_hid_module.enumerate.return_value = [
-             {"vendor_id": STEELSERIES_VID, "product_id": TARGET_PIDS[0], "path": b"path1",
+             {"vendor_id": STEELSERIES_VID, "product_id": pid_for_test, "path": b"path1",
               "interface_number": app_config.HID_REPORT_INTERFACE,
               "usage_page": app_config.HID_REPORT_USAGE_PAGE,
               "usage": app_config.HID_REPORT_USAGE_ID},
@@ -274,34 +276,38 @@ class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
     @patch('headsetcontrol_tray.headset_service.hid.enumerate')
     def test_find_potential_devices_enumerate_matches(self, mock_hid_enumerate):
         # Ensure TARGET_PIDS has at least two distinct PIDs for a more robust test, or adjust if not.
-        pid1 = TARGET_PIDS[0]
-        pid2 = TARGET_PIDS[1] if len(TARGET_PIDS) > 1 else pid1 # Use first PID if only one defined
-        if pid1 == pid2 and len(TARGET_PIDS) > 1: # If first two PIDs are same, try to find a different one
+        pid1 = TARGET_PIDS[0] if TARGET_PIDS else 0x0001 # Default if empty
+        pid2 = TARGET_PIDS[1] if len(TARGET_PIDS) > 1 else pid1
+        if pid1 == pid2 and len(TARGET_PIDS) > 1:
              pid2 = TARGET_PIDS[2] if len(TARGET_PIDS) > 2 else pid1
 
 
         matching_device1 = {'vendor_id': STEELSERIES_VID, 'product_id': pid1, 'path': b'path1', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'MatchingDevice1'}
-        non_matching_device = {'vendor_id': 0x0001, 'product_id': 0x0001, 'path': b'path2', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'NonMatchingDevice'}
+        non_matching_device = {'vendor_id': 0x0001, 'product_id': 0x9999, 'path': b'path2', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'NonMatchingDevice'}
         matching_device2 = {'vendor_id': STEELSERIES_VID, 'product_id': pid2, 'path': b'path3', 'release_number': 1, 'interface_number': 0, 'usage_page': 0, 'usage': 0, 'product_string': 'MatchingDevice2'}
 
         mock_hid_enumerate.return_value = [matching_device1, non_matching_device, matching_device2]
 
         result = self.service._find_potential_hid_devices()
 
-        expected_devices = [matching_device1, matching_device2]
-        if pid1 == pid2: # If only one unique PID was available and used for both "matching" devices
-            expected_devices = [matching_device1] # Result might vary based on how TARGET_PIDS is structured
-            if matching_device1['path'] == matching_device2['path'] : # if they are identical due to pid1==pid2
-                 pass # expected_devices is fine
-            else: # if paths are different, both could be included if TARGET_PIDS allows duplicates implicitly
-                 expected_devices = [matching_device1, matching_device2]
+        # Construct expected_devices based on what should match from TARGET_PIDS
+        expected_devices = []
+        if matching_device1['product_id'] in TARGET_PIDS:
+            expected_devices.append(matching_device1)
+        if matching_device2['product_id'] in TARGET_PIDS and matching_device1['product_id'] != matching_device2['product_id']: # Avoid duplicates if pid1==pid2
+            expected_devices.append(matching_device2)
+        elif matching_device2['product_id'] in TARGET_PIDS and matching_device1['product_id'] == matching_device2['product_id'] and matching_device1['path'] != matching_device2['path']:
+             # If PIDs are the same but paths are different, both could be valid targets.
+             expected_devices.append(matching_device2)
 
 
         self.assertEqual(len(result), len(expected_devices))
-        for dev in expected_devices:
-            self.assertIn(dev, result)
-        if pid1 != pid2 : # Only assert non-inclusion if it's truly different from the matched ones
-            self.assertNotIn(non_matching_device, result)
+        for dev_info in result: # Check if all items in result are in expected_devices
+            self.assertIn(dev_info, expected_devices)
+        for dev_info in expected_devices: # Check if all items in expected_devices are in result
+            self.assertIn(dev_info, result)
+
+        self.assertNotIn(non_matching_device, result)
 
 
     @patch('headsetcontrol_tray.headset_service.hid.enumerate')
@@ -317,19 +323,21 @@ class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
         self.assertEqual(self.service._sort_hid_devices([]), [])
 
     def test_sort_hid_devices_single_device(self):
-        # Ensure the single device has all necessary keys for the sort_key function
+        pid_for_test_sort = TARGET_PIDS[0] if TARGET_PIDS else 0x1234
         single_device = {
             'vendor_id': STEELSERIES_VID,
-            'product_id': TARGET_PIDS[0],
+            'product_id': pid_for_test_sort,
             'path': b'path1',
-            'interface_number': -1, # Default value if not relevant to test
-            'usage_page': 0,      # Default value
-            'usage': 0            # Default value
+            'interface_number': -1,
+            'usage_page': 0,
+            'usage': 0
         }
-        single_device_list = [single_device]
-        # The method sorts in-place and returns the list, so the list instance is the same.
-        # For a single device, the list content remains unchanged.
-        self.assertEqual(self.service._sort_hid_devices(list(single_device_list)), single_device_list)
+        # Create a list and pass a copy to the method, as it sorts in-place
+        single_device_list_copy = [single_device.copy()]
+        # The method sorts in-place and returns the list.
+        # For a single device, the content of the list (the dict itself) should remain unchanged.
+        sorted_list = self.service._sort_hid_devices(single_device_list_copy)
+        self.assertEqual(sorted_list, [single_device]) # Compare content
 
 
     def test_sort_hid_devices_sorting_logic(self):
@@ -341,26 +349,40 @@ class TestHeadsetServiceFindPotentialDevices(unittest.TestCase):
             'usage': 0,           # Default, overridden if specific
         }
 
+        pid_for_sort_tests = TARGET_PIDS[0] if TARGET_PIDS else 0x1234
         # Device E: Default priority (2)
-        dev_e_default = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathE', 'interface_number': 1, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'E_Default'}
+        dev_e_default = {**base_attrs, 'product_id': pid_for_sort_tests, 'path': b'pathE', 'interface_number': 1, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'E_Default'}
         # Device D: Usage page 0xFFC0 (1)
-        dev_d_usage_page = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathD', 'interface_number': 1, 'usage_page': app_config.HID_REPORT_USAGE_PAGE, 'usage': 0x0000, 'name': 'D_UsagePage'}
+        dev_d_usage_page = {**base_attrs, 'product_id': pid_for_sort_tests, 'path': b'pathD', 'interface_number': 1, 'usage_page': app_config.HID_REPORT_USAGE_PAGE, 'usage': 0x0000, 'name': 'D_UsagePage'}
         # Device C: Interface 3 (0)
-        dev_c_interface3 = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathC', 'interface_number': 3, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'C_Interface3'}
+        dev_c_interface3 = {**base_attrs, 'product_id': pid_for_sort_tests, 'path': b'pathC', 'interface_number': 3, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'C_Interface3'}
         # Device B: PID 0x2202 (ARCTIS_NOVA_7_USER_PID) and interface 0 (-1)
-        dev_b_pid2202_if0 = {**base_attrs, 'product_id': app_config.ARCTIS_NOVA_7_USER_PID, 'path': b'pathB', 'interface_number': 0, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'B_PID2202_IF0'}
+        # Ensure ARCTIS_NOVA_7_USER_PID is in TARGET_PIDS for this test to be meaningful
+        # For this test, let's assume it is, or use a PID known to be in TARGET_PIDS for the ARCTIS_NOVA_7_USER_PID role.
+        # If app_config.ARCTIS_NOVA_7_USER_PID is not guaranteed to be in TARGET_PIDS (which it should be),
+        # this test might need adjustment or ensure TARGET_PIDS includes it for the test setup.
+        user_pid_for_test = app_config.ARCTIS_NOVA_7_USER_PID if app_config.ARCTIS_NOVA_7_USER_PID in TARGET_PIDS else pid_for_sort_tests
 
-        target_pid_for_a = TARGET_PIDS[0]
-        if target_pid_for_a == app_config.ARCTIS_NOVA_7_USER_PID and len(TARGET_PIDS) > 1:
-            target_pid_for_a = TARGET_PIDS[1]
+        dev_b_pid2202_if0 = {**base_attrs, 'product_id': user_pid_for_test, 'path': b'pathB', 'interface_number': 0, 'usage_page': 0x0000, 'usage': 0x0000, 'name': 'B_PID_User_IF0'}
+
+        target_pid_for_a = pid_for_sort_tests # Default
+        # Select a PID for dev_a_exact that is in TARGET_PIDS but ideally not ARCTIS_NOVA_7_USER_PID
+        # to distinguish it from dev_b, unless TARGET_PIDS only has ARCTIS_NOVA_7_USER_PID.
+        if len(TARGET_PIDS) > 1:
+            for pid_val in TARGET_PIDS:
+                if pid_val != user_pid_for_test:
+                    target_pid_for_a = pid_val
+                    break
+        # If all PIDs in TARGET_PIDS are user_pid_for_test, then target_pid_for_a will be user_pid_for_test.
 
         dev_a_exact = {**base_attrs, 'product_id': target_pid_for_a, 'path': b'pathA',
-                       'interface_number': app_config.HID_REPORT_INTERFACE,
-                       'usage_page': app_config.HID_REPORT_USAGE_PAGE,
-                       'usage': app_config.HID_REPORT_USAGE_ID, 'name': 'A_Exact'}
+                       'interface_number': app_config.HID_REPORT_INTERFACE, # Should be 3
+                       'usage_page': app_config.HID_REPORT_USAGE_PAGE,     # Should be 0xffc0
+                       'usage': app_config.HID_REPORT_USAGE_ID,            # Should be 0x0001
+                       'name': 'A_Exact'}
 
         # Device F: Another default priority device to check stability (should come after E if E was first)
-        dev_f_default_stable = {**base_attrs, 'product_id': TARGET_PIDS[0], 'path': b'pathF', 'interface_number': 2, 'usage_page': 0x0001, 'usage': 0x0001, 'name': 'F_DefaultStable'}
+        dev_f_default_stable = {**base_attrs, 'product_id': pid_for_sort_tests, 'path': b'pathF', 'interface_number': 2, 'usage_page': 0x0001, 'usage': 0x0001, 'name': 'F_DefaultStable'}
 
 
         # Intentionally unsorted list

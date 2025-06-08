@@ -695,11 +695,20 @@ class HeadsetService:
             logger.error(f"_set_eq_preset_hid: Invalid preset ID: {preset_id}. Not found in ARCTIS_NOVA_7_HW_PRESETS.")
             return False
         preset_data = app_config.ARCTIS_NOVA_7_HW_PRESETS[preset_id]
-        float_values = preset_data.get("values")
-        if not float_values or len(float_values) != 10:
-            logger.error(f"_set_eq_preset_hid: Malformed preset data for ID {preset_id} in app_config.ARCTIS_NOVA_7_HW_PRESETS.")
+        # Ensure float_values is correctly typed for mypy
+        float_values_obj = preset_data.get("values")
+
+        if not isinstance(float_values_obj, list) or not all(isinstance(v, float) for v in float_values_obj):
+            logger.error(f"_set_eq_preset_hid: Preset data 'values' for ID {preset_id} is not a list of floats.")
             return False
-        logger.info(f"_set_eq_preset_hid: Setting hardware preset '{preset_data.get('name', 'Unknown')}' (ID: {preset_id}) using its defined bands.")
+
+        float_values: list[float] = float_values_obj # Type hint for clarity after check
+
+        if len(float_values) != 10:
+            logger.error(f"_set_eq_preset_hid: Malformed preset data for ID {preset_id} in app_config.ARCTIS_NOVA_7_HW_PRESETS. Expected 10 bands, got {len(float_values)}.")
+            return False
+
+        logger.info(f"_set_eq_preset_hid: Setting hardware preset '{preset_data.get('name', 'Unknown')}' (ID: {preset_id}) using its defined bands: {float_values}")
         return self._set_eq_values_hid(float_values)
 
     def get_current_eq_preset_id(self) -> int | None:

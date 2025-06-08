@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
@@ -151,7 +151,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _select_initial_eq_from_config(self):
         active_type_from_config = self.config_manager.get_active_eq_type()
-        target_data_to_select = None
+        target_data_to_select: Optional[tuple[str, Any]] = None
 
         if active_type_from_config == EQ_TYPE_HARDWARE:
             preset_id = self.config_manager.get_last_active_eq_preset_id()
@@ -202,7 +202,7 @@ class EqualizerEditorWidget(QWidget):
         logger.debug(f"User selected EQ in combo: {self.eq_combo.itemText(index)}, Data: {selected_data}")
         self._process_eq_selection(selected_data, is_initial_load=False)
 
-    def _process_eq_selection(self, eq_data: tuple[str, any], is_initial_load: bool = False, force_ui_update_only: bool = False):
+    def _process_eq_selection(self, eq_data: tuple[str, Any], is_initial_load: bool = False, force_ui_update_only: bool = False):
         eq_type, eq_identifier = eq_data
 
         if eq_type == EQ_TYPE_CUSTOM:
@@ -231,7 +231,8 @@ class EqualizerEditorWidget(QWidget):
 
             # Apply to headset only on user action or if not preserving UI for unsaved changes
             if not is_initial_load and not force_ui_update_only:
-                if self.headset_service.set_eq_values(values):
+                float_values = [float(v) for v in values]
+                if self.headset_service.set_eq_values(float_values):
                     self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
                     self.config_manager.set_last_custom_eq_curve_name(curve_name)
                     self.eq_applied.emit(curve_name)
@@ -346,9 +347,9 @@ class EqualizerEditorWidget(QWidget):
         if not active_data or active_data[0] != EQ_TYPE_CUSTOM:
             return
 
-        sender = self.sender()
-        if sender in self.sliders:
-            self._update_slider_label(self.sliders.index(sender), value)
+        sender_obj = self.sender()
+        if isinstance(sender_obj, QSlider) and sender_obj in self.sliders:
+            self._update_slider_label(self.sliders.index(sender_obj), value)
         # Mark unsaved changes immediately when slider moves
         current_slider_vals = self._get_slider_values()
         if self._current_custom_curve_original_name:
@@ -364,7 +365,8 @@ class EqualizerEditorWidget(QWidget):
 
         current_values = self._get_slider_values()
         logger.debug(f"Applying slider values to headset: {current_values}")
-        if self.headset_service.set_eq_values(current_values):
+        float_current_values = [float(v) for v in current_values]
+        if self.headset_service.set_eq_values(float_current_values):
             logger.info(f"EQ_EDITOR: Sliders applied, set_eq_values SUCCESS for '{self._current_custom_curve_original_name}'")
             if self._current_custom_curve_original_name:
                  # On successful application, update ConfigManager for the active curve
@@ -397,7 +399,8 @@ class EqualizerEditorWidget(QWidget):
         self._set_slider_visuals(list(self._current_custom_curve_saved_values)) # Revert visuals
 
         # Re-apply the saved values to the headset
-        if self.headset_service.set_eq_values(list(self._current_custom_curve_saved_values)):
+        float_saved_values = [float(v) for v in self._current_custom_curve_saved_values]
+        if self.headset_service.set_eq_values(float_saved_values):
             logger.info(f"EQ_EDITOR: Discarded changes, set_eq_values SUCCESS for '{self._current_custom_curve_original_name}'")
             # Ensure config reflects this (it should already, but to be safe)
             self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)

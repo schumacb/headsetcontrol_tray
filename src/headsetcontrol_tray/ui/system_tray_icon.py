@@ -1,4 +1,5 @@
 import logging
+from typing import Any # Added Any
 
 from PySide6.QtCore import QRect, Qt, QTimer, Slot
 from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPen
@@ -555,7 +556,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.showMessage("Error", "Failed to set inactive timeout. Headset connected?", QSystemTrayIcon.MessageIcon.Warning, 2000)
             self._update_menu_checks()
 
-    def _apply_eq_from_menu(self, eq_data: tuple[str, any]):
+    def _apply_eq_from_menu(self, eq_data: tuple[str, Any]): # Changed any to Any
         eq_type, identifier = eq_data
         logger.info(f"Applying EQ from menu: Type={eq_type}, ID/Name='{identifier}'")
 
@@ -570,12 +571,17 @@ class SystemTrayIcon(QSystemTrayIcon):
         if eq_type == EQ_TYPE_CUSTOM:
             curve_name = str(identifier)
             values = self.config_manager.get_custom_eq_curve(curve_name)
-            if values and self.headset_service.set_eq_values(values):
-                self.config_manager.set_last_custom_eq_curve_name(curve_name)
-                self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
-                message = f"Custom EQ '{curve_name}' applied."
-                success = True
-            else: message = f"Failed to apply custom EQ '{curve_name}'."
+            if values:
+                float_values = [float(v) for v in values]
+                if self.headset_service.set_eq_values(float_values):
+                    self.config_manager.set_last_custom_eq_curve_name(curve_name)
+                    self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
+                    message = f"Custom EQ '{curve_name}' applied."
+                    success = True
+                else: # headset_service.set_eq_values failed
+                    message = f"Failed to apply custom EQ '{curve_name}' to headset."
+            else: # values is None or empty
+                message = f"Custom EQ '{curve_name}' not found or has no values."
 
         elif eq_type == EQ_TYPE_HARDWARE:
             preset_id = int(identifier)
@@ -637,7 +643,9 @@ class SystemTrayIcon(QSystemTrayIcon):
                 name = app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
                 vals = self.config_manager.get_custom_eq_curve(name) or app_config.DEFAULT_EQ_CURVES["Flat"]
                 self.config_manager.set_last_custom_eq_curve_name(name)
-            self.headset_service.set_eq_values(vals)
+
+            float_vals = [float(v) for v in vals] # Convert to list[float]
+            self.headset_service.set_eq_values(float_vals)
         elif active_type == EQ_TYPE_HARDWARE:
             self.headset_service.set_eq_preset_id(self.config_manager.get_last_active_eq_preset_id())
 

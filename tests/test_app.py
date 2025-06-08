@@ -2,7 +2,8 @@ import os
 import subprocess  # For subprocess.CompletedProcess
 import sys
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch # Removed Any from here
+from typing import Any # Added typing.Any
 
 # Ensure the application modules can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -52,7 +53,10 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             "rule_filename": "99-sample.rules",
         }
 
-        current_script_dir = os.path.dirname(os.path.abspath(sys.modules["headsetcontrol_tray.app"].__file__))
+        # Ensure __file__ is not None for path operations
+        app_module_file = sys.modules["headsetcontrol_tray.app"].__file__
+        assert app_module_file is not None, "sys.modules['headsetcontrol_tray.app'].__file__ is None"
+        current_script_dir = os.path.dirname(os.path.abspath(app_module_file))
         repo_root = os.path.abspath(os.path.join(current_script_dir, ".."))
         self.expected_helper_script_path = os.path.join(repo_root, "scripts", "install-udev-rules.sh")
 
@@ -84,7 +88,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         def set_clicked_button_to_close_equivalent(*args, **kwargs):
             found_close_button = None
             for b_info in added_buttons_initial:
-                if b_info.get("text_or_enum") == QMessageBox.Close:
+                if b_info.get("text_or_enum") == QMessageBox.StandardButton.Close: # Corrected Enum
                     found_close_button = b_info["button"]
                     break
             if not found_close_button:
@@ -134,7 +138,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_feedback_dialog = MagicMock(spec=QMessageBox)
         MockQMessageBoxClass.side_effect = [mock_initial_dialog, mock_feedback_dialog]
 
-        captured_auto_button = [None] # Using a list to allow modification in closure
+        captured_auto_button: list[Any] = [None] # Using a list to allow modification in closure, typed with Any
 
         def initial_dialog_add_button_side_effect(text_or_button, role=None):
             button_mock = MagicMock(spec=QMessageBox.StandardButton)
@@ -143,7 +147,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             else:
                 button_mock.standard_button_enum = text_or_button
 
-            if role == QMessageBox.AcceptRole:
+            if role == QMessageBox.ButtonRole.AcceptRole: # Corrected Enum
                 captured_auto_button[0] = button_mock
                 # When the "Install Automatically" button is added by the app,
                 # immediately set the mock_initial_dialog's clickedButton behavior.
@@ -192,13 +196,10 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     def tearDown(self):
         self.qapplication_patch.stop()
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
-    def tearDown(self):
-        self.qapplication_patch.stop()
-        # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
         # if hasattr(self, 'tray_app') and self.tray_app:
         #     self.tray_app.quit_application() # Assuming such a method exists for proper cleanup
-        pass
+        # pass # Removed duplicate pass, only one tearDown needed.
 
 
 if __name__ == "__main__":

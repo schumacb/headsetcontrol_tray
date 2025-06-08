@@ -26,12 +26,24 @@ logger = logging.getLogger(app_config.APP_NAME)
 
 class SteelSeriesTrayApp:
     """Main application class for the SteelSeries Headset Tray Utility."""
+    qt_app: QApplication # Class level type annotation
 
     def __init__(self):
         logger.info(f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}")
         # Use existing QApplication instance if available (e.g., from pytest-qt),
-        # else create a new one, passing an empty list for arguments for better testability.
-        self.qt_app = QApplication.instance() or QApplication([])
+        # else create a new one.
+        _q_instance = QApplication.instance()
+        if _q_instance:
+            # Ensure it's a QApplication, not QCoreApplication if already existing
+            if not isinstance(_q_instance, QApplication):
+                 # This case is unlikely for typical app runs but good for robustness
+                 logger.warning("Existing QCoreApplication found, creating new QApplication for GUI.")
+                 self.qt_app = QApplication([])
+            else:
+                 self.qt_app = _q_instance
+        else:
+            self.qt_app = QApplication([])
+
         self.qt_app.setQuitOnLastWindowClosed(False) # Important for tray apps
 
         # Set application name for potential QSettings usage or window titles
@@ -74,7 +86,7 @@ class SteelSeriesTrayApp:
 
         dialog = QMessageBox()
         dialog.setWindowTitle("Headset Permissions Setup Required")
-        dialog.setIcon(QMessageBox.Information) # Or QMessageBox.Warning
+        dialog.setIcon(QMessageBox.Icon.Information) # Or QMessageBox.Warning
         dialog.setText("Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).")
 
         informative_text_string = f"""A rule file has been prepared at: {temp_file}
@@ -90,8 +102,8 @@ Without these rules, the application might not be able to detect or control your
 """
         dialog.setInformativeText(informative_text_string.strip())
 
-        auto_button = dialog.addButton("Install Automatically", QMessageBox.AcceptRole)
-        _ = dialog.addButton(QMessageBox.Close) # Standard close button
+        auto_button = dialog.addButton("Install Automatically", QMessageBox.ButtonRole.AcceptRole)
+        _ = dialog.addButton(QMessageBox.StandardButton.Close) # Standard close button
 
         dialog.setDefaultButton(auto_button)
         dialog.exec()
@@ -123,7 +135,7 @@ Without these rules, the application might not be able to detect or control your
                     if result.returncode == 0:
                         logger.info("pkexec script executed successfully.")
                         feedback_dialog = QMessageBox()
-                        feedback_dialog.setIcon(QMessageBox.Information)
+                        feedback_dialog.setIcon(QMessageBox.Icon.Information)
                         feedback_dialog.setWindowTitle("Success")
                         feedback_dialog.setText("Udev rules installed successfully.")
                         feedback_dialog.setInformativeText("Please replug your headset for the changes to take effect.")
@@ -131,7 +143,7 @@ Without these rules, the application might not be able to detect or control your
                     elif result.returncode == 126:
                         logger.warning("User cancelled pkexec authentication.")
                         feedback_dialog = QMessageBox()
-                        feedback_dialog.setIcon(QMessageBox.Warning)
+                        feedback_dialog.setIcon(QMessageBox.Icon.Warning)
                         feedback_dialog.setWindowTitle("Authentication Cancelled")
                         feedback_dialog.setText("Udev rule installation was cancelled.")
                         feedback_dialog.setInformativeText("Authentication was not provided. The udev rules have not been installed. You can try again or use the manual instructions.")
@@ -139,7 +151,7 @@ Without these rules, the application might not be able to detect or control your
                     elif result.returncode == 127:
                         logger.error(f"pkexec authorization failed or error. stderr: {result.stderr.strip()}")
                         feedback_dialog = QMessageBox()
-                        feedback_dialog.setIcon(QMessageBox.Critical)
+                        feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                         feedback_dialog.setWindowTitle("Authorization Error")
                         feedback_dialog.setText("Failed to install udev rules due to an authorization error.")
                         feedback_dialog.setInformativeText(f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges or contact support. You can also try the manual instructions.")
@@ -147,7 +159,7 @@ Without these rules, the application might not be able to detect or control your
                     else:
                         logger.error(f"pkexec helper script failed with code {result.returncode}. stderr: {result.stderr.strip()}")
                         feedback_dialog = QMessageBox()
-                        feedback_dialog.setIcon(QMessageBox.Critical)
+                        feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                         feedback_dialog.setWindowTitle("Installation Failed")
                         feedback_dialog.setText("The udev rule installation script failed.")
                         feedback_dialog.setInformativeText(f"Error (code {result.returncode}): {result.stderr.strip()}\n\nPlease check the output and try the manual instructions, or contact support.")
