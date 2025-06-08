@@ -490,11 +490,11 @@ class HeadsetService:
         return None
 
     def get_sidetone_level(self) -> int | None:
-        logger.warning("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed. Method restored for test compatibility.")
+        logger.warning("get_sidetone_level: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
     def get_inactive_timeout(self) -> int | None:
-        logger.warning("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed. Method restored for test compatibility.")
+        logger.warning("get_inactive_timeout: Cannot retrieve via HID (not implemented) and CLI fallback removed.")
         return None
 
     # TODO: Create a GitHub issue to track implementation for methods that currently cannot read values via HID.
