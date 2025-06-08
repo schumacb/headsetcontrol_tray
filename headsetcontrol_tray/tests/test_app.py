@@ -311,9 +311,11 @@ class TestHandleUdevPermissionsFlow(unittest.TestCase):
         close_button_mock = MagicMock(spec=QMessageBox.StandardButton, name="CloseButton")
 
         def add_button_side_effect(text_or_button, role=None):
-            if role == QMessageBox.AcceptRole:
+            # Check for "Install Automatically" button
+            if role == QMessageBox.AcceptRole and text_or_button == "Install Automatically":
                 return auto_button_mock
-            elif text_or_button == QMessageBox.Close: # Assuming close is added as StandardButton enum
+            # Check for Close button (usually added as a standard enum)
+            elif isinstance(text_or_button, QMessageBox.StandardButton) and text_or_button == QMessageBox.Close:
                 return close_button_mock
             # Fallback for any other buttons
             return MagicMock(spec=QMessageBox.StandardButton, name=f"OtherButton_{text_or_button}")
