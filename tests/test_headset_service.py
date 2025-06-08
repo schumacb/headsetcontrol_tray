@@ -40,7 +40,7 @@ class TestHeadsetServiceCreateUdevRules(unittest.TestCase):
         mock_temp_fd_context_manager.write = Mock()
 
         self.assertTrue(self.service._create_udev_rules())
-        self.assertIsNotNone(self.service.udev_setup_details)
+        assert self.service.udev_setup_details is not None
         self.assertEqual(self.service.udev_setup_details["temp_file_path"], "/tmp/fake_temp_rule_file.rules")
         self.assertEqual(self.service.udev_setup_details["rule_filename"], UDEV_RULE_FILENAME)
         mock_temp_fd_context_manager.write.assert_called_once_with(UDEV_RULE_CONTENT + "\n")
