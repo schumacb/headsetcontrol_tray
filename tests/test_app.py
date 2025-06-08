@@ -19,31 +19,19 @@ except ImportError as e:
     raise
 
 
-# Removed @pytest.mark.usefixtures("qapp")
+@pytest.mark.usefixtures("qapp")
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
-    qapp_for_class = None
-    _qapp_created_by_class = False
 
-    @classmethod
-    def setUpClass(cls):
-        cls.qapp_for_class = QApplication.instance()
-        if cls.qapp_for_class is None:
-            cls.qapp_for_class = QApplication([]) # Use an empty list for args
-            cls._qapp_created_by_class = True
-        else:
-            cls._qapp_created_by_class = False
-
-    @classmethod
-    def tearDownClass(cls):
-        if getattr(cls, "_qapp_created_by_class", False) and QApplication.instance():
-            QApplication.quit()
-        # cls.qapp_for_class = None # Optional: clear class reference
+    # qapp_for_class is no longer needed as qapp fixture handles instance per test.
+    # setUpClass is no longer needed as qapp fixture handles setup per test.
+    # tearDownClass is no longer needed as qapp fixture handles teardown per test.
 
     def setUp(self):
-        # Use the class-level QApplication instance
-        self.qapp_instance = TestSteelSeriesTrayAppUdevDialog.qapp_for_class
+        # qapp fixture ensures QApplication.instance() is available here.
+        self.qapp_instance = QApplication.instance()
+        assert self.qapp_instance is not None, "qapp fixture did not provide a QApplication instance for setUp."
 
-        # Patch 'headsetcontrol_tray.app.QApplication' to return the class-level instance
+        # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
         self.qapplication_patch = patch('headsetcontrol_tray.app.QApplication', return_value=self.qapp_instance)
         self.mock_qapplication_constructor = self.qapplication_patch.start()
 
