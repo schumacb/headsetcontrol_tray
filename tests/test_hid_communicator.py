@@ -74,25 +74,25 @@ class TestHIDCommunicator(unittest.TestCase):
         expected_bytes = b'\x01\x02\x03'
         self.mock_hid_device.read.return_value = bytearray(expected_bytes) # hid.Device.read often returns bytearray
 
-        result = self.communicator.read_report(report_length=3, timeout_ms=500)
+        result = self.communicator.read_report(report_length=3) # Removed timeout_ms
 
         self.assertEqual(result, expected_bytes)
-        self.mock_hid_device.read.assert_called_once_with(3, timeout_ms=500)
+        self.mock_hid_device.read.assert_called_once_with(3) # Removed timeout_ms from assertion
         mock_logger.debug.assert_any_call(f"HID read successful: {expected_bytes.hex()}")
 
     def test_read_report_no_data_returns_none(self, mock_logger):
         self.mock_hid_device.read.return_value = bytearray(b'') # Empty bytearray
 
-        result = self.communicator.read_report(report_length=3)
+        result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
-        mock_logger.warning.assert_called_with("No data received from HID read (length 3, timeout 1000ms).")
+        mock_logger.warning.assert_called_with("No data received from HID read (length 3).") # timeout part removed from log
 
     def test_read_report_incomplete_data_returns_none(self, mock_logger):
         incomplete_bytes = b'\x01\x02'
         self.mock_hid_device.read.return_value = bytearray(incomplete_bytes)
 
-        result = self.communicator.read_report(report_length=3)
+        result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
         mock_logger.warning.assert_called_with(f"Incomplete HID read. Expected 3 bytes, got 2: {incomplete_bytes.hex()}")
@@ -100,22 +100,14 @@ class TestHIDCommunicator(unittest.TestCase):
     def test_read_report_hid_read_raises_exception(self, mock_logger):
         self.mock_hid_device.read.side_effect = Exception("HID Read Error")
 
-        result = self.communicator.read_report(report_length=3)
+        result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
         decoded_path = self.mock_hid_device.path.decode('utf-8', 'replace')
         mock_logger.error.assert_called_with(f"HID read error on device {decoded_path}: HID Read Error")
 
-    def test_read_report_default_timeout(self, mock_logger):
-        self.mock_hid_device.read.return_value = bytearray(b'\x01\x02\x03')
-        self.communicator.read_report(report_length=3) # timeout_ms defaults to 1000
-        self.mock_hid_device.read.assert_called_once_with(3, timeout_ms=1000)
-
-    def test_read_report_none_timeout_uses_default(self, mock_logger):
-        self.mock_hid_device.read.return_value = bytearray(b'\x01\x02\x03')
-        self.communicator.read_report(report_length=3, timeout_ms=None)
-        self.mock_hid_device.read.assert_called_once_with(3, timeout_ms=1000)
-        mock_logger.warning.assert_called_with("read_report called with timeout_ms=None, defaulting to 1000ms to prevent potential indefinite block.")
+# Removed test_read_report_default_timeout and test_read_report_none_timeout_uses_default
+# as timeout_ms parameter is no longer part of read_report method.
 
 if __name__ == "__main__":
     unittest.main()

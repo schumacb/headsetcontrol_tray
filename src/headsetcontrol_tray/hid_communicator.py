@@ -63,32 +63,22 @@ class HIDCommunicator:
             # Similar to bytes_written <= 0, signal failure.
             return False
 
-    def read_report(self, report_length: int, timeout_ms: Optional[int] = 1000) -> Optional[bytes]:
+    def read_report(self, report_length: int) -> Optional[bytes]: # Removed timeout_ms parameter
         # (Adapt logic from HeadsetService._get_parsed_status_hid for reading)
         # This method now assumes self.hid_device is valid and open.
 
-        logger.debug(f"Reading HID report of length {report_length} with timeout {timeout_ms}ms from device {self.device_product_str} ({self.device_path_str})")
+        logger.debug(f"Reading HID report of length {report_length} from device {self.device_product_str} ({self.device_path_str})") # Updated log
         try:
-            # The timeout_ms parameter in hid.Device.read might not be universally supported across all python-hid backends/versions.
-            # If it's not, or if a non-blocking read is preferred, this might need adjustment.
-            # For now, assume it works as intended.
-            # If timeout_ms is None, it might block indefinitely, which could be an issue.
-            # Defaulting to a reasonable timeout (e.g., 1000ms) is safer.
-            if timeout_ms is None: # Ensure there's always a timeout
-                logger.warning(f"read_report called with timeout_ms=None for {self.device_product_str} ({self.device_path_str}), defaulting to 1000ms to prevent potential indefinite block.")
-                effective_timeout_ms = 1000
-            else:
-                effective_timeout_ms = timeout_ms
+            # Removed timeout logic
 
-            # hid.Device.read expects path as bytes.
-            # The type ignore for timeout_ms is because some stubs might not declare it.
-            response_data = self.hid_device.read(report_length, timeout_ms=effective_timeout_ms)
+            # Call read without timeout_ms
+            response_data = self.hid_device.read(report_length) # Removed timeout_ms and type: ignore
 
             if not response_data:
-                logger.warning(f"No data received from HID read on {self.device_product_str} ({self.device_path_str}) (length {report_length}, timeout {effective_timeout_ms}ms).")
+                logger.warning(f"No data received from HID read on {self.device_product_str} ({self.device_path_str}) (length {report_length}).") # Updated log
                 return None
             if len(response_data) < report_length:
-                logger.warning((f"Incomplete HID read on {self.device_product_str} ({self.device_path_str}). Expected {report_length} bytes, "
+                logger.warning((f"Incomplete HID read on {self.device_product_str} ({self.device_path_str}). Expected {report_length} bytes, " # Log unchanged here but context is
                                 f"got {len(response_data)}: {bytes(response_data).hex()}"))
                 # Depending on requirements, could return None or the partial data.
                 # For status reports, partial data is likely unusable.
