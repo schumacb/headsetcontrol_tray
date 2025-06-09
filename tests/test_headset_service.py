@@ -27,20 +27,22 @@ from headsetcontrol_tray.udev_manager import UDEV_RULE_FILENAME as STEELSERIES_U
 @patch('headsetcontrol_tray.headset_service.UDEVManager')
 @patch('headsetcontrol_tray.headset_service.HIDCommunicator')
 @patch('headsetcontrol_tray.headset_service.HIDConnectionManager')
-@patch('headsetcontrol_tray.headset_service.os.path.exists')
+@patch('headsetcontrol_tray.headset_service.os.path.exists') # Innermost decorator, last argument to setUp
 class BaseHeadsetServiceTestCase(unittest.TestCase):
-    def setUp(self, mock_os_path_exists, mock_hid_connection_manager_class,  # type: ignore[override]
-              mock_hid_communicator_class, mock_udev_manager_class,
-              mock_status_parser_class, mock_command_encoder_class, mock_logger):
+    def setUp(self, mock_logger, mock_command_encoder_class, mock_status_parser_class, # type: ignore[override]
+                  mock_udev_manager_class, mock_hid_communicator_class,
+                  mock_hid_connection_manager_class, mock_os_path_exists):
 
-        self.mock_os_path_exists = mock_os_path_exists
-        self.mock_hid_connection_manager_instance = mock_hid_connection_manager_class.return_value
+        # Assignments must match the new parameter order
+        self.mock_logger = mock_logger
+        self.mock_command_encoder_instance = mock_command_encoder_class.return_value
+        self.mock_status_parser_instance = mock_status_parser_class.return_value
+        self.mock_udev_manager_instance = mock_udev_manager_class.return_value
         self.MockHIDCommunicatorClass = mock_hid_communicator_class  # Store the class itself
         self.mock_hid_communicator_instance = mock_hid_communicator_class.return_value
-        self.mock_udev_manager_instance = mock_udev_manager_class.return_value
-        self.mock_status_parser_instance = mock_status_parser_class.return_value
-        self.mock_command_encoder_instance = mock_command_encoder_class.return_value
-        self.mock_logger = mock_logger
+        self.mock_hid_connection_manager_instance = mock_hid_connection_manager_class.return_value
+        self.mock_os_path_exists = mock_os_path_exists
+
 
         # Default mock behaviors
         self.mock_hid_device_instance = MagicMock(spec=hid.Device) # Mock the hid.Device object
