@@ -36,7 +36,7 @@ class TestHIDCommunicator(unittest.TestCase):
     def test_init_with_none_device_raises_value_error(self): # Removed mock_logger arg
         with self.assertRaises(ValueError):
             # Provide a dummy device_info for this specific error test
-            HIDCommunicator(None, device_info={"path": b"", "product_string": ""}) # type: ignore
+            HIDCommunicator(None, device_info={"path": b"", "product_string": ""})
         self.mock_logger.error.assert_called_with("HIDCommunicator initialized with a None hid_device. This is unexpected.")
 
     def test_write_report_success_with_report_id(self): # Removed mock_logger arg
