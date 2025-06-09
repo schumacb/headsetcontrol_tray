@@ -9,16 +9,18 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from headsetcontrol_tray.udev_manager import UDEVManager, UDEV_RULE_CONTENT, UDEV_RULE_FILENAME
 from headsetcontrol_tray import app_config # For logger name
 
-@patch(f"{UDEVManager.__module__}.logger", new_callable=MagicMock)
-class TestUDEVManager(unittest.TestCase):
+class TestUDEVManager(unittest.TestCase): # Removed class decorator
 
-    def setUp(self, mock_logger_unused): # type: ignore[override]
+    def setUp(self): # Signature changed
+        self.logger_patcher = patch(f'{UDEVManager.__module__}.logger', new_callable=MagicMock)
+        self.mock_logger = self.logger_patcher.start()
+        self.addCleanup(self.logger_patcher.stop)
+
         self.manager = UDEVManager()
-        self.mock_logger = mock_logger_unused # Store the mock logger for assertions
+        # self.mock_logger is now available
 
     @patch("tempfile.NamedTemporaryFile")
-    def test_create_rules_interactive_success(self, mock_named_temp_file, mock_logger_passed_in_test_method_ignored):
-        # mock_logger_passed_in_test_method_ignored is because the class decorator provides the logger mock
+    def test_create_rules_interactive_success(self, mock_named_temp_file): # Removed mock_logger_passed_in_test_method_ignored
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules"
         mock_temp_file_context.write = MagicMock()
@@ -49,7 +51,7 @@ class TestUDEVManager(unittest.TestCase):
         self.assertIn(f"sudo cp \"{expected_details['temp_file_path']}\" \"{expected_details['final_file_path']}\"", log_messages)
 
     @patch("tempfile.NamedTemporaryFile")
-    def test_create_rules_interactive_os_error_on_write(self, mock_named_temp_file, mock_logger_passed_in_test_method_ignored):
+    def test_create_rules_interactive_os_error_on_write(self, mock_named_temp_file): # Removed mock_logger_passed_in_test_method_ignored
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.name = "/tmp/fake_headsetcontrol_oserror.rules"
         mock_temp_file_context.write.side_effect = OSError("Disk full")
@@ -63,7 +65,7 @@ class TestUDEVManager(unittest.TestCase):
         self.mock_logger.error.assert_called_with("Could not write temporary udev rule file: Disk full")
 
     @patch("tempfile.NamedTemporaryFile")
-    def test_create_rules_interactive_unexpected_error(self, mock_named_temp_file, mock_logger_passed_in_test_method_ignored):
+    def test_create_rules_interactive_unexpected_error(self, mock_named_temp_file): # Removed mock_logger_passed_in_test_method_ignored
         # Simulate an error other than OSError during the tempfile operation
         mock_named_temp_file.side_effect = Exception("Unexpected tempfile system error")
 
@@ -74,11 +76,11 @@ class TestUDEVManager(unittest.TestCase):
         self.mock_logger.error.assert_called_with("An unexpected error occurred during temporary udev rule file creation: Unexpected tempfile system error")
 
 
-    def test_get_last_udev_setup_details_initially_none(self, mock_logger_passed_in_test_method_ignored):
+    def test_get_last_udev_setup_details_initially_none(self): # Removed mock_logger_passed_in_test_method_ignored
         self.assertIsNone(self.manager.get_last_udev_setup_details())
 
     @patch("tempfile.NamedTemporaryFile") # Still need to mock this even if we just set details manually
-    def test_get_last_udev_setup_details_returns_set_details(self, mock_temp_file_unused, mock_logger_passed_in_test_method_ignored):
+    def test_get_last_udev_setup_details_returns_set_details(self, mock_temp_file_unused): # Removed mock_logger_passed_in_test_method_ignored
         dummy_details = {"temp_file_path": "/tmp/dummy", "final_file_path": "/etc/dummy.rules"}
         # Manually set the details for this test after manager initialization
         self.manager.last_udev_setup_details = dummy_details

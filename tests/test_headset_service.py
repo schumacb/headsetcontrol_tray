@@ -20,31 +20,50 @@ from headsetcontrol_tray.udev_manager import UDEV_RULE_FILENAME as STEELSERIES_U
 
 
 # Common mock setup for HeadsetService dependencies
-# Order of decorators matters: last one is first arg to setUp
-@patch('headsetcontrol_tray.headset_service.logger')
-@patch('headsetcontrol_tray.headset_service.HeadsetCommandEncoder')
-@patch('headsetcontrol_tray.headset_service.HeadsetStatusParser')
-@patch('headsetcontrol_tray.headset_service.UDEVManager')
-@patch('headsetcontrol_tray.headset_service.HIDCommunicator')
-@patch('headsetcontrol_tray.headset_service.HIDConnectionManager')
-@patch('headsetcontrol_tray.headset_service.os.path.exists') # Innermost decorator, last argument to setUp
+# No class decorators here now
 class BaseHeadsetServiceTestCase(unittest.TestCase):
-    def setUp(self, mock_logger, mock_command_encoder_class, mock_status_parser_class, # type: ignore[override]
-                  mock_udev_manager_class, mock_hid_communicator_class,
-                  mock_hid_connection_manager_class, mock_os_path_exists):
+    def setUp(self): # Signature changed, no # type: ignore[override] needed
+        # Patch 'os.path.exists'
+        self.os_path_exists_patcher = patch('headsetcontrol_tray.headset_service.os.path.exists')
+        self.mock_os_path_exists = self.os_path_exists_patcher.start()
+        self.addCleanup(self.os_path_exists_patcher.stop)
 
-        # Assignments must match the new parameter order
-        self.mock_logger = mock_logger
-        self.mock_command_encoder_instance = mock_command_encoder_class.return_value
-        self.mock_status_parser_instance = mock_status_parser_class.return_value
-        self.mock_udev_manager_instance = mock_udev_manager_class.return_value
-        self.MockHIDCommunicatorClass = mock_hid_communicator_class  # Store the class itself
-        self.mock_hid_communicator_instance = mock_hid_communicator_class.return_value
+        # Patch HIDConnectionManager class
+        self.hid_connection_manager_patcher = patch('headsetcontrol_tray.headset_service.HIDConnectionManager')
+        mock_hid_connection_manager_class = self.hid_connection_manager_patcher.start()
         self.mock_hid_connection_manager_instance = mock_hid_connection_manager_class.return_value
-        self.mock_os_path_exists = mock_os_path_exists
+        self.addCleanup(self.hid_connection_manager_patcher.stop)
 
+        # Patch HIDCommunicator class
+        self.hid_communicator_patcher = patch('headsetcontrol_tray.headset_service.HIDCommunicator')
+        self.MockHIDCommunicatorClass = self.hid_communicator_patcher.start() # Keep ref to mock class
+        self.mock_hid_communicator_instance = self.MockHIDCommunicatorClass.return_value
+        self.addCleanup(self.hid_communicator_patcher.stop)
 
-        # Default mock behaviors
+        # Patch UDEVManager class
+        self.udev_manager_patcher = patch('headsetcontrol_tray.headset_service.UDEVManager')
+        mock_udev_manager_class = self.udev_manager_patcher.start()
+        self.mock_udev_manager_instance = mock_udev_manager_class.return_value
+        self.addCleanup(self.udev_manager_patcher.stop)
+
+        # Patch HeadsetStatusParser class
+        self.status_parser_patcher = patch('headsetcontrol_tray.headset_service.HeadsetStatusParser')
+        mock_status_parser_class = self.status_parser_patcher.start()
+        self.mock_status_parser_instance = mock_status_parser_class.return_value
+        self.addCleanup(self.status_parser_patcher.stop)
+
+        # Patch HeadsetCommandEncoder class
+        self.command_encoder_patcher = patch('headsetcontrol_tray.headset_service.HeadsetCommandEncoder')
+        mock_command_encoder_class = self.command_encoder_patcher.start()
+        self.mock_command_encoder_instance = mock_command_encoder_class.return_value
+        self.addCleanup(self.command_encoder_patcher.stop)
+
+        # Patch logger
+        self.logger_patcher = patch('headsetcontrol_tray.headset_service.logger')
+        self.mock_logger = self.logger_patcher.start()
+        self.addCleanup(self.logger_patcher.stop)
+
+        # --- Original default mock behaviors from user's provided code ---
         self.mock_hid_device_instance = MagicMock(spec=hid.Device) # Mock the hid.Device object
         self.mock_hid_device_instance.path = b'/dev/hidraw_mock' # Example path
 
