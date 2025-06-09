@@ -8,29 +8,31 @@ APP_NAME = "SteelSeries Arctis Nova 7"
 STEELSERIES_VID = 0x1038
 
 # Product IDs for Arctis Nova 7 variants
-ARCTIS_NOVA_7_USER_PID = 0x2202 # From user's udev rule and logs
-ARCTIS_NOVA_7_WIRELESS_PID = 0x12dd # Generic wireless version
-ARCTIS_NOVA_7X_WIRELESS_PID = 0x12da # Xbox variant
-ARCTIS_NOVA_7P_WIRELESS_PID = 0x12db # PlayStation variant
+ARCTIS_NOVA_7_USER_PID = 0x2202  # From user's udev rule and logs
+ARCTIS_NOVA_7_WIRELESS_PID = 0x12DD  # Generic wireless version
+ARCTIS_NOVA_7X_WIRELESS_PID = 0x12DA  # Xbox variant
+ARCTIS_NOVA_7P_WIRELESS_PID = 0x12DB  # PlayStation variant
 
 
 # List of PIDs to try connecting to, user's PID prioritized
 TARGET_PIDS = [
-    ARCTIS_NOVA_7_USER_PID,        # This is 0x2202 (decimal 8706)
-    ARCTIS_NOVA_7_WIRELESS_PID,    # This is 0x12dd (decimal 4829)
-    ARCTIS_NOVA_7X_WIRELESS_PID,   # This is 0x12da (decimal 4826)
-    ARCTIS_NOVA_7P_WIRELESS_PID,   # This is 0x12db (decimal 4827)
+    ARCTIS_NOVA_7_USER_PID,  # This is 0x2202 (decimal 8706)
+    ARCTIS_NOVA_7_WIRELESS_PID,  # This is 0x12dd (decimal 4829)
+    ARCTIS_NOVA_7X_WIRELESS_PID,  # This is 0x12da (decimal 4826)
+    ARCTIS_NOVA_7P_WIRELESS_PID,  # This is 0x12db (decimal 4827)
 ]
 
 # Configuration File
-CONFIG_DIR = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
+CONFIG_DIR = (
+    Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
+)
 CONFIG_FILE = CONFIG_DIR / "settings.json"
 CUSTOM_EQ_CURVES_FILE = CONFIG_DIR / "custom_eq_curves.json"
 
 # Default settings
 DEFAULT_SIDETONE_LEVEL = 64  # Mid-range
 DEFAULT_INACTIVE_TIMEOUT = 15  # minutes
-DEFAULT_EQ_PRESET_ID = 0 # Usually 'Flat' or first hardware preset
+DEFAULT_EQ_PRESET_ID = 0  # Usually 'Flat' or first hardware preset
 DEFAULT_CUSTOM_EQ_CURVE_NAME = "Flat"
 
 # Default EQ Curves (Name: [10 band values from -10 to 10])
@@ -40,17 +42,29 @@ DEFAULT_EQ_CURVES = {
     "Bass Boost": [6, 5, 4, 2, 1, 0, 0, 0, 0, 0],
     "Treble Boost": [0, 0, 0, 0, 0, 1, 2, 3, 4, 5],
     "Vocal Clarity": [-2, -1, 0, 2, 3, 3, 2, 1, 0, -1],
-    "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1], # Example for footsteps & clarity
+    "Focus (FPS)": [-3, -2, -1, 0, 1, 2, 3, 4, 2, 1],  # Example for footsteps & clarity
 }
 
 # Specific Hardware Preset Curves for Arctis Nova 7 (derived from headsetcontrol C code)
 # These are intended to match what selecting a preset number (0-3) on the device via headsetcontrol would do.
 # Note: headsetcontrol's 'focus' preset had 9 values; padded to 10 here with a final 0.
 ARCTIS_NOVA_7_HW_PRESETS = {
-    0: { "name": "Flat (Hardware)", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
-    1: { "name": "Bass Boost (Hardware)", "values": [3.5, 5.5, 4.0, 1.0, -1.5, -1.5, -1.0, -1.0, -1.0, -1.0]},
-    2: { "name": "Focus (Hardware)", "values": [-5.0, -3.5, -1.0, -3.5, -2.5, 4.0, 6.0, -3.5, 0.0, 0.0]}, # Padded last value
-    3: { "name": "Smiley (Hardware)", "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0]},
+    0: {
+        "name": "Flat (Hardware)",
+        "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+    1: {
+        "name": "Bass Boost (Hardware)",
+        "values": [3.5, 5.5, 4.0, 1.0, -1.5, -1.5, -1.0, -1.0, -1.0, -1.0],
+    },
+    2: {
+        "name": "Focus (Hardware)",
+        "values": [-5.0, -3.5, -1.0, -3.5, -2.5, 4.0, 6.0, -3.5, 0.0, 0.0],
+    },  # Padded last value
+    3: {
+        "name": "Smiley (Hardware)",
+        "values": [3.0, 3.5, 1.5, -1.5, -4.0, -4.0, -2.5, 1.5, 3.0, 4.0],
+    },
 }
 # The HARDWARE_EQ_PRESET_NAMES can still be used for display names in UI if needed,
 # but these curves are what will be sent for the preset IDs.
@@ -109,31 +123,40 @@ HARDWARE_EQ_PRESET_NAMES = {
 #   HeadsetControl's C code writes these bytes directly, often starting with 0x00.
 
 HID_REPORT_INTERFACE = 3
-HID_REPORT_USAGE_PAGE = 0xffc0
-HID_REPORT_USAGE_ID = 0x0001 # Equivalent to 0x1 in headsetcontrol
-HID_REPORT_FIXED_FIRST_BYTE = 0x00 # Common first byte for many commands
+HID_REPORT_USAGE_PAGE = 0xFFC0
+HID_REPORT_USAGE_ID = 0x0001  # Equivalent to 0x1 in headsetcontrol
+HID_REPORT_FIXED_FIRST_BYTE = 0x00  # Common first byte for many commands
 
 # --- Commands (Payloads typically follow the HID_REPORT_FIXED_FIRST_BYTE) ---
 
 # Get Battery Status & ChatMix (Shared command and response)
 # Command to trigger status read:
-HID_CMD_GET_STATUS = [HID_REPORT_FIXED_FIRST_BYTE, 0xb0] # Results in an 8-byte input report
+HID_CMD_GET_STATUS = [
+    HID_REPORT_FIXED_FIRST_BYTE,
+    0xB0,
+]  # Results in an 8-byte input report
 # Response parsing (byte indices in the 8-byte input report):
-HID_RES_STATUS_BATTERY_LEVEL_BYTE = 2    # Raw value 0x00-0x04
-HID_RES_STATUS_BATTERY_STATUS_BYTE = 3   # 0x00=offline, 0x01=charging
-HID_RES_STATUS_CHATMIX_GAME_BYTE = 4     # Game component (0-100)
-HID_RES_STATUS_CHATMIX_CHAT_BYTE = 5     # Chat component (0-100)
+HID_RES_STATUS_BATTERY_LEVEL_BYTE = 2  # Raw value 0x00-0x04
+HID_RES_STATUS_BATTERY_STATUS_BYTE = 3  # 0x00=offline, 0x01=charging
+HID_RES_STATUS_CHATMIX_GAME_BYTE = 4  # Game component (0-100)
+HID_RES_STATUS_CHATMIX_CHAT_BYTE = 5  # Chat component (0-100)
 HID_INPUT_REPORT_LENGTH_STATUS = 8
 
 # Sidetone
-HID_CMD_SET_SIDETONE_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x39] # Append mapped level_value
+HID_CMD_SET_SIDETONE_PREFIX = [
+    HID_REPORT_FIXED_FIRST_BYTE,
+    0x39,
+]  # Append mapped level_value
 # level_value mapping: 0-25->0x00, 26-50->0x01, 51-75->0x02, >75->0x03
 
 # Inactive Time (Auto Shutdown)
-HID_CMD_SET_INACTIVE_TIME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xa3] # Append minutes
+HID_CMD_SET_INACTIVE_TIME_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0xA3]  # Append minutes
 
 # Equalizer Bands (Custom)
-HID_CMD_SET_EQ_BANDS_PREFIX = [HID_REPORT_FIXED_FIRST_BYTE, 0x33] # Append 10 band_values, then 0x00
+HID_CMD_SET_EQ_BANDS_PREFIX = [
+    HID_REPORT_FIXED_FIRST_BYTE,
+    0x33,
+]  # Append 10 band_values, then 0x00
 # Each band_value = 0x14 + float_value (-10 to +10)
 
 # Bluetooth When Powered On
