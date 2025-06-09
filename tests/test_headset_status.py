@@ -98,7 +98,7 @@ class TestHeadsetStatusParser(unittest.TestCase): # Removed class decorator
         self.assertIsNotNone(parsed)
         if parsed: # For Mypy
             self.assertIsNone(parsed["battery_percent"])
-        self.mock_logger.warning.assert_any_call("_parse_battery_info: Unknown raw battery level: 0x05")
+        self.mock_logger.warning.assert_any_call("_parse_battery_info: Unknown raw battery level: 0x5")
 
 
     def test_parse_status_report_various_chatmix_values(self): # Removed mock_logger arg
