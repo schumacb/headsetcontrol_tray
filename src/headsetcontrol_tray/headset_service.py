@@ -43,10 +43,20 @@ class HeadsetService:
         if self.hid_connection_manager.ensure_connection():
             active_hid_device = self.hid_connection_manager.get_hid_device()
             if active_hid_device:
-                # If communicator is None or device changed, create a new one
+                device_info = self.hid_connection_manager.get_selected_device_info()
+                if device_info is None:
+                    logger.warning("_ensure_hid_communicator: Got active HID device but no selected_device_info. Using placeholders for HIDCommunicator.")
+                    # Provide a default dictionary that HIDCommunicator's __init__ can handle gracefully
+                    device_info_for_comm = {"path": b"unknown_path_service", "product_string": "unknown_product_service"}
+                else:
+                    device_info_for_comm = device_info
+
+                # Recreate communicator if it's None or if the device object identity has changed.
+                # HIDConnectionManager is the source of truth for the current device and its info.
                 if self.hid_communicator is None or self.hid_communicator.hid_device != active_hid_device:
-                    self.hid_communicator = HIDCommunicator(active_hid_device)
-                    logger.debug("_ensure_hid_communicator: HIDCommunicator initialized/refreshed.")
+                    self.hid_communicator = HIDCommunicator(hid_device=active_hid_device, device_info=device_info_for_comm)
+                    # The HIDCommunicator's own __init__ log is now sufficient.
+                    # logger.debug("_ensure_hid_communicator: HIDCommunicator initialized/refreshed with device info.")
                 return True
             else: # Should not happen if ensure_connection() was true and returned a device
                 logger.error("_ensure_hid_communicator: Connection manager reported success but no device found by get_hid_device().")

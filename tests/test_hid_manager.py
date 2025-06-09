@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch, call, ANY
-import hid # type: ignore[import-not-found]
+import hid
 import sys
 import os
 
@@ -63,8 +63,22 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
 
 
 class TestHIDConnectionManagerSorting(unittest.TestCase):
+    _original_target_pids = None # Class attribute for backup
+
     def setUp(self):
         self.manager = HIDConnectionManager()
+        # Backup TARGET_PIDS before each test in this class if necessary, or use setUpClass
+        if TestHIDConnectionManagerSorting._original_target_pids is None:
+            TestHIDConnectionManagerSorting._original_target_pids = list(app_config.TARGET_PIDS)
+
+    def tearDown(self):
+        # Restore TARGET_PIDS after each test if it was backed up and potentially modified
+        if TestHIDConnectionManagerSorting._original_target_pids is not None:
+            app_config.TARGET_PIDS = list(TestHIDConnectionManagerSorting._original_target_pids)
+            # Reset for next test, so setUpClass logic isn't strictly needed if we reset here
+            # Or, manage this in setUpClass & tearDownClass. For simplicity here, this works per test.
+            # TestHIDConnectionManagerSorting._original_target_pids = None
+
 
     def test_sort_hid_devices(self):
         # Create devices with attributes that will affect sort order
@@ -100,9 +114,17 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         sorted_devices = self.manager._sort_hid_devices(devices_unsorted)
         self.assertEqual([d["path"] for d in sorted_devices], [e["path"] for e in expected_order])
 
-        # Clean up if TARGET_PIDS was modified
-        if pid_2202 not in getattr(self, '_original_target_pids', app_config.TARGET_PIDS):
-            app_config.TARGET_PIDS.remove(pid_2202)
+        # No explicit cleanup here needed due to tearDown,
+        # but ensure test logic that modifies app_config.TARGET_PIDS is careful.
+        # The original test had a cleanup:
+        # if pid_2202 not in getattr(self, '_original_target_pids', app_config.TARGET_PIDS):
+        #    app_config.TARGET_PIDS.remove(pid_2202)
+        # This suggests that the original TARGET_PIDS for comparison in getattr should be the class one.
+        if pid_2202 not in TestHIDConnectionManagerSorting._original_target_pids: # type: ignore
+             # This condition means pid_2202 was added for the test and wasn't in original
+             if pid_2202 in app_config.TARGET_PIDS: # if it's still there (it should be if tearDown hasn't run)
+                 pass # tearDown will handle it. Or remove here if tearDown is not used.
+                 # app_config.TARGET_PIDS.remove(pid_2202) # If not using tearDown for this.
 
 
 @patch('headsetcontrol_tray.hid_manager.hid.Device') # Mock the hid.Device class constructor
@@ -196,6 +218,5 @@ class TestHIDConnectionManagerClose(unittest.TestCase):
         self.assertIsNone(self.manager.hid_device)
 
 if __name__ == "__main__":
-    # Store original TARGET_PIDS if modified by tests
-    TestHIDConnectionManagerSorting._original_target_pids = list(app_config.TARGET_PIDS)
+    # No longer need to set _original_target_pids here as it's handled in setUp/tearDown
     unittest.main()

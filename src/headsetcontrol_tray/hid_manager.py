@@ -1,5 +1,5 @@
 import logging
-import hid # type: ignore[import-not-found]
+import hid
 from typing import Any, List, Optional, Dict
 
 from . import app_config # Assuming app_config is in the same directory

@@ -12,7 +12,7 @@ from headsetcontrol_tray import app_config # For logger name
 @patch(f"{UDEVManager.__module__}.logger", new_callable=MagicMock)
 class TestUDEVManager(unittest.TestCase):
 
-    def setUp(self, mock_logger_unused): # mock_logger_unused due to class-level patch
+    def setUp(self, mock_logger_unused): # type: ignore[override]
         self.manager = UDEVManager()
         self.mock_logger = mock_logger_unused # Store the mock logger for assertions
 
@@ -42,8 +42,11 @@ class TestUDEVManager(unittest.TestCase):
 
         # Check for specific log messages
         self.mock_logger.info.assert_any_call(f"Successfully wrote udev rule content to temporary file: {expected_details['temp_file_path']}")
-        self.mock_logger.info.assert_any_call(unittest.mock.string_containing("ACTION REQUIRED:"))
-        self.mock_logger.info.assert_any_call(unittest.mock.string_containing(f"sudo cp \"{expected_details['temp_file_path']}\" \"{expected_details['final_file_path']}\""))
+
+        # Verify key phrases were logged
+        log_messages = " ".join([call_obj.args[0] for call_obj in self.mock_logger.info.call_args_list if call_obj.args])
+        self.assertIn("ACTION REQUIRED:", log_messages)
+        self.assertIn(f"sudo cp \"{expected_details['temp_file_path']}\" \"{expected_details['final_file_path']}\"", log_messages)
 
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_os_error_on_write(self, mock_named_temp_file, mock_logger_passed_in_test_method_ignored):

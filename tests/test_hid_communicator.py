@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch, call
-import hid # type: ignore[import-not-found]
+import hid
 import sys
 import os
 
@@ -14,7 +14,7 @@ from headsetcontrol_tray import app_config # For logger name
 @patch(f"{HIDCommunicator.__module__}.logger", new_callable=MagicMock)
 class TestHIDCommunicator(unittest.TestCase):
 
-    def setUp(self, mock_logger_unused): # mock_logger_unused because it's patched at class level
+    def setUp(self, mock_logger_unused): # type: ignore[override]
         self.mock_hid_device = MagicMock(spec=hid.Device)
         # Simulate a path attribute that can be decoded or is already a string
         self.mock_hid_device.path = b'/dev/mock_hid_path'

@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch, call, ANY
-import hid # type: ignore[import-not-found] # Keep for type hinting if hid.Device is used
+import hid # Keep for type hinting if hid.Device is used
 import os
 import sys
 
@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.headset_service import HeadsetService
 # Removed direct import of constants like STEELSERIES_VID from headset_service, will use app_config
-from headsetcontrol_tray.udev_manager import STEELSERIES_UDEV_FILENAME # Correctly import this
+from headsetcontrol_tray.udev_manager import UDEV_RULE_FILENAME as STEELSERIES_UDEV_FILENAME # Correctly import this
 
 # New imports for mocked classes (though patches target their path in headset_service.py)
 # from headsetcontrol_tray.hid_manager import HIDConnectionManager
@@ -29,7 +29,7 @@ from headsetcontrol_tray.udev_manager import STEELSERIES_UDEV_FILENAME # Correct
 @patch('headsetcontrol_tray.headset_service.HIDConnectionManager')
 @patch('headsetcontrol_tray.headset_service.os.path.exists')
 class BaseHeadsetServiceTestCase(unittest.TestCase):
-    def setUp(self, mock_os_path_exists, mock_hid_connection_manager_class,
+    def setUp(self, mock_os_path_exists, mock_hid_connection_manager_class,  # type: ignore[override]
               mock_hid_communicator_class, mock_udev_manager_class,
               mock_status_parser_class, mock_command_encoder_class, mock_logger):
 

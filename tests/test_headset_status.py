@@ -44,7 +44,7 @@ def create_status_response_data(
 
 @patch(f"{HeadsetStatusParser.__module__}.logger", new_callable=MagicMock)
 class TestHeadsetStatusParser(unittest.TestCase):
-    def setUp(self, mock_logger_unused):
+    def setUp(self, mock_logger_unused): # type: ignore[override]
         self.parser = HeadsetStatusParser()
         self.mock_logger = mock_logger_unused # Store for assertions
 
@@ -83,14 +83,18 @@ class TestHeadsetStatusParser(unittest.TestCase):
             with self.subTest(level_byte=level_byte):
                 response_data = create_status_response_data(status_byte_val=0x02, level_byte_val=level_byte)
                 parsed = self.parser.parse_status_report(response_data)
-                self.assertEqual(parsed["battery_percent"], expected_percent)
-                self.assertFalse(parsed["battery_charging"]) # Status 0x02
-                self.assertTrue(parsed["headset_online"])
+                self.assertIsNotNone(parsed)
+                if parsed: # For Mypy, though assertIsNotNone should guarantee
+                    self.assertEqual(parsed["battery_percent"], expected_percent)
+                    self.assertFalse(parsed["battery_charging"]) # Status 0x02
+                    self.assertTrue(parsed["headset_online"])
 
     def test_parse_status_report_unknown_battery_level(self, mock_logger):
         response_data = create_status_response_data(status_byte_val=0x02, level_byte_val=0x05) # Unknown level
         parsed = self.parser.parse_status_report(response_data)
-        self.assertIsNone(parsed["battery_percent"])
+        self.assertIsNotNone(parsed)
+        if parsed: # For Mypy
+            self.assertIsNone(parsed["battery_percent"])
         mock_logger.warning.assert_any_call("_parse_battery_info: Unknown raw battery level: 0x05")
 
 
@@ -105,7 +109,9 @@ class TestHeadsetStatusParser(unittest.TestCase):
             with self.subTest(game=game, chat=chat):
                 response_data = create_status_response_data(status_byte_val=0x02, level_byte_val=0x02, game_byte_val=game, chat_byte_val=chat)
                 parsed = self.parser.parse_status_report(response_data)
-                self.assertEqual(parsed["chatmix"], expected_mix)
+                self.assertIsNotNone(parsed)
+                if parsed: # For Mypy
+                    self.assertEqual(parsed["chatmix"], expected_mix)
 
     def test_parse_status_report_insufficient_data(self, mock_logger):
         short_data = b'\x00\x01' # Too short for full parsing
@@ -124,7 +130,7 @@ class TestHeadsetStatusParser(unittest.TestCase):
 
 @patch(f"{HeadsetCommandEncoder.__module__}.logger", new_callable=MagicMock)
 class TestHeadsetCommandEncoder(unittest.TestCase):
-    def setUp(self, mock_logger_unused):
+    def setUp(self, mock_logger_unused): # type: ignore[override]
         self.encoder = HeadsetCommandEncoder()
         self.mock_logger = mock_logger_unused
 
@@ -179,7 +185,8 @@ class TestHeadsetCommandEncoder(unittest.TestCase):
         # Mock encode_set_eq_values to verify it's called correctly
         with patch.object(self.encoder, 'encode_set_eq_values', wraps=self.encoder.encode_set_eq_values) as mock_encode_eq:
             self.encoder.encode_set_eq_preset_id(preset_id_to_test)
-            mock_encode_eq.assert_called_once_with([float(v) for v in preset_values])
+            # preset_values might be seen as List[Any] by mypy depending on app_config typing
+            mock_encode_eq.assert_called_once_with([float(v) for v in preset_values]) # type: ignore[arg-type]
 
 
     def test_encode_set_eq_preset_id_invalid_id(self, mock_logger):
