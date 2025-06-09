@@ -872,5 +872,3 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         logger.info("Initial headset settings applied.")
         self.refresh_status()
-
-[end of src/headsetcontrol_tray/ui/system_tray_icon.py]

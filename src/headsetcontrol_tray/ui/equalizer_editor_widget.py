@@ -706,5 +706,3 @@ class EqualizerEditorWidget(QWidget):
                     "No EQs left after deletion, this state should be handled.",
                 )
                 self._update_ui_for_active_eq(None, None)
-
-[end of src/headsetcontrol_tray/ui/equalizer_editor_widget.py]

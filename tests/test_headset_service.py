@@ -839,5 +839,3 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-[end of tests/test_headset_service.py]

@@ -835,5 +835,3 @@ class HeadsetService:
             f"set_eq_preset_id: Direct HID failed for HW EQ preset ID {preset_id}.",
         )
         return False
-
-[end of src/headsetcontrol_tray/headset_service.py]
