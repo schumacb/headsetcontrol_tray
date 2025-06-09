@@ -6,7 +6,7 @@ from typing import Any
 
 # Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
 # Adjust the import path if necessary, e.g., from .. import app_config
-# from .. import app_config
+
 # For now, let's assume app_config can be imported directly or we'll pass necessary config.
 # We'll primarily need chat_app_identifiers from config_manager.
 
@@ -249,7 +249,6 @@ class ChatMixManager:
 
             app_name = props.get("application.name", "").lower()
             app_binary = props.get("application.process.binary", "").lower()
-            # node_name = props.get("node.name", "").lower() # Can also be used
 
             is_chat_app = False
             for ident in self.chat_app_identifiers_config:

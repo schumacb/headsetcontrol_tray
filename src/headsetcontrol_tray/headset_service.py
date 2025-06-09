@@ -1,12 +1,11 @@
 import logging
 import os
 
-# import re # No longer needed
-# import subprocess # No longer needed
+
 import tempfile
 from typing import Any
 
-# import json # No longer needed if _get_headset_device_json is removed and not used elsewhere
+
 import hid
 
 from . import app_config
@@ -836,3 +835,5 @@ class HeadsetService:
             f"set_eq_preset_id: Direct HID failed for HW EQ preset ID {preset_id}.",
         )
         return False
+
+[end of src/headsetcontrol_tray/headset_service.py]

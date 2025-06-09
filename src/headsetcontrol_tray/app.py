@@ -69,7 +69,6 @@ class SteelSeriesTrayApp:
 
         # Set application name for potential QSettings usage or window titles
         self.qt_app.setApplicationName(app_config.APP_NAME)
-        # self.qt_app.setOrganizationName(app_config.ORGANIZATION_NAME) # Optional
 
         # Attempt to set a generic application icon for dialogs etc.
         app_icon = QIcon.fromTheme(
@@ -90,7 +89,6 @@ class SteelSeriesTrayApp:
             logger.warning("Headset not detected on startup by HeadsetService.")
             # QSystemTrayIcon.supportsMessages() can check if backend supports this.
             # For now, tooltip will indicate disconnected state.
-            # print("Warning: Headset not detected on startup.")
 
         self.tray_icon = sti.SystemTrayIcon(
             self.headset_service,
@@ -106,7 +104,6 @@ class SteelSeriesTrayApp:
         """Handles the dialog flow for udev permissions and pkexec."""
         temp_file = udev_details["temp_file_path"]
         final_file = udev_details["final_file_path"]
-        # rule_filename = udev_details["rule_filename"] # Available if needed
 
         dialog = QMessageBox()
         dialog.setWindowTitle("Headset Permissions Setup Required")

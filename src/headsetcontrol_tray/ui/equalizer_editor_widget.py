@@ -383,7 +383,7 @@ class EqualizerEditorWidget(QWidget):
                     and item_data[0] == EQ_TYPE_CUSTOM
                     and item_data[1] == self._current_custom_curve_original_name
                 ):
-                    # active_curve_found_in_combo = True # Unused
+
                     text_to_display = self._current_custom_curve_original_name
                     if self._sliders_have_unsaved_changes:
                         text_to_display += "*"
@@ -405,7 +405,7 @@ class EqualizerEditorWidget(QWidget):
                             logger.debug(
                                 f"Force selecting {self._current_custom_curve_original_name} in combo as it's active.",
                             )
-                            # self.eq_combo.setCurrentIndex(i) # This can trigger recursion if not handled carefully
+
                             # Handled by _select_initial_eq_from_config or combo signal
                     break
 
@@ -706,3 +706,5 @@ class EqualizerEditorWidget(QWidget):
                     "No EQs left after deletion, this state should be handled.",
                 )
                 self._update_ui_for_active_eq(None, None)
+
+[end of src/headsetcontrol_tray/ui/equalizer_editor_widget.py]

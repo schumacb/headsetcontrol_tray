@@ -258,7 +258,7 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         self.assertTrue(result)
         mock_set_sidetone_hid.assert_called_once_with(50)
         for call_args in mock_subprocess_run.call_args_list:  # Check no CLI calls
-            args, _ = call_args
+            args, _ = call_obj
             if (
                 len(args) > 0
                 and isinstance(args[0], list)
@@ -280,7 +280,7 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         self.assertFalse(result)
         mock_set_sidetone_hid_failure.assert_called_once_with(50)
         for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
+            args, _ = call_obj
             if (
                 len(args) > 0
                 and isinstance(args[0], list)
@@ -308,7 +308,7 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         self.assertEqual(level, 75)
         mock_get_status_hid.assert_called()
         for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
+            args, _ = call_obj
             if (
                 len(args) > 0
                 and isinstance(args[0], list)
@@ -330,7 +330,7 @@ class TestHeadsetServiceNoCliFallback(unittest.TestCase):
         self.assertIsNone(level)
         mock_get_status_hid_failure.assert_called()
         for call_args in mock_subprocess_run.call_args_list:
-            args, _ = call_args
+            args, _ = call_obj
             if (
                 len(args) > 0
                 and isinstance(args[0], list)
@@ -793,12 +793,13 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
         )
 
     def test_parse_chatmix_info_online_various_values(self):
-        # Formula: mapped_game = int((raw_game_clamped / 100.0) * 64.0)
-        #          mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
-        #          chatmix_value = 64 - (mapped_chat + mapped_game)
+
+
+
+
         #          clamped to 0-128
         test_cases = [
-            # (game_raw, chat_raw, expected_chatmix_value)
+
             # Values for game_byte_val and chat_byte_val must be in range(0, 256) for bytes() conversion.
             # The method under test (_parse_chatmix_info) clamps these to 0-100 internally.
             (100, 0, 0),  # Full Game
@@ -838,3 +839,5 @@ class TestHeadsetServiceStatusParsingHelpers(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+[end of tests/test_headset_service.py]

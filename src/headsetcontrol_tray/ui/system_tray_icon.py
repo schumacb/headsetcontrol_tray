@@ -314,13 +314,6 @@ class SystemTrayIcon(QSystemTrayIcon):
                 # Let's use the test rectangle approach first if this path is problematic.
                 # For now, will try the 7-point bolt from before but ensure it's drawn.
                 # The previous one was:
-                # bolt_path.moveTo(cx - bolt_w_half, cy - bolt_h * 0.4)  # Top-leftish
-                # bolt_path.lineTo(cx + bolt_w_half, cy - bolt_h * 0.1)  # Mid-rightish
-                # bolt_path.lineTo(cx - bolt_w_half * 0.5, cy + bolt_h * 0.1) # Bottom-leftish point of upper part
-                # bolt_path.lineTo(cx + bolt_w_half, cy + bolt_h * 0.4) # Bottom-most point
-                # bolt_path.lineTo(cx - bolt_w_half, cy + bolt_h * 0.1)  # Mid-leftish
-                # bolt_path.lineTo(cx + bolt_w_half * 0.5, cy - bolt_h * 0.1) # Top-rightish point of lower part
-                # bolt_path.closeSubpath()
                 # This path uses bolt_w_half which was very small. Using new bolt_point_offset_x and bolt_total_h
 
                 bolt_path.clear()
@@ -879,3 +872,5 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         logger.info("Initial headset settings applied.")
         self.refresh_status()
+
+[end of src/headsetcontrol_tray/ui/system_tray_icon.py]

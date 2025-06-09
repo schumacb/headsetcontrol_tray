@@ -257,7 +257,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
         # if hasattr(self, 'tray_app') and self.tray_app:
-        #     self.tray_app.quit_application() # Assuming such a method exists for proper cleanup
+
         # pass # Removed duplicate pass, only one tearDown needed.
 
 
