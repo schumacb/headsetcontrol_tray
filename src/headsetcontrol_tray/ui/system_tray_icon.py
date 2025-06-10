@@ -14,7 +14,8 @@ from headsetcontrol_tray import headset_service as hs_svc
 
 from .chatmix_manager import ChatMixManager
 
-# Ensure EqualizerEditorWidget constants are accessible if needed, or rely on string parsing
+# Ensure EqualizerEditorWidget constants are accessible if needed,
+# or rely on string parsing
 from .equalizer_editor_widget import (
     EQ_TYPE_CUSTOM,
     EQ_TYPE_HARDWARE,
@@ -75,7 +76,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         )
         self.last_known_battery_level: int | None = None
         self.last_known_chatmix_value: int | None = None
-        self.last_known_battery_status_text: str | None = None  # For change detection
+        self.last_known_battery_status_text: str | None = None
+        # For change detection
 
         # Variables to store current fetched values for tooltip/menu (updated in refresh_status)
         self.battery_level: int | None = None
@@ -211,7 +213,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 and self.battery_status_text == "BATTERY_CHARGING"
             ):
                 logger.debug(
-                    "_create_status_icon: Attempting to draw charging indicator. Status: %s, Level: %s",
+                    ("_create_status_icon: Attempting to draw charging indicator. "
+                     "Status: %s, Level: %s"),
                     self.battery_status_text,
                     self.battery_level,
                 )
@@ -225,7 +228,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 painter.setBrush(bolt_fill_color)  # Yellow fill
 
                 bolt_path = QPainterPath()
-                # Center bolt within the battery body, not considering the cap for bolt's own centering
+                # Center bolt within the battery body, not considering the cap for
+                # bolt's own centering
                 cx = battery_body_rect.center().x()
                 cy = battery_body_rect.center().y()
 
@@ -796,10 +800,8 @@ class SystemTrayIcon(QSystemTrayIcon):
             vals = self.config_manager.get_custom_eq_curve(name)
             if not vals:
                 name = app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
-                vals = (
-                    self.config_manager.get_custom_eq_curve(name)
-                    or app_config.DEFAULT_EQ_CURVES["Flat"]
-                )
+                default_flat = app_config.DEFAULT_EQ_CURVES["Flat"]
+                vals = self.config_manager.get_custom_eq_curve(name) or default_flat
                 self.config_manager.set_last_custom_eq_curve_name(name)
 
             float_vals = [float(v) for v in vals]  # Convert to list[float]

@@ -7,7 +7,8 @@ import hid
 
 from . import app_config  # Assuming app_config is in the same directory
 
-# Import HIDConnectionManager to type hint the constructor, but it's not strictly needed for runtime in this class if device is passed in
+# Import HIDConnectionManager to type hint the constructor, but it's not strictly
+# needed for runtime in this class if device is passed in
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
@@ -21,12 +22,15 @@ class HIDCommunicator:
 
         Args:
             hid_device: An open hid.Device object.
-            device_info: A dictionary containing device information like path and product string.
+            device_info: A dictionary containing device information like path
+                         and product string.
         """
         if hid_device is None:
-            # This case should ideally be prevented by the caller (e.g. HeadsetService ensuring connection first)
+            # This case should ideally be prevented by the caller
+            # (e.g. HeadsetService ensuring connection first)
             logger.error(
-                "HIDCommunicator initialized with a None hid_device. This is unexpected.",
+                "HIDCommunicator initialized with a None hid_device. "
+                "This is unexpected.",
             )
             raise ValueError("HIDCommunicator requires a valid hid.Device object.")
         self.hid_device: hid.Device = hid_device
@@ -67,17 +71,19 @@ class HIDCommunicator:
         else:  # report_id is 0 or not used (common for SteelSeries commands starting with 0x00)
             final_report = payload
 
-        # It's important to determine if the first byte of `data` (e.g. app_config.HID_REPORT_FIXED_FIRST_BYTE)
-        # is itself a report ID or part of the payload.
+        # It's important to determine if the first byte of `data`
+        # (e.g. app_config.HID_REPORT_FIXED_FIRST_BYTE) is itself a report ID or
+        # part of the payload.
         # The original _write_hid_report logic:
         # - If report_id > 0, it prepends it.
         # - If report_id == 0, it sends data as-is.
-        # This seems correct if commands in app_config that start with 0x00 are meant to be sent
-        # with report_id=0, and that 0x00 is part of the payload.
-        # For commands like HID_CMD_SAVE_SETTINGS = [0x06, 0x09], report_id=0x06 would be used.
+        # This seems correct if commands in app_config that start with 0x00 are
+        # meant to be sent with report_id=0, and that 0x00 is part of the payload.
+        # For commands like HID_CMD_SAVE_SETTINGS = [0x06, 0x09],
+        # report_id=0x06 would be used.
 
         logger.debug(
-            "Writing HID report: ID=%s, Data=%s to device %s (%s)",
+            ("Writing HID report: ID=%s, Data=%s to device %s (%s)"),
             report_id,
             final_report.hex(),
             self.device_product_str,
@@ -88,12 +94,14 @@ class HIDCommunicator:
             logger.debug("Bytes written: %s", bytes_written)
             if bytes_written <= 0:
                 logger.warning(
-                    "HID write returned %s. This might indicate an issue with the device %s (%s).",
+                    ("HID write returned %s. This might indicate an issue with the "
+                     "device %s (%s)."),
                     bytes_written,
                     self.device_product_str,
                     self.device_path_str,
                 )
-                # Consider if this class should handle device closure/reconnection or signal failure to a manager.
+                # Consider if this class should handle device closure/reconnection
+                # or signal failure to a manager.
                 # For now, just report failure. The caller (HeadsetService) might need to handle this.
                 return False
             return True
@@ -118,7 +126,7 @@ class HIDCommunicator:
         # This method now assumes self.hid_device is valid and open.
 
         logger.debug(
-            "Reading HID report of length %s from device %s (%s)",
+            ("Reading HID report of length %s from device %s (%s)"),
             report_length,
             self.device_product_str,
             self.device_path_str,

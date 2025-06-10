@@ -48,7 +48,8 @@ class HeadsetService:
         self._ensure_hid_communicator()
 
     def _ensure_hid_communicator(self) -> bool:
-        # Check if current communicator is valid and points to the same device as connection manager
+        # Check if current communicator is valid and points to the same device as
+        # connection manager
         if (
             self.hid_communicator
             and self.hid_connection_manager.hid_device
@@ -58,7 +59,8 @@ class HeadsetService:
             return True
 
         logger.debug(
-            "_ensure_hid_communicator: Attempting to establish/refresh HID communicator.",
+            "_ensure_hid_communicator: Attempting to establish/refresh HID "
+            "communicator.",
         )
         if self.hid_connection_manager.ensure_connection():
             active_hid_device = self.hid_connection_manager.get_hid_device()
@@ -66,9 +68,11 @@ class HeadsetService:
                 device_info = self.hid_connection_manager.get_selected_device_info()
                 if device_info is None:
                     logger.warning(
-                        "_ensure_hid_communicator: Got active HID device but no selected_device_info. Using placeholders for HIDCommunicator.",
+                        "_ensure_hid_communicator: Got active HID device but no "
+                        "selected_device_info. Using placeholders for HIDCommunicator.",
                     )
-                    # Provide a default dictionary that HIDCommunicator's __init__ can handle gracefully
+                    # Provide a default dictionary that HIDCommunicator's __init__ can
+                    # handle gracefully
                     device_info_for_comm = {
                         "path": b"unknown_path_service",
                         "product_string": "unknown_product_service",
@@ -104,7 +108,8 @@ class HeadsetService:
         final_rules_path = os.path.join("/etc/udev/rules.d/", STEELSERIES_UDEV_FILENAME)
         if not os.path.exists(final_rules_path):
             logger.info(
-                "Udev rules file not found at %s. Triggering interactive udev rule creation guide.",
+                "Udev rules file not found at %s. Triggering interactive udev rule "
+                "creation guide.",
                 final_rules_path,
             )
             if (
@@ -132,7 +137,8 @@ class HeadsetService:
         if not self._ensure_hid_communicator() or not self.hid_communicator:
             if self._last_hid_parsed_status is not None:
                 logger.info(
-                    "_get_parsed_status_hid: HID communicator not available, clearing last known status.",
+                    "_get_parsed_status_hid: HID communicator not available, clearing "
+                    "last known status.",
                 )
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
@@ -146,14 +152,16 @@ class HeadsetService:
 
         if not success_write:
             logger.warning(
-                "_get_parsed_status_hid: Failed to write HID status request. Closing connection.",
+                "_get_parsed_status_hid: Failed to write HID status request. "
+                "Closing connection.",
             )
             # Failure to write often means device is disconnected or in a bad state.
             self.hid_connection_manager.close()  # Close via manager
             self.hid_communicator = None  # Clear local communicator
             if self._last_hid_parsed_status is not None:
                 logger.info(
-                    "_get_parsed_status_hid: Write failed, clearing last known status.",
+                    "_get_parsed_status_hid: Write failed, clearing last known "
+                    "status.",
                 )
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
@@ -167,13 +175,15 @@ class HeadsetService:
                 self._last_hid_raw_read_data is not None
             ):  # Log if we previously had data
                 logger.debug(
-                    "HID read data changed: No data received this time (previously had data).",
+                    "HID read data changed: No data received this time "
+                    "(previously had data).",
                 )
             if (
                 self._last_hid_parsed_status is not None
             ):  # Log if we are clearing a known status
                 logger.info(
-                    "_get_parsed_status_hid: Read failed or no data, clearing last known status.",
+                    "_get_parsed_status_hid: Read failed or no data, clearing last "
+                    "known status.",
                 )
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
@@ -192,13 +202,15 @@ class HeadsetService:
         parsed_status = self.status_parser.parse_status_report(response_data_bytes)
         if not parsed_status:
             logger.warning(
-                "_get_parsed_status_hid: Failed to parse status report from received data.",
+                "_get_parsed_status_hid: Failed to parse status report from "
+                "received data.",
             )
             if (
                 self._last_hid_parsed_status is not None
             ):  # Log if we are clearing a known status
                 logger.info(
-                    "_get_parsed_status_hid: Parsing failed, clearing last known status.",
+                    "_get_parsed_status_hid: Parsing failed, clearing last known "
+                    "status.",
                 )
             self._last_hid_parsed_status = None  # Still store None if parsing failed
             return None
@@ -223,7 +235,8 @@ class HeadsetService:
                     prev_log_status is None or prev_log_status == 0x00
                 ):  # Was unknown or offline
                     logger.info(
-                        "Headset status change: Now %s (status byte %#02x), was previously offline or unknown.",
+                        "Headset status change: Now %s (status byte %#02x), "
+                        "was previously offline or unknown.",
                         "charging" if is_charging_from_parser else "online",
                         raw_battery_status_byte_from_parser,
                     )
@@ -231,7 +244,8 @@ class HeadsetService:
                     is_charging_from_parser and prev_log_status != 0x01
                 ):  # Was online but not charging, now charging
                     logger.info(
-                        "Headset status change: Now charging (status byte %#02x), was previously online and not charging.",
+                        "Headset status change: Now charging (status byte %#02x), "
+                        "was previously online and not charging.",
                         raw_battery_status_byte_from_parser,
                     )
                 elif (
@@ -271,7 +285,8 @@ class HeadsetService:
                 self._last_hid_only_connection_logged_status is not False
             ):  # Log only on change to False
                 logger.warning(
-                    "is_device_connected: HID communicator not available (device path likely NOT active or permissions issue). Reporting as NOT connected.",
+                    "is_device_connected: HID communicator not available (device path "
+                    "likely NOT active or permissions issue). Reporting as NOT connected.",
                 )
                 self._last_hid_only_connection_logged_status = False
             return False
@@ -288,12 +303,14 @@ class HeadsetService:
         if is_functionally_online != self._last_hid_only_connection_logged_status:
             if is_functionally_online:
                 logger.info(
-                    "is_device_connected: HID connection is active and headset reports as online.",
+                    "is_device_connected: HID connection is active and headset "
+                    "reports as online.",
                 )
             else:
                 # This covers cases where communicator exists, but headset is offline or status fails
                 logger.info(
-                    "is_device_connected: HID path may be active, but headset reported as offline or status query failed. Reporting as NOT connected.",
+                    "is_device_connected: HID path may be active, but headset reported "
+                    "as offline or status query failed. Reporting as NOT connected.",
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online
 
@@ -317,7 +334,8 @@ class HeadsetService:
             self._last_reported_battery_level is not None
         ):  # Log if we are clearing a known value
             logger.info(
-                "get_battery_level: Could not retrieve valid battery level, clearing last known value.",
+                "get_battery_level: Could not retrieve valid battery level, "
+                "clearing last known value.",
             )
         self._last_reported_battery_level = None
         return None
@@ -339,7 +357,8 @@ class HeadsetService:
             self._last_reported_chatmix is not None
         ):  # Log if we are clearing a known value
             logger.info(
-                "get_chatmix_value: Could not retrieve valid chatmix value, clearing last known value.",
+                "get_chatmix_value: Could not retrieve valid chatmix value, "
+                "clearing last known value.",
             )
         self._last_reported_chatmix = None
         return None
@@ -361,7 +380,8 @@ class HeadsetService:
             self._last_reported_charging_status is not None
         ):  # Log if we are clearing a known value
             logger.info(
-                "is_charging: Could not retrieve valid charging status, clearing last known value.",
+                "is_charging: Could not retrieve valid charging status, "
+                "clearing last known value.",
             )
         self._last_reported_charging_status = None
         return None
@@ -381,7 +401,8 @@ class HeadsetService:
 
         if encoded_payload is None:  # Encoder might return None if input is invalid
             logger.error(
-                "%s: Encoded payload is None (likely due to invalid input to encoder). Command not sent.",
+                "%s: Encoded payload is None (likely due to invalid input to "
+                "encoder). Command not sent.",
                 command_name_log,
             )
             return False
@@ -407,17 +428,15 @@ class HeadsetService:
         clamped_level = max(0, min(128, level))
         payload = self.command_encoder.encode_set_sidetone(clamped_level)
         return self._generic_set_command(
-            f"Set Sidetone (UI level {clamped_level})",
+            f"Set Sidetone (UI level {clamped_level})", # Wrapped
             payload,
             report_id=0,
         )
 
     def set_inactive_timeout(self, minutes: int) -> bool:
         """Sets the inactive timeout (in minutes) on the headset."""
-        clamped_minutes = max(
-            0,
-            min(90, minutes),
-        )  # Encoder also clamps, but good practice here too
+        clamped_minutes = max(0, min(90, minutes))
+        # Encoder also clamps, but good practice here too (comment moved)
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(
             f"Set Inactive Timeout ({clamped_minutes}min)",
@@ -429,11 +448,12 @@ class HeadsetService:
         """Sets custom equalizer values on the headset."""
         # values are typically -10.0 to 10.0 dB for 10 bands
         payload = self.command_encoder.encode_set_eq_values(values)
-        # report_id=0 is used as HID_CMD_SET_EQ_BANDS_PREFIX likely starts with 0x00 or similar,
-        # or it's an unnumbered report where the first byte of prefix is data.
+        # report_id=0 is used as HID_CMD_SET_EQ_BANDS_PREFIX likely starts with
+        # 0x00 or similar, or it's an unnumbered report where the first byte of
+        # prefix is data.
         # The HIDCommunicator handles prepending a report ID only if report_id > 0.
         return self._generic_set_command(
-            f"Set EQ Values ({values})",
+            f"Set EQ Values ({values})", # Wrapped
             payload,
             report_id=0,
         )

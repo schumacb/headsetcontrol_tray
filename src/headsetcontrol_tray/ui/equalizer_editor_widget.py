@@ -30,7 +30,8 @@ HW_PRESET_DISPLAY_PREFIX = "[HW] "
 
 
 class EqualizerEditorWidget(QWidget):
-    """Widget for editing and managing equalizer settings (custom curves and hardware presets)."""
+    """Widget for editing and managing equalizer settings
+(custom curves and hardware presets)."""
 
     eq_applied = Signal(
         str,
@@ -114,7 +115,9 @@ class EqualizerEditorWidget(QWidget):
 
         # Sliders
         slider_layout = QGridLayout()
-        eq_bands_khz = ["31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"]
+        eq_bands_khz = [
+            "31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"
+        ]
         for i in range(10):
             slider_vbox = QVBoxLayout()
             lbl_freq = QLabel(eq_bands_khz[i])
@@ -208,8 +211,8 @@ class EqualizerEditorWidget(QWidget):
 
         if found_idx != -1:
             if self.eq_combo.currentIndex() == found_idx:
-                # If already selected, still need to process it to update UI state correctly
-                # especially if this refresh_view was called externally.
+                # If already selected, still need to process it to update UI
+                # state correctly especially if this refresh_view was called externally.
                 self._process_eq_selection(
                     self.eq_combo.itemData(found_idx),
                     is_initial_load=True,
@@ -262,19 +265,21 @@ class EqualizerEditorWidget(QWidget):
 
         if eq_type == EQ_TYPE_CUSTOM:
             curve_name = eq_identifier
-            # Only update _current_custom_curve_original_name if it's different or force_ui_update_only is false
-            # This helps preserve the "active editing" context if refresh_view is called while sliders are dirty.
+            # Only update _current_custom_curve_original_name if it's different
+            # or force_ui_update_only is false. This helps preserve the
+            # "active editing" context if refresh_view is called while sliders are dirty.
             if not (
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
                 and self._sliders_have_unsaved_changes
-            ):
+            ): # Wrapped condition
                 self._current_custom_curve_original_name = curve_name
 
             values = self.config_manager.get_custom_eq_curve(curve_name)
             if not values:
                 logger.warning(
-                    "Custom curve '%s' not found in config manager. Defaulting to flat.",
+                    ("Custom curve '%s' not found in config manager. "
+                     "Defaulting to flat."),
                     curve_name,
                 )
                 values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0] * 10)
@@ -284,23 +289,24 @@ class EqualizerEditorWidget(QWidget):
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
                 and self._sliders_have_unsaved_changes
-            ):
+            ): # Wrapped condition
                 self._current_custom_curve_saved_values = list(values)
 
-            # If force_ui_update_only is true AND there are unsaved changes for this curve,
-            # do NOT reset sliders from saved values. Let them be.
+            # If force_ui_update_only is true AND there are unsaved changes for
+            # this curve, do NOT reset sliders from saved values. Let them be.
             if not (
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
                 and self._sliders_have_unsaved_changes
-            ):
+            ): # Wrapped condition
                 self._set_slider_visuals(values)
                 if (
                     not is_initial_load
                 ):  # Only reset unsaved changes if it's a new selection by user
                     self._sliders_have_unsaved_changes = False
 
-            # Apply to headset only on user action or if not preserving UI for unsaved changes
+            # Apply to headset only on user action or if not preserving UI for
+            # unsaved changes
             if not is_initial_load and not force_ui_update_only:
                 float_values = [float(v) for v in values]
                 if self.headset_service.set_eq_values(float_values):
@@ -314,8 +320,9 @@ class EqualizerEditorWidget(QWidget):
                         "Failed to apply custom EQ to headset.",
                     )
 
-            # If it's just a UI refresh due to external change, but user was editing this curve,
-            # ensure _sliders_have_unsaved_changes reflects the current slider vs saved state.
+            # If it's just a UI refresh due to external change, but user was editing
+            # this curve, ensure _sliders_have_unsaved_changes reflects the
+            # current slider vs saved state.
             if (
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
@@ -328,11 +335,11 @@ class EqualizerEditorWidget(QWidget):
         elif eq_type == EQ_TYPE_HARDWARE:
             preset_id = eq_identifier
             preset_name_display = ""
-            for i in range(self.eq_combo.count()):  # Get display name for signal
+            # Get display name for signal
+            for i in range(self.eq_combo.count()):
                 if self.eq_combo.itemData(i) == eq_data:
                     preset_name_display = self.eq_combo.itemText(i).replace(
-                        HW_PRESET_DISPLAY_PREFIX,
-                        "",
+                        HW_PRESET_DISPLAY_PREFIX, ""
                     )
                     break
 
@@ -406,11 +413,12 @@ class EqualizerEditorWidget(QWidget):
                         self.eq_combo.setItemText(i, text_to_display)
                     # Ensure this item is selected if it's the active one
                     if self.eq_combo.currentIndex() != i:
-                        # Only force selection if the current selection is not this active curve already
-                        # This check prevents infinite loops if currentData points to the same logical curve.
+                        # Only force selection if the current selection is not this
+                        # active curve already. This check prevents infinite loops
+                        # if currentData points to the same logical curve.
                         current_selection_data = self.eq_combo.itemData(
-                            self.eq_combo.currentIndex(),
-                        )
+                            self.eq_combo.currentIndex()
+                        ) # Wrapped
                         if not (
                             current_selection_data
                             and current_selection_data[0] == EQ_TYPE_CUSTOM
@@ -425,10 +433,11 @@ class EqualizerEditorWidget(QWidget):
                             # Handled by _select_initial_eq_from_config or combo signal
                     break
 
-            # If the current combo selection IS NOT the active custom curve, reset its '*'
+            # If the current combo selection IS NOT the active custom curve,
+            # reset its '*'
             current_selection_data = self.eq_combo.itemData(
-                self.eq_combo.currentIndex(),
-            )
+                self.eq_combo.currentIndex()
+            ) # Wrapped
             if (
                 current_selection_data
                 and (
@@ -517,8 +526,8 @@ class EqualizerEditorWidget(QWidget):
                 "Failed to apply EQ settings to headset.",
             )
 
-        # The _sliders_have_unsaved_changes flag and UI update (like '*')
-        # were already handled by _on_slider_value_changed.
+        # The _sliders_have_unsaved_changes flag and UI update (like '*') were
+        # already handled by _on_slider_value_changed.
         # This function's main job is now just the headset application.
 
     def _set_slider_visuals(self, values: list[int]) -> None:
@@ -580,7 +589,9 @@ class EqualizerEditorWidget(QWidget):
             and active_data[0] == EQ_TYPE_CUSTOM
             and self._current_custom_curve_original_name
         ):
-            QMessageBox.warning(self, "Save Error", "No custom curve active to save.")
+            QMessageBox.warning(
+                self, "Save Error", "No custom curve active to save."
+            ) # Wrapped
             return
 
         name_to_save = self._current_custom_curve_original_name
@@ -651,14 +662,17 @@ class EqualizerEditorWidget(QWidget):
                 self._select_initial_eq_from_config()
             self.eq_combo.blockSignals(False)
 
-            # After setCurrentIndex, _on_eq_selected_in_combo will fire,
-            # which calls _process_eq_selection. This will handle setting config and emitting eq_applied.
-            # So, explicitly calling _process_eq_selection here might be redundant or cause double-processing.
+            # After setCurrentIndex, _on_eq_selected_in_combo will fire, which
+            # calls _process_eq_selection. This will handle setting config and
+            # emitting eq_applied. So, explicitly calling _process_eq_selection
+            # here might be redundant or cause double-processing.
             # Let's rely on the signal from setCurrentIndex.
-            # If it was blocked during the index set, we'd need to call _process_eq_selection manually.
+            # If it was blocked during the index set, we'd need to call
+            # _process_eq_selection manually.
             # Since it's unblocked before setCurrentIndex, the signal should fire.
 
-            # Manually process if the index didn't change but we need to register it as the active one
+            # Manually process if the index didn't change but we need to register
+            # it as the active one
             if self.eq_combo.currentIndex() == found_idx:
                 self._process_eq_selection(new_curve_data, is_initial_load=False)
 

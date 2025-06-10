@@ -28,7 +28,8 @@ class HeadsetStatusParser:
         # (Copy from HeadsetService._determine_headset_online_status)
         if len(response_data) <= app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE:
             logger.warning(
-                "_determine_headset_online_status: Response data too short. Expected > %s bytes, got %s",
+                ("_determine_headset_online_status: Response data too short. "
+                 "Expected > %s bytes, got %s"),
                 app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE,
                 len(response_data),
             )
@@ -53,7 +54,8 @@ class HeadsetStatusParser:
         )
         if len(response_data) <= required_length:
             logger.warning(
-                "_parse_battery_info: Response data too short for battery info. Expected > %s bytes, got %s",
+                ("_parse_battery_info: Response data too short for battery info. "
+                 "Expected > %s bytes, got %s"),
                 required_length,
                 len(response_data),
             )
@@ -101,7 +103,8 @@ class HeadsetStatusParser:
         )
         if len(response_data) <= required_length:
             logger.warning(
-                "_parse_chatmix_info: Response data too short for chatmix info. Expected > %s bytes, got %s",
+                ("_parse_chatmix_info: Response data too short for chatmix info. "
+                 "Expected > %s bytes, got %s"),
                 required_length,
                 len(response_data),
             )
@@ -114,12 +117,14 @@ class HeadsetStatusParser:
         # Game: 0 (full chat) to 100 (full game) -> maps to 0 to 64
         # Chat: 0 (full game) to 100 (full chat) -> maps to 0 to -64 (effectively)
         # The logic from headsetcontrol seems to be:
-        # Let's use the interpretation from the original HeadsetControl GUI if possible or simplify.
+        # Let's use the interpretation from the original HeadsetControl GUI
+        # if possible or simplify.
         # The prompt's logic:
         raw_game_clamped = max(0, min(100, raw_game))
         raw_chat_clamped = max(0, min(100, raw_chat))
 
-        # This mapping seems specific. If raw_game=100, mapped_game=64. If raw_chat=100, mapped_chat=-64.
+        # This mapping seems specific. If raw_game=100, mapped_game=64. If raw_chat=100,
+        # mapped_chat=-64.
         # If game=100, chat=0 => chatmix_value = 64 - (0 + 64) = 0 (Full Game)
         # If game=0, chat=100 => chatmix_value = 64 - (-64 + 0) = 128 (Full Chat)
         # If game=50, chat=50 => chatmix_value = 64 - (-32 + 32) = 64 (Center)
@@ -140,7 +145,8 @@ class HeadsetStatusParser:
             or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS
         ):
             logger.warning(
-                "parse_status_report: Insufficient data. Expected at least %s bytes, got %s.",
+                ("parse_status_report: Insufficient data. Expected at least %s bytes, "
+                 "got %s."),
                 app_config.HID_INPUT_REPORT_LENGTH_STATUS,
                 len(response_data) if response_data else 0,
             )
@@ -158,7 +164,8 @@ class HeadsetStatusParser:
             "headset_online": headset_online,
             **battery_info,  # battery_percent, battery_charging
             "chatmix": chatmix_value,
-            "raw_battery_status_byte": raw_battery_status_byte,  # For logging state changes in HeadsetService
+            # For logging state changes in HeadsetService
+            "raw_battery_status_byte": raw_battery_status_byte,
         }
         logger.debug("Parsed HID status report: %s", parsed_status)
         return parsed_status
@@ -238,7 +245,8 @@ class HeadsetCommandEncoder:
             command_payload.append(0x00)  # Terminator/slot ID for custom EQ
         else:
             logger.error(
-                "encode_set_eq_values: Error constructing EQ payload. Length before terminator: %s. Expected %s.",
+                ("encode_set_eq_values: Error constructing EQ payload. Length before "
+                 "terminator: %s. Expected %s."),
                 len(command_payload),
                 len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + 10,
             )
@@ -256,7 +264,8 @@ class HeadsetCommandEncoder:
         # (Adapt from HeadsetService._set_eq_preset_hid)
         if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
             logger.error(
-                "encode_set_eq_preset_id: Invalid preset ID: %s. Not in ARCTIS_NOVA_7_HW_PRESETS.",
+                ("encode_set_eq_preset_id: Invalid preset ID: %s. "
+                 "Not in ARCTIS_NOVA_7_HW_PRESETS."),
                 preset_id,
             )
             return None
@@ -268,7 +277,8 @@ class HeadsetCommandEncoder:
             isinstance(v, (float, int)) for v in float_values_obj
         ):
             logger.error(
-                "encode_set_eq_preset_id: Preset data 'values' for ID %s is not a list of numbers.",
+                ("encode_set_eq_preset_id: Preset data 'values' for ID %s "
+                 "is not a list of numbers."),
                 preset_id,
             )
             return None
@@ -277,14 +287,16 @@ class HeadsetCommandEncoder:
 
         if len(float_values) != 10:
             logger.error(
-                "encode_set_eq_preset_id: Malformed preset data for ID %s. Expected 10 bands, got %s.",
+                ("encode_set_eq_preset_id: Malformed preset data for ID %s. "
+                 "Expected 10 bands, got %s."),
                 preset_id,
                 len(float_values),
             )
             return None
 
         logger.info(
-            "encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) using its bands: %s",
+            ("encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) "
+             "using its bands: %s"),
             preset_data.get("name", "Unknown"),
             preset_id,
             float_values,
@@ -292,7 +304,7 @@ class HeadsetCommandEncoder:
 
         # As per prompt: selecting a preset effectively sends its values as a "custom" EQ setting.
         # This means it uses the same encode_set_eq_values method, which appends 0x00.
-        # If hardware presets require a different slot ID (e.g., 0x01-0x04), then encode_set_eq_values
-        # would need modification to accept a slot_id parameter.
+        # If hardware presets require a different slot ID (e.g., 0x01-0x04),
+        # then encode_set_eq_values would need modification to accept a slot_id parameter.
         # For now, maintaining consistency with the original described behavior.
         return self.encode_set_eq_values(float_values)

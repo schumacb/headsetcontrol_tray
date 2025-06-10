@@ -38,7 +38,8 @@ DEFAULT_EQ_PRESET_ID = 0  # Usually 'Flat' or first hardware preset
 DEFAULT_CUSTOM_EQ_CURVE_NAME = "Flat"
 
 # Default EQ Curves (Name: [10 band values from -10 to 10])
-# Frequencies (approximate for reference): 31Hz, 62Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz
+# Frequencies (approximate for reference): 31Hz, 62Hz, 125Hz, 250Hz, 500Hz,
+# 1kHz, 2kHz, 4kHz, 8kHz, 16kHz
 DEFAULT_EQ_CURVES = {
     "Flat": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "Bass Boost": [6, 5, 4, 2, 1, 0, 0, 0, 0, 0],

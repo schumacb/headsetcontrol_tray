@@ -8,11 +8,12 @@ from typing import Any
 
 from headsetcontrol_tray.config_manager import ConfigManager
 
-# Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
+# Assuming app_config is in the parent directory relative to this file
+# if it's in a 'ui' subfolder
 # Adjust the import path if necessary, e.g., from .. import app_config
 
-# For now, let's assume app_config can be imported directly or we'll pass necessary config.
-# We'll primarily need chat_app_identifiers from config_manager.
+# For now, let's assume app_config can be imported directly or we'll pass
+# necessary config. We'll primarily need chat_app_identifiers from config_manager.
 
 logger = logging.getLogger(
     __name__,
@@ -30,7 +31,8 @@ class ChatMixManager:
             config_manager: The application's ConfigManager instance.
         """
         self.config_manager = config_manager
-        # Load chat app identifiers (list of strings for application.name or application.process.binary)
+        # Load chat app identifiers (list of strings for application.name
+        # or application.process.binary)
         # Ensure these are lowercase for case-insensitive matching later.
         self.chat_app_identifiers_config = [
             ident.lower()
@@ -39,9 +41,11 @@ class ChatMixManager:
                 ["Discord", "WEBRTC VoiceEngine"],
             )
         ]
-        # Reference volume for 100% (PipeWire uses floats, typically 0.0 to 1.0 for normal range)
+        # Reference volume for 100% (PipeWire uses floats, typically 0.0 to 1.0
+        # for normal range)
         self.reference_volume = 1.0
-        self._last_set_stream_volumes: dict[str, list[float]] = {}  # New attribute
+        self._last_set_stream_volumes: dict[str, list[float]] = {}
+        # New attribute
         logger.info(
             "ChatMixManager initialized. Chat app identifiers: %s",
             self.chat_app_identifiers_config,
@@ -107,7 +111,7 @@ class ChatMixManager:
                 stream_id = obj.get("id")
                 if stream_id is None:
                     logger.warning(
-                        "Found Stream/Output/Audio node without an ID: %s",
+                        "Found Stream/Output/Audio node without an ID: %s", # Wrapped
                         props.get("node.name", "N/A"),
                     )
                     continue
@@ -141,12 +145,13 @@ class ChatMixManager:
                 streams.append(
                     {
                         "id": stream_id,
-                        "props": props,  # application.name, application.process.binary, etc.
+                        "props": props,
+                        # application.name, application.process.binary, etc.
                         "num_channels": num_channels,
                         "current_channel_volumes": current_channel_volumes,  # For reference or if needed
                     },
                 )
-        logger.debug("Found %s Stream/Output/Audio nodes.", len(streams))
+        logger.debug("Found %s Stream/Output/Audio nodes.", len(streams)) # Wrapped
         return streams
 
     def _calculate_volumes(self, chatmix_value: int) -> tuple[float, float]:
@@ -241,7 +246,8 @@ class ChatMixManager:
             )
         except FileNotFoundError:
             logger.error(
-                "pw-cli command not found. Please ensure PipeWire utilities are installed and in PATH.",
+                ("pw-cli command not found. Please ensure PipeWire utilities are "
+                 "installed and in PATH."),
             )
         except subprocess.CalledProcessError as e:
             logger.error(
@@ -300,7 +306,8 @@ class ChatMixManager:
                 stream_type = "CHAT"
 
             logger.debug(
-                "Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, TargetVol=%.2f",
+                ("Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, "
+                 "TargetVol=%.2f"),
                 stream_id,
                 props.get("application.name", ""),
                 props.get("application.process.binary", ""),

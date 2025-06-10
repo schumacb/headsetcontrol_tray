@@ -40,7 +40,8 @@ class HIDConnectionManager:
         potential_devices = []
         for dev_info in devices_enum:
             logger.debug(
-                "  Enumerated device: PID=0x%04x, Release=0x%04x, Interface=%s, UsagePage=0x%04x, Usage=0x%04x, Path=%s, Product='%s'",
+                ("  Enumerated device: PID=0x%04x, Release=0x%04x, Interface=%s, "
+                 "UsagePage=0x%04x, Usage=0x%04x, Path=%s, Product='%s'"),
                 dev_info["product_id"],
                 dev_info.get("release_number", 0),
                 dev_info.get("interface_number", "N/A"),
@@ -69,12 +70,14 @@ class HIDConnectionManager:
                 and d_info.get("usage") == app_config.HID_REPORT_USAGE_ID
             ):
                 logger.debug(
-                    "  SortKey: Prioritizing exact Arctis Nova 7 interface (0) for PID 0x%04x",
+                    ("  SortKey: Prioritizing exact Arctis Nova 7 interface (0) "
+                     "for PID 0x%04x"),
                     d_info.get("product_id"),
                 )
                 return -2  # Highest priority
-            # This condition for PID 0x2202 seems very specific and might be less generic.
-            # Consider if it's universally applicable or needs to be part of a more flexible configuration.
+            # This condition for PID 0x2202 seems very specific and might be
+            # less generic. Consider if it's universally applicable or needs to be
+            # part of a more flexible configuration.
             if (
                 d_info.get("product_id") == 0x2202
                 and d_info.get("interface_number") == 0
@@ -99,7 +102,8 @@ class HIDConnectionManager:
                 )
                 return 1
             logger.debug(
-                "  SortKey: Default priority 2 for PID 0x%04x, Interface %s, UsagePage 0x%04x",
+                ("  SortKey: Default priority 2 for PID 0x%04x, Interface %s, "
+                 "UsagePage 0x%04x"),
                 d_info.get("product_id"),
                 d_info.get("interface_number", "N/A"),
                 d_info.get("usage_page", 0),
@@ -108,7 +112,7 @@ class HIDConnectionManager:
 
         devices.sort(key=sort_key)
         logger.debug(
-            "Found %s potential devices to try, sorted by priority.",
+            "Found %s potential devices to try, sorted by priority.", # Wrapped
             len(devices),
         )
         for i, d in enumerate(devices):
@@ -158,7 +162,7 @@ class HIDConnectionManager:
                 self.hid_device = h_temp
                 self.selected_device_info = dev_info_to_try
                 logger.info(
-                    "Successfully opened HID device: %s on interface %s path %s",
+                    "Successfully opened HID device: %s on interface %s path %s", # Wrapped
                     dev_info_to_try.get("product_string", "N/A"),
                     dev_info_to_try.get("interface_number", -1),
                     path_str,
