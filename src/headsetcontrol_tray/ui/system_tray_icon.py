@@ -100,7 +100,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         )  # Start with normal interval
         self.refresh_timer.start()
         logger.info(
-            f"Refresh timer started with initial interval {self.NORMAL_REFRESH_INTERVAL_MS}ms.",
+            "Refresh timer started with initial interval %sms.", self.NORMAL_REFRESH_INTERVAL_MS
         )
 
         self.refresh_status()
@@ -208,7 +208,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 and self.battery_status_text == "BATTERY_CHARGING"
             ):
                 logger.debug(
-                    f"_create_status_icon: Attempting to draw charging indicator. Status: {self.battery_status_text}, Level: {self.battery_level}",
+                    "_create_status_icon: Attempting to draw charging indicator. Status: %s, Level: %s",
+                    self.battery_status_text, self.battery_level
                 )
 
                 # Explicitly set pen and brush for the bolt
@@ -256,7 +257,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 bolt_path.closeSubpath()
 
                 painter.drawPath(bolt_path)
-                logger.debug(f"Path drawn. Bounds: {bolt_path.boundingRect()}")
+                logger.debug("Path drawn. Bounds: %s", bolt_path.boundingRect())
 
             # --- ChatMix Indicator (Top-Right) ---
             # Show only if battery is not critically low (<=25%)
@@ -467,7 +468,7 @@ class SystemTrayIcon(QSystemTrayIcon):
     def refresh_status(self) -> None:
         """Refreshes headset status, updates tray icon, tooltip, and menu."""
         logger.debug(
-            f"SystemTray: Refreshing status (Interval: {self.refresh_timer.interval()}ms)...",
+            "SystemTray: Refreshing status (Interval: %sms)...", self.refresh_timer.interval()
         )
 
         # Store previous known state for change detection
@@ -554,7 +555,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 self.chatmix_manager.update_volumes(self.chatmix_value)
             except Exception as e:
                 logger.error(
-                    f"Error during chatmix_manager.update_volumes: {e}",
+                    "Error during chatmix_manager.update_volumes: %s", e,
                     exc_info=True,
                 )
 
@@ -589,7 +590,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             if self.refresh_timer.interval() != self.NORMAL_REFRESH_INTERVAL_MS:
                 self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
                 logger.debug(
-                    f"Device disconnected. Switched to normal refresh interval ({self.NORMAL_REFRESH_INTERVAL_MS}ms).",
+                    "Device disconnected. Switched to normal refresh interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS
                 )
             self.fast_poll_active = False
             self.fast_poll_no_change_counter = 0
@@ -604,7 +605,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                     self.fast_poll_active = False
                     self.fast_poll_no_change_counter = 0
                     logger.debug(
-                        f"No change threshold reached on fast poll. Switched to normal interval ({self.NORMAL_REFRESH_INTERVAL_MS}ms).",
+                        "No change threshold reached on fast poll. Switched to normal interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS
                     )
             else:  # Data changed on fast poll
                 self.fast_poll_no_change_counter = 0  # Reset counter, stay fast
@@ -615,13 +616,13 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.fast_poll_active = True
             self.fast_poll_no_change_counter = 0
             logger.debug(
-                f"State change detected. Switched to fast refresh interval ({self.FAST_REFRESH_INTERVAL_MS}ms).",
+                "State change detected. Switched to fast refresh interval (%sms).", self.FAST_REFRESH_INTERVAL_MS
             )
 
         logger.debug("SystemTray: Refresh status complete.")
 
     def _set_sidetone_from_menu(self, level: int) -> None:
-        logger.info(f"Setting sidetone to {level} via menu.")
+        logger.info("Setting sidetone to %s via menu.", level)
         if self.headset_service.set_sidetone_level(
             level,
         ):  # Checks connection internally
@@ -643,7 +644,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             self._update_menu_checks()
 
     def _set_inactive_timeout(self, minutes: int) -> None:
-        logger.info(f"Setting inactive timeout to {minutes} minutes via menu.")
+        logger.info("Setting inactive timeout to %s minutes via menu.", minutes)
         if self.headset_service.set_inactive_timeout(
             minutes,
         ):  # Checks connection internally
@@ -666,7 +667,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _apply_eq_from_menu(self, eq_data: tuple[str, Any]) -> None:  # Changed any to Any
         eq_type, identifier = eq_data
-        logger.info(f"Applying EQ from menu: Type={eq_type}, ID/Name='{identifier}'")
+        logger.info("Applying EQ from menu: Type=%s, ID/Name='%s'", eq_type, identifier)
 
         if not self.headset_service.is_device_connected():
             self.showMessage(
@@ -748,12 +749,12 @@ class SystemTrayIcon(QSystemTrayIcon):
     @Slot(str)
     def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str) -> None:
         logger.info(
-            f"SystemTray received eq_applied signal from SettingsDialog: '{eq_identifier_signal_str}'",
+            "SystemTray received eq_applied signal from SettingsDialog: '%s'", eq_identifier_signal_str
         )
         self.refresh_status()
 
     def _on_settings_dialog_closed(self, result: int) -> None:
-        logger.debug(f"Settings dialog closed with result: {result}")
+        logger.debug("Settings dialog closed with result: %s", result)
         self.refresh_status()
 
     def _on_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:

@@ -245,7 +245,7 @@ class SettingsDialog(QDialog):
 
     def _apply_sidetone_setting(self) -> None:
         level = self.sidetone_slider.value()
-        logger.info(f"SettingsDialog: Sidetone slider released at {level}")
+        logger.info("SettingsDialog: Sidetone slider released at %s", level)
         if self.headset_service.set_sidetone_level(level):
             self.config_manager.set_last_sidetone_level(level)
             self.settings_changed.emit()
@@ -260,7 +260,7 @@ class SettingsDialog(QDialog):
             self.sidetone_value_label.setText(str(current_sidetone))
 
     def _on_inactive_timeout_changed(self, minutes_id: int) -> None:
-        logger.info(f"SettingsDialog: Inactive timeout changed to ID {minutes_id}")
+        logger.info("SettingsDialog: Inactive timeout changed to ID %s", minutes_id)
         if self.headset_service.set_inactive_timeout(minutes_id):
             self.config_manager.set_last_inactive_timeout(minutes_id)
             self.settings_changed.emit()
@@ -291,5 +291,5 @@ class SettingsDialog(QDialog):
 
         if set(new_identifiers) != set(old_identifiers):
             self.config_manager.set_setting("chat_app_identifiers", new_identifiers)
-            logger.info(f"Chat application identifiers updated to: {new_identifiers}")
+            logger.info("Chat application identifiers updated to: %s", new_identifiers)
             self.settings_changed.emit()

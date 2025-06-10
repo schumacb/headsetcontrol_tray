@@ -34,7 +34,7 @@ class ConfigManager:
                     return json.load(f)
             except json.JSONDecodeError:
                 logger.warning(
-                    f"Could not decode JSON from {file_path}. Using empty config.",
+                    "Could not decode JSON from %s. Using empty config.", file_path
                 )
                 return {}
         return {}
@@ -44,9 +44,9 @@ class ConfigManager:
             with open(file_path, "w") as f:
                 json.dump(data, f, indent=4)
         except OSError as e:  # More specific catch for IOErrors
-            logger.error(f"IOError saving file {file_path}: {e}")
+            logger.error("IOError saving file %s: %s", file_path, e)
         except OSError as e:  # Catch other OS-related errors
-            logger.error(f"OSError saving file {file_path}: {e}")
+            logger.error("OSError saving file %s: %s", file_path, e)
 
     # General Settings
     def get_setting(self, key: str, default: Any = None) -> Any:

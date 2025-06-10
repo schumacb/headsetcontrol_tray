@@ -34,7 +34,7 @@ class HIDCommunicator:
         _product_str_temp = device_info.get("product_string")
         self.device_product_str: str = _product_str_temp if isinstance(_product_str_temp, str) else "Unknown Product"
 
-        logger.debug(f"HIDCommunicator initialized for device: {self.device_product_str} ({self.device_path_str})")
+        logger.debug("HIDCommunicator initialized for device: %s (%s)", self.device_product_str, self.device_path_str)
 
     def write_report(self, report_id: int, data: list[int]) -> bool:
         """Writes an HID report to the headset device."""
@@ -59,18 +59,18 @@ class HIDCommunicator:
         # with report_id=0, and that 0x00 is part of the payload.
         # For commands like HID_CMD_SAVE_SETTINGS = [0x06, 0x09], report_id=0x06 would be used.
 
-        logger.debug(f"Writing HID report: ID={report_id}, Data={final_report.hex()} to device {self.device_product_str} ({self.device_path_str})")
+        logger.debug("Writing HID report: ID=%s, Data=%s to device %s (%s)", report_id, final_report.hex(), self.device_product_str, self.device_path_str)
         try:
             bytes_written = self.hid_device.write(final_report)
-            logger.debug(f"Bytes written: {bytes_written}")
+            logger.debug("Bytes written: %s", bytes_written)
             if bytes_written <= 0:
-                logger.warning(f"HID write returned {bytes_written}. This might indicate an issue with the device {self.device_product_str} ({self.device_path_str}).")
+                logger.warning("HID write returned %s. This might indicate an issue with the device %s (%s).", bytes_written, self.device_product_str, self.device_path_str)
                 # Consider if this class should handle device closure/reconnection or signal failure to a manager.
                 # For now, just report failure. The caller (HeadsetService) might need to handle this.
                 return False
             return True
         except Exception as e: # hid.HIDException can be more specific if available and appropriate
-            logger.error(f"HID write error on device {self.device_product_str} ({self.device_path_str}): {e}")
+            logger.error("HID write error on device %s (%s): %s", self.device_product_str, self.device_path_str, e)
             # Similar to bytes_written <= 0, signal failure.
             return False
 
@@ -79,7 +79,7 @@ class HIDCommunicator:
         # (Adapt logic from HeadsetService._get_parsed_status_hid for reading)
         # This method now assumes self.hid_device is valid and open.
 
-        logger.debug(f"Reading HID report of length {report_length} from device {self.device_product_str} ({self.device_path_str})") # Updated log
+        logger.debug("Reading HID report of length %s from device %s (%s)", report_length, self.device_product_str, self.device_path_str) # Updated log
         try:
             # Removed timeout logic
 
@@ -87,17 +87,17 @@ class HIDCommunicator:
             response_data = self.hid_device.read(report_length) # Removed timeout_ms and type: ignore
 
             if not response_data:
-                logger.warning(f"No data received from HID read on {self.device_product_str} ({self.device_path_str}) (length {report_length}).") # Updated log
+                logger.warning("No data received from HID read on %s (%s) (length %s).", self.device_product_str, self.device_path_str, report_length) # Updated log
                 return None
             if len(response_data) < report_length:
-                logger.warning(f"Incomplete HID read on {self.device_product_str} ({self.device_path_str}). Expected {report_length} bytes, " # Log unchanged here but context is
-                                f"got {len(response_data)}: {bytes(response_data).hex()}")
+                logger.warning("Incomplete HID read on %s (%s). Expected %s bytes, got %s: %s",
+                               self.device_product_str, self.device_path_str, report_length, len(response_data), bytes(response_data).hex())
                 # Depending on requirements, could return None or the partial data.
                 # For status reports, partial data is likely unusable.
                 return None
 
-            logger.debug(f"HID read successful from {self.device_product_str} ({self.device_path_str}): {bytes(response_data).hex()}")
+            logger.debug("HID read successful from %s (%s): %s", self.device_product_str, self.device_path_str, bytes(response_data).hex())
             return bytes(response_data)
         except Exception as e: # hid.HIDException can be more specific
-            logger.error(f"HID read error on device {self.device_product_str} ({self.device_path_str}): {e}")
+            logger.error("HID read error on device %s (%s): %s", self.device_product_str, self.device_path_str, e)
             return None

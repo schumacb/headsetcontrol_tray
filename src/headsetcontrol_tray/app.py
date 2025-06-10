@@ -32,7 +32,7 @@ class SteelSeriesTrayApp:
     def __init__(self) -> None:
         """Initializes the SteelSeriesTrayApp."""
         logger.info(
-            f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}",
+            "Application starting with log level %s", logging.getLevelName(logger.getEffectiveLevel())
         )
         # Use existing QApplication instance if available (e.g., from pytest-qt),
         # else create a new one.
@@ -46,8 +46,8 @@ class SteelSeriesTrayApp:
                 if not isinstance(_q_instance, QApplication):
                     # This means _q_instance might be QCoreApplication or some other non-QApplication type.
                     logger.warning(
-                        f"Existing Qt instance found (type: {_q_instance.__class__.__name__}), "
-                        "but it's not a QApplication. Creating new QApplication for GUI.",
+                        "Existing Qt instance found (type: %s), but it's not a QApplication. Creating new QApplication for GUI.",
+                        _q_instance.__class__.__name__,
                     )
                     create_new_qapp = True
                 # If it is already a QApplication, we use it (create_new_qapp remains False).
@@ -155,7 +155,7 @@ Without these rules, the application might not be able to detect or control your
             )
 
             if not os.path.exists(helper_script_path):
-                logger.error(f"Helper script not found at {helper_script_path}")
+                logger.error("Helper script not found at %s", helper_script_path)
                 QMessageBox.critical(
                     dialog,
                     "Error",
@@ -163,7 +163,7 @@ Without these rules, the application might not be able to detect or control your
                 )
             else:
                 cmd = ["pkexec", helper_script_path, temp_file_path, final_file_path]
-                logger.info(f"Attempting to execute: {' '.join(cmd)}")
+                logger.info("Attempting to execute: %s", ' '.join(cmd))
                 try:
                     result = subprocess.run(
                         cmd,
@@ -172,12 +172,12 @@ Without these rules, the application might not be able to detect or control your
                         check=False,
                     )
                     logger.info(
-                        f"pkexec process completed. Return code: {result.returncode}",
+                        "pkexec process completed. Return code: %s", result.returncode
                     )
                     if result.stdout:
-                        logger.info(f"pkexec stdout:\n{result.stdout.strip()}")
+                        logger.info("pkexec stdout:\n%s", result.stdout.strip())
                     if result.stderr:
-                        logger.warning(f"pkexec stderr:\n{result.stderr.strip()}")
+                        logger.warning("pkexec stderr:\n%s", result.stderr.strip())
 
                     if result.returncode == 0:
                         logger.info("pkexec script executed successfully.")
@@ -201,7 +201,7 @@ Without these rules, the application might not be able to detect or control your
                         feedback_dialog.exec()
                     elif result.returncode == 127:
                         logger.error(
-                            f"pkexec authorization failed or error. stderr: {result.stderr.strip()}",
+                            "pkexec authorization failed or error. stderr: %s", result.stderr.strip()
                         )
                         feedback_dialog = QMessageBox()
                         feedback_dialog.setIcon(QMessageBox.Icon.Critical)
@@ -215,7 +215,7 @@ Without these rules, the application might not be able to detect or control your
                         feedback_dialog.exec()
                     else:
                         logger.error(
-                            f"pkexec helper script failed with code {result.returncode}. stderr: {result.stderr.strip()}",
+                            "pkexec helper script failed with code %s. stderr: %s", result.returncode, result.stderr.strip()
                         )
                         feedback_dialog = QMessageBox()
                         feedback_dialog.setIcon(QMessageBox.Icon.Critical)
@@ -238,7 +238,7 @@ Without these rules, the application might not be able to detect or control your
                     )
                 except Exception as e:
                     logger.error(
-                        f"An unexpected error occurred during pkexec execution: {e}",
+                        "An unexpected error occurred during pkexec execution: %s", e
                     )
                     QMessageBox.critical(
                         dialog,

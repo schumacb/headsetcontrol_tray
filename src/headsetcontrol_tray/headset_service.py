@@ -78,11 +78,11 @@ class HeadsetService:
         # If connection fails, check for udev rules and guide user if missing
         final_rules_path = os.path.join("/etc/udev/rules.d/", STEELSERIES_UDEV_FILENAME)
         if not os.path.exists(final_rules_path):
-            logger.info(f"Udev rules file not found at {final_rules_path}. Triggering interactive udev rule creation guide.")
+            logger.info("Udev rules file not found at %s. Triggering interactive udev rule creation guide.", final_rules_path)
             if self.udev_manager.create_rules_interactive(): # This method logs its own success/failure
                 self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
         else:
-            logger.debug(f"Udev rules file {final_rules_path} exists. Skipping interactive udev guide related to connection failure.")
+            logger.debug("Udev rules file %s exists. Skipping interactive udev guide related to connection failure.", final_rules_path)
         return False
 
     def close(self) -> None:
@@ -125,7 +125,7 @@ class HeadsetService:
 
         current_raw_data_list = list(response_data_bytes) # Convert bytes to List[int] for comparison
         if current_raw_data_list != self._last_hid_raw_read_data:
-            logger.debug(f"HID read data (raw bytes via communicator): {response_data_bytes.hex()}")
+            logger.debug("HID read data (raw bytes via communicator): %s", response_data_bytes.hex())
             self._last_hid_raw_read_data = current_raw_data_list
 
         parsed_status = self.status_parser.parse_status_report(response_data_bytes)
@@ -147,19 +147,19 @@ class HeadsetService:
                 current_effective_status_for_log = 0x01 if is_charging_from_parser else 0x02 # Simple: 0x01 charging, 0x02 online (not charging)
 
                 if prev_log_status is None or prev_log_status == 0x00: # Was unknown or offline
-                    logger.info(f"Headset status change: Now {'charging' if is_charging_from_parser else 'online'} (status byte {raw_battery_status_byte_from_parser:#02x}), was previously offline or unknown.")
+                    logger.info("Headset status change: Now %s (status byte %#02x), was previously offline or unknown.", 'charging' if is_charging_from_parser else 'online', raw_battery_status_byte_from_parser)
                 elif is_charging_from_parser and prev_log_status != 0x01: # Was online but not charging, now charging
-                     logger.info(f"Headset status change: Now charging (status byte {raw_battery_status_byte_from_parser:#02x}), was previously online and not charging.")
+                     logger.info("Headset status change: Now charging (status byte %#02x), was previously online and not charging.", raw_battery_status_byte_from_parser)
                 elif not is_charging_from_parser and prev_log_status == 0x01: # Was charging, now online but not charging
-                     logger.info(f"Headset status change: Now online and not charging (status byte {raw_battery_status_byte_from_parser:#02x}), was previously charging.")
+                     logger.info("Headset status change: Now online and not charging (status byte %#02x), was previously charging.", raw_battery_status_byte_from_parser)
                 self._last_raw_battery_status_for_logging = current_effective_status_for_log
             else: # Headset is currently offline (raw_battery_status_byte_from_parser was 0x00)
                 if prev_log_status is not None and prev_log_status != 0x00: # Was previously online or charging
-                    logger.info(f"Headset status change: Now offline (status byte {raw_battery_status_byte_from_parser:#02x}), was previously online/charging.")
+                    logger.info("Headset status change: Now offline (status byte %#02x), was previously online/charging.", raw_battery_status_byte_from_parser)
                 self._last_raw_battery_status_for_logging = 0x00
 
         if parsed_status != self._last_hid_parsed_status:
-            logger.debug(f"Parsed HID status (via parser): {parsed_status}")
+            logger.debug("Parsed HID status (via parser): %s", parsed_status)
             self._last_hid_parsed_status = parsed_status.copy() # Store a copy
         return parsed_status
 
@@ -202,7 +202,7 @@ class HeadsetService:
         ):
             current_value = status["battery_percent"]
             if current_value != self._last_reported_battery_level:
-                logger.debug(f"Battery level from parsed status: {current_value}%")
+                logger.debug("Battery level from parsed status: %s%%", current_value)
                 self._last_reported_battery_level = current_value
             return current_value
         # If status is None, or headset_online is False, or battery_percent is None
@@ -221,7 +221,7 @@ class HeadsetService:
         ):
             current_value = status["chatmix"]
             if current_value != self._last_reported_chatmix:
-                logger.debug(f"ChatMix value from parsed status: {current_value}")
+                logger.debug("ChatMix value from parsed status: %s", current_value)
                 self._last_reported_chatmix = current_value
             return current_value
         if self._last_reported_chatmix is not None: # Log if we are clearing a known value
@@ -239,7 +239,7 @@ class HeadsetService:
         ):
             current_value = status["battery_charging"]
             if current_value != self._last_reported_charging_status:
-                logger.debug(f"Charging status from parsed status: {current_value}")
+                logger.debug("Charging status from parsed status: %s", current_value)
                 self._last_reported_charging_status = current_value
             return current_value
         if self._last_reported_charging_status is not None: # Log if we are clearing a known value
@@ -249,18 +249,18 @@ class HeadsetService:
 
     def _generic_set_command(self, command_name_log: str, encoded_payload: list[int] | None, report_id: int = 0) -> bool:
         if not self._ensure_hid_communicator() or not self.hid_communicator:
-            logger.warning(f"{command_name_log}: HID communicator not available. Cannot send command.")
+            logger.warning("%s: HID communicator not available. Cannot send command.", command_name_log)
             return False
 
         if encoded_payload is None: # Encoder might return None if input is invalid
-            logger.error(f"{command_name_log}: Encoded payload is None (likely due to invalid input to encoder). Command not sent.")
+            logger.error("%s: Encoded payload is None (likely due to invalid input to encoder). Command not sent.", command_name_log)
             return False
 
         success = self.hid_communicator.write_report(report_id=report_id, data=encoded_payload)
         if success:
-            logger.info(f"{command_name_log}: Successfully sent command.")
+            logger.info("%s: Successfully sent command.", command_name_log)
         else:
-            logger.warning(f"{command_name_log}: Failed to send command via communicator. Closing HID connection as it might be stale.")
+            logger.warning("%s: Failed to send command via communicator. Closing HID connection as it might be stale.", command_name_log)
             self.hid_connection_manager.close() # Close via manager
             self.hid_communicator = None        # Clear local communicator
         return success
