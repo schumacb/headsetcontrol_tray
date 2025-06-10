@@ -697,7 +697,9 @@ class EqualizerEditorWidget(QWidget):
             # it as the active one
             if self.eq_combo.currentIndex() == found_idx:
                 self._process_eq_selection(
-                    new_curve_data, is_initial_load=False, force_ui_update_only=False,
+                    new_curve_data,
+                    is_initial_load=False,
+                    force_ui_update_only=False,
                 )  # Ensure all args are keywords
 
             QMessageBox.information(self, "Saved As", f"Curve '{new_name}' saved.")

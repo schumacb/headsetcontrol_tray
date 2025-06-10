@@ -103,8 +103,7 @@ class HIDConnectionManager:
                 d_info.get("interface_number") == STEELSERIES_INTERFACE_3
             ):  # Common interface for some SteelSeries headsets
                 logger.debug(
-                    "  SortKey: Prioritizing interface %s (generic) for PID "
-                    "0x%04x (0)",
+                    "  SortKey: Prioritizing interface %s (generic) for PID 0x%04x (0)",
                     STEELSERIES_INTERFACE_3,
                     d_info.get("product_id"),
                 )

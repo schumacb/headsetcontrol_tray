@@ -264,7 +264,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             2,
         )  # Tried both devices
         mock_logger.exception.assert_any_call(
-            "    Failed to open HID device path %s", mock.ANY,
+            "    Failed to open HID device path %s",
+            mock.ANY,
         )
 
     @patch.object(HIDConnectionManager, "_connect_device")

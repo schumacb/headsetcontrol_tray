@@ -75,7 +75,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             "following commands:",
         )
         self.assertIn(
-            expected_action_required_log, self.mock_logger.info.call_args_list,
+            expected_action_required_log,
+            self.mock_logger.info.call_args_list,
         )
 
         expected_cp_log = call(

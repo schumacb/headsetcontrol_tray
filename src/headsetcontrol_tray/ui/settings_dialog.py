@@ -74,7 +74,10 @@ class SettingsDialog(QDialog):
 
         self.main_layout.addSpacerItem(
             QSpacerItem(
-                20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding,
+                20,
+                10,
+                QSizePolicy.Policy.Minimum,
+                QSizePolicy.Policy.Expanding,
             ),
         )
         self.setLayout(self.main_layout)
@@ -157,10 +160,13 @@ class SettingsDialog(QDialog):
         eq_groupbox = QGroupBox("Equalizer")
         eq_group_layout = QVBoxLayout(eq_groupbox)
         self.equalizer_widget = EqualizerEditorWidget(
-            self.config_manager, self.headset_service, self,
+            self.config_manager,
+            self.headset_service,
+            self,
         )
         self.equalizer_widget.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
         )
         eq_group_layout.addWidget(self.equalizer_widget)
         self.main_layout.addWidget(eq_groupbox)
@@ -170,8 +176,12 @@ class SettingsDialog(QDialog):
         self.main_layout.addWidget(self.button_box)
 
     def _connect_signals(self) -> None:
-        self.chat_apps_line_edit.editingFinished.connect(self._save_chat_app_identifiers)
-        self.sidetone_slider.valueChanged.connect(self._on_sidetone_slider_value_changed)
+        self.chat_apps_line_edit.editingFinished.connect(
+            self._save_chat_app_identifiers,
+        )
+        self.sidetone_slider.valueChanged.connect(
+            self._on_sidetone_slider_value_changed,
+        )
         self.sidetone_slider.sliderReleased.connect(self._apply_sidetone_setting)
         self.timeout_button_group.idClicked.connect(self._on_inactive_timeout_changed)
         self.equalizer_widget.eq_applied.connect(self.eq_applied)

@@ -143,7 +143,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         painter.setPen(pen)
         margin = self.ICON_DRAW_SIZE // 10
         painter.drawLine(
-            self.ICON_DRAW_SIZE - margin, margin, margin, self.ICON_DRAW_SIZE - margin
+            self.ICON_DRAW_SIZE - margin, margin, margin, self.ICON_DRAW_SIZE - margin,
         )
 
     def _draw_battery_indicator(self, painter: QPainter) -> QRect | None:
@@ -203,8 +203,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 fill_width = max(
                     0,
                     int(
-                        fill_max_width *
-                        (self.battery_level / float(BATTERY_LEVEL_FULL))
+                        fill_max_width
+                        * (self.battery_level / float(BATTERY_LEVEL_FULL)),
                     ),
                 )
                 fill_rect = QRect(
@@ -216,9 +216,14 @@ class SystemTrayIcon(QSystemTrayIcon):
                 painter.fillRect(fill_rect, fill_color)
         return battery_body_rect
 
-    def _draw_charging_indicator(self, painter: QPainter, battery_body_rect: QRect) -> None:
+    def _draw_charging_indicator(
+        self, painter: QPainter, battery_body_rect: QRect,
+    ) -> None:
         """Draws the charging bolt symbol if applicable."""
-        if not (self.is_tray_view_connected and self.battery_status_text == "BATTERY_CHARGING"):
+        if not (
+            self.is_tray_view_connected
+            and self.battery_status_text == "BATTERY_CHARGING"
+        ):
             return
 
         logger.debug(
@@ -248,12 +253,12 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _draw_chatmix_indicator(self, painter: QPainter) -> None:
         """Draws the chatmix dot indicator if applicable."""
         battery_is_not_critical_or_unknown = (
-            self.battery_level is None or
-            self.battery_level > BATTERY_LEVEL_MEDIUM_CRITICAL
+            self.battery_level is None
+            or self.battery_level > BATTERY_LEVEL_MEDIUM_CRITICAL
         )
         chatmix_is_active = (
-            self.chatmix_value is not None and
-            self.chatmix_value != CHATMIX_VALUE_BALANCED
+            self.chatmix_value is not None
+            and self.chatmix_value != CHATMIX_VALUE_BALANCED
         )
 
         if battery_is_not_critical_or_unknown and chatmix_is_active:
@@ -261,7 +266,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             dot_margin = self.ICON_DRAW_SIZE // 10 or 2
             chatmix_indicator_color = (
                 QColor(Qt.GlobalColor.cyan)
-                if self.chatmix_value < CHATMIX_VALUE_BALANCED # type: ignore[operator]
+                if self.chatmix_value < CHATMIX_VALUE_BALANCED  # type: ignore[operator]
                 else QColor(Qt.GlobalColor.green)
             )
             painter.setBrush(chatmix_indicator_color)
@@ -292,7 +297,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 return f"Battery: {level_text} (Charging)"
             if self.battery_status_text == "BATTERY_FULL":
                 return f"Battery: {level_text} (Full)"
-            return f"Battery: {level_text}" # BATTERY_AVAILABLE or other
+            return f"Battery: {level_text}"  # BATTERY_AVAILABLE or other
         if self.battery_status_text == "BATTERY_UNAVAILABLE":
             return "Battery: Unavailable"
         return "Battery: N/A"
@@ -306,7 +311,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             return f"EQ: {self.current_custom_eq_name_for_tooltip}"
         if self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
             return f"EQ: {self.current_hw_preset_name_for_tooltip}"
-        return "EQ: Unknown" # Should ideally not happen
+        return "EQ: Unknown"  # Should ideally not happen
 
     def _update_tooltip_and_icon(self) -> None:
         tooltip_parts = []
@@ -342,13 +347,13 @@ class SystemTrayIcon(QSystemTrayIcon):
         sidetone_menu = self.context_menu.addMenu("Sidetone")
         current_sidetone_val = self.config_manager.get_last_sidetone_level()
         for text, level in sorted(
-            app_config.SIDETONE_OPTIONS.items(), key=lambda item: item[1]
+            app_config.SIDETONE_OPTIONS.items(), key=lambda item: item[1],
         ):
             action = QAction(text, sidetone_menu, checkable=True)
             action.setData(level)
             action.setChecked(level == current_sidetone_val)
             action.triggered.connect(
-                lambda _, lvl=level: self._set_sidetone_from_menu(lvl)
+                lambda _, lvl=level: self._set_sidetone_from_menu(lvl),
             )
             sidetone_menu.addAction(action)
             self.sidetone_action_group.append(action)
@@ -360,9 +365,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(text, timeout_menu, checkable=True)
             action.setData(minutes)
             action.setChecked(minutes == current_timeout_val)
-            action.triggered.connect(
-                lambda _, m=minutes: self._set_inactive_timeout(m)
-            )
+            action.triggered.connect(lambda _, m=minutes: self._set_inactive_timeout(m))
             timeout_menu.addAction(action)
             self.timeout_action_group.append(action)
 
@@ -381,10 +384,10 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(name, eq_menu, checkable=True)
             action.setData((EQ_TYPE_CUSTOM, name))
             action.setChecked(
-                active_eq_type == EQ_TYPE_CUSTOM and name == active_custom_name
+                active_eq_type == EQ_TYPE_CUSTOM and name == active_custom_name,
             )
             action.triggered.connect(
-                lambda _, data=(EQ_TYPE_CUSTOM, name): self._apply_eq_from_menu(data)
+                lambda _, data=(EQ_TYPE_CUSTOM, name): self._apply_eq_from_menu(data),
             )
             eq_menu.addAction(action)
             self.unified_eq_action_group.append(action)
@@ -397,10 +400,12 @@ class SystemTrayIcon(QSystemTrayIcon):
             action = QAction(display_name, eq_menu, checkable=True)
             action.setData((EQ_TYPE_HARDWARE, preset_id))
             action.setChecked(
-                active_eq_type == EQ_TYPE_HARDWARE and preset_id == active_hw_id
+                active_eq_type == EQ_TYPE_HARDWARE and preset_id == active_hw_id,
             )
             action.triggered.connect(
-                lambda _, data=(EQ_TYPE_HARDWARE, preset_id): self._apply_eq_from_menu(data)
+                lambda _, data=(EQ_TYPE_HARDWARE, preset_id): self._apply_eq_from_menu(
+                    data,
+                ),
             )
             eq_menu.addAction(action)
             self.unified_eq_action_group.append(action)
@@ -459,7 +464,9 @@ class SystemTrayIcon(QSystemTrayIcon):
                     active_eq_type == EQ_TYPE_HARDWARE and identifier == active_hw_id,
                 )
 
-    def _fetch_and_update_headset_data(self, *, current_is_connected: bool) -> tuple[str, str, bool]:
+    def _fetch_and_update_headset_data(
+        self, *, current_is_connected: bool,
+    ) -> tuple[str, str, bool]:
         """Fetches data from headset, updates internal state, returns menu texts and data_changed flag."""
         new_battery_text = "Battery: Disconnected"
         new_chatmix_text = "ChatMix: Disconnected"
@@ -488,12 +495,14 @@ class SystemTrayIcon(QSystemTrayIcon):
 
             self.chatmix_value = self.headset_service.get_chatmix_value()
 
-            new_battery_text = self._get_battery_tooltip() # Use existing helper
-            new_chatmix_text = self._get_chatmix_tooltip() # Use existing helper
+            new_battery_text = self._get_battery_tooltip()  # Use existing helper
+            new_chatmix_text = self._get_chatmix_tooltip()  # Use existing helper
 
-            if self.battery_level != prev_battery_level or \
-               self.battery_status_text != prev_battery_status_text or \
-               self.chatmix_value != prev_chatmix_value:
+            if (
+                self.battery_level != prev_battery_level
+                or self.battery_status_text != prev_battery_status_text
+                or self.chatmix_value != prev_chatmix_value
+            ):
                 data_changed_while_connected = True
 
         return new_battery_text, new_chatmix_text, data_changed_while_connected
@@ -508,10 +517,14 @@ class SystemTrayIcon(QSystemTrayIcon):
         # Update tooltip state from ConfigManager (EQ settings)
         self.active_eq_type_for_tooltip = self.config_manager.get_active_eq_type()
         if self.active_eq_type_for_tooltip == EQ_TYPE_CUSTOM:
-            self.current_custom_eq_name_for_tooltip = self.config_manager.get_last_custom_eq_curve_name()
+            self.current_custom_eq_name_for_tooltip = (
+                self.config_manager.get_last_custom_eq_curve_name()
+            )
         elif self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
             hw_id = self.config_manager.get_last_active_eq_preset_id()
-            self.current_hw_preset_name_for_tooltip = app_config.HARDWARE_EQ_PRESET_NAMES.get(hw_id, f"Preset {hw_id}")
+            self.current_hw_preset_name_for_tooltip = (
+                app_config.HARDWARE_EQ_PRESET_NAMES.get(hw_id, f"Preset {hw_id}")
+            )
 
         self._update_menu_checks()
         self._update_tooltip_and_icon()
@@ -520,7 +533,13 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.settings_dialog.refresh_chatmix_display()
             self.settings_dialog.equalizer_widget.refresh_view()
 
-    def _manage_polling_interval(self, *, current_is_connected: bool, data_changed_while_connected: bool, connection_state_changed: bool) -> None:
+    def _manage_polling_interval(
+        self,
+        *,
+        current_is_connected: bool,
+        data_changed_while_connected: bool,
+        connection_state_changed: bool,
+    ) -> None:
         """Manages the polling interval based on connection and data changes."""
         if not current_is_connected:
             if self.refresh_timer.interval() != self.NORMAL_REFRESH_INTERVAL_MS:
@@ -535,15 +554,16 @@ class SystemTrayIcon(QSystemTrayIcon):
             if not data_changed_while_connected:
                 self.fast_poll_no_change_counter += 1
                 if (
-                    self.fast_poll_no_change_counter >=
-                    self.FAST_POLL_NO_CHANGE_THRESHOLD
+                    self.fast_poll_no_change_counter
+                    >= self.FAST_POLL_NO_CHANGE_THRESHOLD
                 ):
                     self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
                     self.fast_poll_active = False
                     self.fast_poll_no_change_counter = 0
                     logger.debug(
                         "No change threshold reached on fast poll. Switched to "
-                        "normal interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS
+                        "normal interval (%sms).",
+                        self.NORMAL_REFRESH_INTERVAL_MS,
                     )
             else:
                 self.fast_poll_no_change_counter = 0
@@ -551,14 +571,17 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.refresh_timer.setInterval(self.FAST_REFRESH_INTERVAL_MS)
             self.fast_poll_active = True
             self.fast_poll_no_change_counter = 0
-            logger.debug("State change detected. Switched to fast refresh interval (%sms).", self.FAST_REFRESH_INTERVAL_MS)
+            logger.debug(
+                "State change detected. Switched to fast refresh interval (%sms).",
+                self.FAST_REFRESH_INTERVAL_MS,
+            )
 
     @Slot()
     def refresh_status(self) -> None:
         """Refreshes headset status, updates tray icon, tooltip, and menu."""
         logger.debug(
             "SystemTray: Refreshing status (Interval: %sms)...",
-            self.refresh_timer.interval()
+            self.refresh_timer.interval(),
         )
 
         prev_connection_state = self.is_tray_view_connected
@@ -573,7 +596,9 @@ class SystemTrayIcon(QSystemTrayIcon):
             )
 
         new_battery_text, new_chatmix_text, data_changed = (
-            self._fetch_and_update_headset_data(current_is_connected=current_is_connected)
+            self._fetch_and_update_headset_data(
+                current_is_connected=current_is_connected,
+            )
         )
         self._update_ui_elements(new_battery_text, new_chatmix_text)
 

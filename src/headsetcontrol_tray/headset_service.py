@@ -141,10 +141,13 @@ class HeadsetService:
 
     def _clear_last_hid_status(self, reason: str) -> None:
         """Clears the last known HID status and logs the reason."""
-        if self._last_hid_parsed_status is not None or \
-           self._last_hid_raw_read_data is not None:
+        if (
+            self._last_hid_parsed_status is not None
+            or self._last_hid_raw_read_data is not None
+        ):
             logger.info(
-                "_get_parsed_status_hid: %s, clearing last known status.", reason,
+                "_get_parsed_status_hid: %s, clearing last known status.",
+                reason,
             )
         self._last_hid_raw_read_data = None
         self._last_hid_parsed_status = None
@@ -193,7 +196,9 @@ class HeadsetService:
 
         if is_online:
             is_charging = parsed_status.get("battery_charging", False)
-            current_log_status_byte = 0x01 if is_charging else 0x02 # Charging or Online
+            current_log_status_byte = (
+                0x01 if is_charging else 0x02
+            )  # Charging or Online
 
             if prev_log_status_byte is None or prev_log_status_byte == 0x00:
                 logger.info(
@@ -215,7 +220,7 @@ class HeadsetService:
                     raw_battery_status_byte,
                 )
             self._last_raw_battery_status_for_logging = current_log_status_byte
-        else: # Headset is Offline
+        else:  # Headset is Offline
             if prev_log_status_byte is not None and prev_log_status_byte != 0x00:
                 logger.info(
                     "Headset status change: Now offline (status byte %#02x), "
@@ -228,7 +233,7 @@ class HeadsetService:
         """Retrieves, parses, and logs headset status from HID."""
         response_data_bytes = self._read_raw_hid_status()
         if not response_data_bytes:
-            return None # Errors handled in _read_raw_hid_status
+            return None  # Errors handled in _read_raw_hid_status
 
         parsed_status = self.status_parser.parse_status_report(response_data_bytes)
         if not parsed_status:

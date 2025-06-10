@@ -246,7 +246,10 @@ class ChatMixManager:
 
         try:
             process = subprocess.run(
-                cmd, capture_output=True, text=True, check=True,
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
             )  # nosec B603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",

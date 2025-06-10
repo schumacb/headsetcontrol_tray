@@ -124,7 +124,10 @@ class HeadsetStatusParser:
         }
 
     def _parse_chatmix_info(
-        self, response_data: bytes, *, is_online: bool,
+        self,
+        response_data: bytes,
+        *,
+        is_online: bool,
     ) -> int | None:
         # (Copy from HeadsetService._parse_chatmix_info)
         if not is_online:
@@ -193,7 +196,8 @@ class HeadsetStatusParser:
         headset_online = self._determine_headset_online_status(response_data)
         battery_info = self._parse_battery_info(response_data, is_online=headset_online)
         chatmix_value = self._parse_chatmix_info(
-            response_data, is_online=headset_online,
+            response_data,
+            is_online=headset_online,
         )
 
         raw_battery_status_byte = response_data[
@@ -273,7 +277,7 @@ class HeadsetCommandEncoder:
         for val in float_values:
             clamped_val = max(-10.0, min(10.0, val))  # UI values are -10 to 10 dB
             # Hardware values are EQ_HW_VALUE_MIN (-10dB) to EQ_HW_VALUE_MAX (+10dB),
-        # centered at EQ_HW_VALUE_FLAT (0dB).
+            # centered at EQ_HW_VALUE_FLAT (0dB).
             byte_value = int(EQ_HW_VALUE_FLAT + clamped_val)
             byte_value = max(EQ_HW_VALUE_MIN, min(EQ_HW_VALUE_MAX, byte_value))
             # Clamp to hardware limits
