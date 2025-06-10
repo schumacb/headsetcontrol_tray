@@ -183,7 +183,11 @@ class HeadsetService:
 
     def get_battery_level(self) -> Optional[int]:
         status = self._get_parsed_status_hid()
-        if status and status.get("headset_online") and status.get("battery_percent") is not None:
+        if (
+            status
+            and status.get("headset_online")
+            and status.get("battery_percent") is not None
+        ):
             current_value = status["battery_percent"]
             if current_value != self._last_reported_battery_level:
                 logger.debug(f"Battery level from parsed status: {current_value}%")
@@ -197,7 +201,11 @@ class HeadsetService:
 
     def get_chatmix_value(self) -> Optional[int]:
         status = self._get_parsed_status_hid()
-        if status and status.get("headset_online") and status.get("chatmix") is not None:
+        if (
+            status
+            and status.get("headset_online")
+            and status.get("chatmix") is not None
+        ):
             current_value = status["chatmix"]
             if current_value != self._last_reported_chatmix:
                 logger.debug(f"ChatMix value from parsed status: {current_value}")
@@ -210,7 +218,11 @@ class HeadsetService:
 
     def is_charging(self) -> Optional[bool]:
         status = self._get_parsed_status_hid()
-        if status and status.get("headset_online") and status.get("battery_charging") is not None:
+        if (
+            status
+            and status.get("headset_online")
+            and status.get("battery_charging") is not None
+        ):
             current_value = status["battery_charging"]
             if current_value != self._last_reported_charging_status:
                 logger.debug(f"Charging status from parsed status: {current_value}")

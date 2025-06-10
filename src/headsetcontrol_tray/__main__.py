@@ -17,5 +17,6 @@ def main() -> None:
     application = SteelSeriesTrayApp()
     sys.exit(application.run())
 
+
 if __name__ == "__main__":
     main()
