@@ -13,6 +13,8 @@ from headsetcontrol_tray.udev_manager import (
     UDEV_RULE_CONTENT,
     UDEV_RULE_FILENAME,
 )
+# NUM_EQ_BANDS is not used here, but if other constants from headset_status were needed,
+# they could be imported. For now, only app_config for logger name.
 from headsetcontrol_tray import app_config  # For logger name
 
 
@@ -58,7 +60,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         # Check for specific log messages
         self.mock_logger.info.assert_any_call(
-            f"Successfully wrote udev rule content to temporary file: {expected_details['temp_file_path']}"
+            "Successfully wrote udev rule content to temporary file: %s",
+            expected_details['temp_file_path'],
         )
 
         # Verify key phrases were logged
@@ -91,8 +94,9 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         self.assertFalse(result)
         self.assertIsNone(self.manager.last_udev_setup_details)
-        self.mock_logger.error.assert_called_with(
-            "Could not write temporary udev rule file: Disk full"
+        # Updated to check for logger.exception and the specific message format
+        self.mock_logger.exception.assert_called_once_with(
+            "Could not write temporary udev rule file" # The original code logs the exception object as part of the message if using %s, e
         )
 
     @patch("tempfile.NamedTemporaryFile")
@@ -106,8 +110,9 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         self.assertFalse(result)
         self.assertIsNone(self.manager.last_udev_setup_details)
-        self.mock_logger.error.assert_called_with(
-            "An unexpected error occurred during temporary udev rule file creation: Unexpected tempfile system error"
+        # Updated to check for logger.exception and the specific message format
+        self.mock_logger.exception.assert_called_once_with(
+            "An unexpected error occurred during temporary udev rule file creation"
         )
 
     def test_get_last_udev_setup_details_initially_none(

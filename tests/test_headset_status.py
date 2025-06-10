@@ -11,6 +11,7 @@ sys.path.insert(
 from headsetcontrol_tray.headset_status import (
     HeadsetStatusParser,
     HeadsetCommandEncoder,
+    NUM_EQ_BANDS, # Added import
 )
 from headsetcontrol_tray import app_config
 
@@ -249,7 +250,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         encoded = self.encoder.encode_set_eq_values(eq_floats_short)
         self.assertIsNone(encoded)
         self.mock_logger.error.assert_called_with(
-            "encode_set_eq_values: Invalid number of EQ bands. Expected 10, got %s.", 9
+            "encode_set_eq_values: Invalid number of EQ bands. Expected %s, got %s.", NUM_EQ_BANDS, 9
         )
 
     # For ARCTIS_NOVA_7_HW_PRESETS, we need to ensure it's structured as expected
@@ -301,8 +302,9 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         encoded = self.encoder.encode_set_eq_preset_id(0)
         self.assertIsNone(encoded)
         self.mock_logger.error.assert_any_call(
-            "encode_set_eq_preset_id: Malformed preset data for ID %s. Expected 10 bands, got %s.",
+            "encode_set_eq_preset_id: Malformed preset data for ID %s. Expected %s bands, got %s.",
             0,
+            NUM_EQ_BANDS,
             5,
         )
 

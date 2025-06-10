@@ -76,28 +76,35 @@ class TestConfigManager(unittest.TestCase):
             app_config.DEFAULT_EQ_CURVES,
         )
 
-    @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("json.load")
-    def test_load_json_file_success(self, mock_json_load, mock_open_file):
+    def test_load_json_file_success(self, mock_json_load):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
         expected_data = {"key": "value"}
         mock_json_load.return_value = expected_data
+
+        # Mock Path.open()
+        mock_file_path.open = mock.mock_open(read_data=json.dumps(expected_data))
+
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
             loaded_data = cm._load_json_file(mock_file_path)
+
         mock_file_path.exists.assert_called_once()
-        mock_open_file.assert_called_once_with(mock_file_path)
+        mock_file_path.open.assert_called_once_with()
         mock_json_load.assert_called_once()
         self.assertEqual(loaded_data, expected_data)
 
-    @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, mock_json_load_raises, mock_open_file):
+    def test_load_json_file_decode_error(self, mock_json_load_raises):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
+
+        # Mock Path.open()
+        mock_file_path.open = mock.mock_open()
+
         with (
             mock.patch.object(ConfigManager, "__init__", lambda x: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
@@ -106,7 +113,10 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
             loaded_data = cm._load_json_file(mock_file_path)
-        mock_logger.warning.assert_called_once()
+        mock_logger.exception.assert_called_once_with(
+            "Failed to load JSON file %s. Using empty config.",
+            mock_file_path,
+        )
         self.assertEqual(loaded_data, {})
 
     def test_load_json_file_does_not_exist(self):
@@ -119,32 +129,38 @@ class TestConfigManager(unittest.TestCase):
             loaded_data = cm._load_json_file(mock_file_path)
         self.assertEqual(loaded_data, {})
 
-    @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("json.dump")
-    def test_save_json_file_success(self, mock_json_dump, mock_open_file):
+    def test_save_json_file_success(self, mock_json_dump):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
+
+        # Mock Path.open()
+        mock_file_path.open = mock.mock_open()
+
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
             cm._save_json_file(mock_file_path, data_to_save)
-        mock_open_file.assert_called_once_with(mock_file_path, "w")
+
+        mock_file_path.open.assert_called_once_with("w")
         mock_json_dump.assert_called_once_with(
             data_to_save,
-            mock_open_file.return_value.__enter__.return_value,
+            mock_file_path.open.return_value.__enter__.return_value,
             indent=4,
         )
 
-    @mock.patch("builtins.open", side_effect=OSError("Disk full"))
     @mock.patch("json.dump")
     def test_save_json_file_io_error(
         self,
         mock_json_dump,
-        mock_open_file_raises_ioerror,
     ):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
+
+        # Mock Path.open() to raise OSError
+        mock_file_path.open = mock.Mock(side_effect=OSError("Disk full"))
+
         with (
             mock.patch.object(ConfigManager, "__init__", lambda x: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
@@ -153,18 +169,23 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
             cm._save_json_file(mock_file_path, data_to_save)
-        mock_json_dump.assert_not_called()
-        mock_logger.error.assert_called_once()
 
-    @mock.patch("builtins.open", new_callable=mock.mock_open)
+        mock_json_dump.assert_not_called()
+        mock_logger.exception.assert_called_once_with(
+            "Error saving file %s", mock_file_path
+        )
+
     @mock.patch("json.dump", side_effect=OSError("Permission denied"))
     def test_save_json_file_os_error_on_dump(
         self,
         mock_json_dump_raises_oserror,
-        mock_open_file,
     ):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
+
+        # Mock Path.open()
+        mock_file_path.open = mock.mock_open()
+
         with (
             mock.patch.object(ConfigManager, "__init__", lambda x: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
@@ -173,7 +194,10 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
             cm._save_json_file(mock_file_path, data_to_save)
-        mock_logger.error.assert_called_once()
+
+        mock_logger.exception.assert_called_once_with(
+            "Error saving file %s", mock_file_path
+        )
 
     def test_get_setting(self):
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):

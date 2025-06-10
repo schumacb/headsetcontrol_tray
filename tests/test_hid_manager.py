@@ -62,10 +62,10 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     def test_find_potential_hid_devices_enumeration_error(
         self, mock_logger, mock_hid_enumerate
     ):
-        mock_hid_enumerate.side_effect = Exception("Enumeration failed")
+        mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
         devices = self.manager._find_potential_hid_devices()
         self.assertEqual(len(devices), 0)
-        mock_logger.error.assert_called_with("Error enumerating HID devices: %s", ANY)
+        mock_logger.exception.assert_called_with("Error enumerating HID devices")
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")
@@ -224,7 +224,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             mock_dev_info2,
         ]  # Assume already sorted
 
-        mock_hid_device_constructor.side_effect = Exception("Failed to open HID device")
+        mock_hid_device_constructor.side_effect = hid.HIDException("Failed to open HID device")
 
         result = self.manager._connect_device()
 
@@ -233,7 +233,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         self.assertEqual(
             mock_hid_device_constructor.call_count, 2
         )  # Tried both devices
-        mock_logger.warning.assert_called()
+        mock_logger.exception.assert_any_call("    Failed to open HID device path %s", mock.ANY)
 
     @patch.object(HIDConnectionManager, "_connect_device")
     def test_ensure_connection_already_connected(

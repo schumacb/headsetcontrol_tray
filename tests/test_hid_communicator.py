@@ -78,16 +78,16 @@ class TestHIDCommunicator(unittest.TestCase):
         )
 
     def test_write_report_hid_write_raises_exception(self):  # Removed mock_logger arg
-        self.mock_hid_device.write.side_effect = Exception("HID Write Error")
+        self.mock_hid_device.write.side_effect = hid.HIDException("HID Write Error")
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
         self.assertFalse(result)
-        self.mock_logger.error.assert_called_with(
-            "HID write error on device %s (%s): %s",
+        # The logger call in the application code is now logger.exception
+        self.mock_logger.exception.assert_called_with(
+            "HID write error on device %s (%s)",
             self.communicator.device_product_str,
             self.communicator.device_path_str,
-            ANY,
         )
 
     def test_read_report_success(self):  # Removed mock_logger arg
@@ -139,16 +139,16 @@ class TestHIDCommunicator(unittest.TestCase):
         )
 
     def test_read_report_hid_read_raises_exception(self):  # Removed mock_logger arg
-        self.mock_hid_device.read.side_effect = Exception("HID Read Error")
+        self.mock_hid_device.read.side_effect = hid.HIDException("HID Read Error")
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed
 
         self.assertIsNone(result)
-        self.mock_logger.error.assert_called_with(
-            "HID read error on device %s (%s): %s",
+        # The logger call in the application code is now logger.exception
+        self.mock_logger.exception.assert_called_with(
+            "HID read error on device %s (%s)",
             self.communicator.device_product_str,
             self.communicator.device_path_str,
-            ANY,
         )
 
 
