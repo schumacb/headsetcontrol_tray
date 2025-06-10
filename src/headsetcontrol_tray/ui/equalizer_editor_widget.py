@@ -150,7 +150,8 @@ class EqualizerEditorWidget(QWidget):
         main_layout.addStretch(1)  # Pushes sliders up if window is tall
 
     def refresh_view(self) -> None:
-        """Refreshes the equalizer editor view, repopulating and selecting the appropriate EQ."""
+        """Refreshes the equalizer editor view, repopulating and selecting the
+        appropriate EQ."""
         logger.debug("EqualizerEditorWidget: Refreshing view")
         self._populate_eq_combo()  # Updates combo items
         # _select_initial_eq_from_config will load the current config state
@@ -278,7 +279,8 @@ class EqualizerEditorWidget(QWidget):
             curve_name = eq_identifier
             # Only update _current_custom_curve_original_name if it's different
             # or force_ui_update_only is false. This helps preserve the
-            # "active editing" context if refresh_view is called while sliders are dirty.
+            # "active editing" context if refresh_view is called while sliders are
+            # dirty.
             if not (
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name

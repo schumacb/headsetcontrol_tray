@@ -62,41 +62,47 @@ class SettingsDialog(QDialog):
         self.setWindowTitle(f"{app_config.APP_NAME} - Settings")
         self.setMinimumWidth(600)
 
-        main_layout = QVBoxLayout(self)
-        main_layout.setSpacing(15)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setSpacing(15)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
 
-        # --- ChatMix Group ---
+        self._create_chatmix_settings_group()
+        self._create_sidetone_settings_group()
+        self._create_inactive_timeout_settings_group()
+        self._create_equalizer_editor_group()
+        self._create_dialog_buttons()
+
+        self.main_layout.addSpacerItem(
+            QSpacerItem(
+                20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+            )
+        )
+        self.setLayout(self.main_layout)
+
+        self._connect_signals()
+        self._load_initial_settings()
+
+    def _create_chatmix_settings_group(self) -> None:
         chatmix_main_groupbox = QGroupBox("ChatMix")
         chatmix_main_layout = QVBoxLayout(chatmix_main_groupbox)
         chatmix_main_layout.setSpacing(10)
 
-        # --- ChatMix Visual Display (Slider as Bar) ---
         chatmix_visual_layout = QHBoxLayout()
         chatmix_visual_layout.setContentsMargins(5, 5, 5, 5)
-
         self.chat_label_indicator = QLabel("Chat")
         chatmix_visual_layout.addWidget(self.chat_label_indicator)
-
         self.chatmix_slider_bar = QSlider(Qt.Orientation.Horizontal)
         self.chatmix_slider_bar.setRange(0, 128)
-        self.chatmix_slider_bar.setValue(64)  # Default to balanced visually
-        self.chatmix_slider_bar.setEnabled(False)  # Non-interactive, for display only
+        self.chatmix_slider_bar.setValue(64)
+        self.chatmix_slider_bar.setEnabled(False)
         self.chatmix_slider_bar.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.chatmix_slider_bar.setTickPosition(QSlider.TickPosition.TicksBelow)
-        self.chatmix_slider_bar.setTickInterval(
-            64,
-        )  # Ticks at 0 (Chat), 64 (Balanced), 128 (Game)
-        chatmix_visual_layout.addWidget(
-            self.chatmix_slider_bar,
-            1,
-        )  # Give slider stretch factor
-
+        self.chatmix_slider_bar.setTickInterval(64)
+        chatmix_visual_layout.addWidget(self.chatmix_slider_bar, 1)
         self.game_label_indicator = QLabel("Game")
         chatmix_visual_layout.addWidget(self.game_label_indicator)
-
         chatmix_main_layout.addLayout(chatmix_visual_layout)
-        # Add a small label below the slider for "Balanced" text
+
         balanced_label_indicator = QLabel("Balanced")
         balanced_label_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font_balanced = balanced_label_indicator.font()
@@ -104,100 +110,73 @@ class SettingsDialog(QDialog):
         balanced_label_indicator.setFont(font_balanced)
         chatmix_main_layout.addWidget(balanced_label_indicator)
 
-        # --- Chat Application Identifiers (still part of ChatMix group) ---
         chat_apps_config_layout = QVBoxLayout()
         chat_apps_config_layout.setSpacing(5)
-        chat_apps_config_layout.setContentsMargins(0, 10, 0, 0)  # Add some top margin
-
+        chat_apps_config_layout.setContentsMargins(0, 10, 0, 0)
         chat_apps_label_info = QLabel(
-            "Chat Application Identifiers (comma-separated, case-insensitive):",
+            "Chat Application Identifiers (comma-separated, case-insensitive):"
         )
         chat_apps_label_info.setWordWrap(True)
         chat_apps_config_layout.addWidget(chat_apps_label_info)
-
         self.chat_apps_line_edit = QLineEdit()
         self.chat_apps_line_edit.setPlaceholderText("E.g., Discord, Teamspeak")
         chat_apps_config_layout.addWidget(self.chat_apps_line_edit)
-        self.chat_apps_line_edit.editingFinished.connect(
-            self._save_chat_app_identifiers,
-        )
-
         chatmix_main_layout.addLayout(chat_apps_config_layout)
-        main_layout.addWidget(chatmix_main_groupbox)
+        self.main_layout.addWidget(chatmix_main_groupbox)
 
-        # --- Sidetone Settings (Slider in GroupBox) ---
+    def _create_sidetone_settings_group(self) -> None:
         sidetone_groupbox = QGroupBox("Sidetone Level")
         sidetone_group_layout = QVBoxLayout(sidetone_groupbox)
-
         sidetone_control_layout = QHBoxLayout()
         self.sidetone_slider = QSlider(Qt.Orientation.Horizontal)
         self.sidetone_slider.setRange(0, 128)
         self.sidetone_slider.setTickInterval(16)
         self.sidetone_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         sidetone_control_layout.addWidget(self.sidetone_slider)
-
         self.sidetone_value_label = QLabel("0")
         self.sidetone_value_label.setMinimumWidth(35)
         self.sidetone_value_label.setAlignment(
-            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
         )
         sidetone_control_layout.addWidget(self.sidetone_value_label)
         sidetone_group_layout.addLayout(sidetone_control_layout)
-        main_layout.addWidget(sidetone_groupbox)
+        self.main_layout.addWidget(sidetone_groupbox)
 
-        self.sidetone_slider.valueChanged.connect(
-            self._on_sidetone_slider_value_changed,
-        )
-        self.sidetone_slider.sliderReleased.connect(self._apply_sidetone_setting)
-
-        # --- Inactive Timeout Settings (in GroupBox) ---
+    def _create_inactive_timeout_settings_group(self) -> None:
         timeout_groupbox = QGroupBox("Inactive Timeout")
         timeout_group_layout = QHBoxLayout(timeout_groupbox)
-
         self.timeout_button_group = QButtonGroup(self)
         for text, minutes in app_config.INACTIVE_TIMEOUT_OPTIONS.items():
             rb = QRadioButton(text)
             timeout_group_layout.addWidget(rb)
             self.timeout_button_group.addButton(rb, minutes)
         timeout_group_layout.addStretch()
-        main_layout.addWidget(timeout_groupbox)
-        self.timeout_button_group.idClicked.connect(self._on_inactive_timeout_changed)
+        self.main_layout.addWidget(timeout_groupbox)
 
-        # --- Equalizer Editor (in GroupBox) ---
+    def _create_equalizer_editor_group(self) -> None:
         eq_groupbox = QGroupBox("Equalizer")
         eq_group_layout = QVBoxLayout(eq_groupbox)
-
         self.equalizer_widget = EqualizerEditorWidget(
-            self.config_manager,
-            self.headset_service,
-            self,
+            self.config_manager, self.headset_service, self
         )
         self.equalizer_widget.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
         eq_group_layout.addWidget(self.equalizer_widget)
-        main_layout.addWidget(eq_groupbox)
+        self.main_layout.addWidget(eq_groupbox)
 
-        self.equalizer_widget.eq_applied.connect(self.eq_applied)
-
-        main_layout.addSpacerItem(
-            QSpacerItem(
-                20,
-                10,
-                QSizePolicy.Policy.Minimum,
-                QSizePolicy.Policy.Expanding,
-            ),
-        )
-
-        # --- Dialog buttons ---
+    def _create_dialog_buttons(self) -> None:
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        self.main_layout.addWidget(self.button_box)
+
+    def _connect_signals(self) -> None:
+        self.chat_apps_line_edit.editingFinished.connect(self._save_chat_app_identifiers)
+        self.sidetone_slider.valueChanged.connect(self._on_sidetone_slider_value_changed)
+        self.sidetone_slider.sliderReleased.connect(self._apply_sidetone_setting)
+        self.timeout_button_group.idClicked.connect(self._on_inactive_timeout_changed)
+        self.equalizer_widget.eq_applied.connect(self.eq_applied)
         self.button_box.rejected.connect(self.reject)
         self.button_box.accepted.connect(self.accept)
-        main_layout.addWidget(self.button_box)
-
-        self.setLayout(main_layout)
-        self._load_initial_settings()
 
     def _load_initial_settings(self) -> None:
         current_sidetone = self.config_manager.get_last_sidetone_level()

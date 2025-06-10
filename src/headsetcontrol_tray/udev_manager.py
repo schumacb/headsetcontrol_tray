@@ -85,7 +85,6 @@ class UDEVManager:
             logger.info(
                 "--------------------------------------------------------------------------------",
             )
-            return True
         except OSError:
             logger.exception("Could not write temporary udev rule file")
             self.last_udev_setup_details = None
@@ -97,6 +96,8 @@ class UDEVManager:
             )
             self.last_udev_setup_details = None
             return False
+        else:
+            return True
 
     def get_last_udev_setup_details(self) -> dict[str, str] | None:
         """Returns details of the last udev setup attempt.

@@ -354,9 +354,9 @@ class HeadsetCommandEncoder:
             float_values,
         )
 
-        # As per prompt: selecting a preset effectively sends its values as a "custom" EQ setting.
-        # This means it uses the same encode_set_eq_values method, which
-        # appends 0x00.
+        # As per prompt: selecting a preset effectively sends its values as a "custom"
+        # EQ setting. This means it uses the same encode_set_eq_values method,
+        # which appends 0x00.
         # If hardware presets require a different slot ID (e.g., 0x01-0x04),
         # then encode_set_eq_values would need modification to accept a
         # slot_id parameter.

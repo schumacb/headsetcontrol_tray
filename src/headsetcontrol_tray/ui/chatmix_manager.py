@@ -63,7 +63,7 @@ class ChatMixManager:
                 capture_output=True,
                 text=True,
                 check=True,
-            )  # nosec B603
+            )  # nosec B603 # command_args are typically static like ["pw-dump"]
             return result.stdout.strip()
         except subprocess.CalledProcessError:
             logger.exception("Command '%s' failed", " ".join(command_args))
@@ -148,7 +148,8 @@ class ChatMixManager:
                         "props": props,
                         # application.name, application.process.binary, etc.
                         "num_channels": num_channels,
-                        "current_channel_volumes": current_channel_volumes,  # For reference or if needed
+                        # For reference or if needed
+                        "current_channel_volumes": current_channel_volumes,
                     },
                 )
         logger.debug("Found %s Stream/Output/Audio nodes.", len(streams))  # Wrapped
@@ -177,8 +178,8 @@ class ChatMixManager:
             game_vol = self.reference_volume * game_vol_factor
         else:  # More towards Game (0.5 to 1.0)
             game_vol = self.reference_volume
-            # Chat volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 1.0)
-            # Scale the 0.5-1.0 range to 1.0-0.0 for the factor
+            # Chat volume goes from reference_volume (at chatmix 0.5) down to 0
+            # (at chatmix 1.0). Scale the 0.5-1.0 range to 1.0-0.0 for the factor
             chat_vol_factor = (
                 1.0 - chatmix_norm
             ) * 2.0  # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
@@ -244,7 +245,9 @@ class ChatMixManager:
         logger.debug("Executing PipeWire command: %s", " ".join(cmd))
 
         try:
-            process = subprocess.run(cmd, capture_output=True, text=True, check=True)  # nosec B603
+            process = subprocess.run(
+                cmd, capture_output=True, text=True, check=True,
+            )  # nosec B603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",
                 stream_id,

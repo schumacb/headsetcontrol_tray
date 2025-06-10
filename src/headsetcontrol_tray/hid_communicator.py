@@ -32,7 +32,7 @@ class HIDCommunicator:
                 "HIDCommunicator initialized with a None hid_device. "
                 "This is unexpected.",
             )
-            raise ValueError("HIDCommunicator requires a valid hid.Device object.")
+            raise ValueError("Invalid hid.Device object.")
         self.hid_device: hid.Device = hid_device
 
         # Extract and store info for logging
@@ -61,9 +61,10 @@ class HIDCommunicator:
         """Writes an HID report to the headset device."""
         # (Adapt logic from HeadsetService._write_hid_report)
         # This method now assumes self.hid_device is valid and open.
-        # The responsibility of ensuring the device is connected and stays connected
-        # could lie with HeadsetService or HIDConnectionManager.
-        # If write fails due to device issue, this method could return False or raise an exception.
+        # The responsibility of ensuring the device is connected and stays
+        # connected could lie with HeadsetService or HIDConnectionManager.
+        # If write fails due to device issue, this method could return False or
+        # raise an exception.
 
         payload = bytes(data)
         final_report = bytes([report_id]) + payload if report_id > 0 else payload
@@ -95,8 +96,8 @@ class HIDCommunicator:
             if bytes_written <= 0:
                 logger.warning(
                     (
-                        "HID write returned %s. This might indicate an issue with the "
-                        "device %s (%s)."
+                        "HID write returned %s. This might indicate an issue with "
+                        "the device %s (%s)."
                     ),
                     bytes_written,
                     self.device_product_str,
@@ -106,7 +107,6 @@ class HIDCommunicator:
                 # or signal failure to a manager.
                 # For now, just report failure. The caller (HeadsetService) might need to handle this.
                 return False
-            return True
         except hid.HIDException:
             logger.exception(
                 "HID write error on device %s (%s)",
@@ -115,6 +115,8 @@ class HIDCommunicator:
             )
             # Similar to bytes_written <= 0, signal failure.
             return False
+        else:
+            return True
 
     def read_report(
         self,

@@ -80,8 +80,8 @@ class HIDConnectionManager:
             ):
                 logger.debug(
                     (
-                        "  SortKey: Prioritizing exact Arctis Nova 7 interface (0) "
-                        "for PID 0x%04x"
+                        "  SortKey: Prioritizing exact Arctis Nova 7 interface (0) for "
+                        "PID 0x%04x"
                     ),
                     d_info.get("product_id"),
                 )
@@ -103,7 +103,8 @@ class HIDConnectionManager:
                 d_info.get("interface_number") == STEELSERIES_INTERFACE_3
             ):  # Common interface for some SteelSeries headsets
                 logger.debug(
-                    "  SortKey: Prioritizing interface %s (generic) for PID 0x%04x (0)",
+                    "  SortKey: Prioritizing interface %s (generic) for PID 0x%04x "
+                    "(0)",
                     STEELSERIES_INTERFACE_3,
                     d_info.get("product_id"),
                 )
@@ -182,7 +183,8 @@ class HIDConnectionManager:
                 h_temp = hid.Device(path=dev_info_to_try["path"])
             except (hid.HIDException, OSError):
                 logger.exception("    Failed to open HID device path %s", path_str)
-                # h_temp would not be assigned if hid.Device() failed, so no need to check/close it here.
+                # h_temp would not be assigned if hid.Device() failed, so no need to
+                # check/close it here.
                 continue
             else:  # TRY300: Success path in else block
                 self.hid_device = h_temp
@@ -194,10 +196,12 @@ class HIDConnectionManager:
                     path_str,
                 )
                 return True
-            # Note: The 'if h_temp:' block for closing is removed here because if hid.Device() fails,
-            # h_temp is not assigned, and if it succeeds, we return True from the 'else' block.
-            # If there was a failure after h_temp assignment but before returning True,
-            # that would be a different scenario, but the current structure returns immediately on success.
+            # Note: The 'if h_temp:' block for closing is removed here because if
+            # hid.Device() fails, h_temp is not assigned, and if it succeeds, we
+            # return True from the 'else' block. If there was a failure after
+            # h_temp assignment but before returning True, that would be a
+            # different scenario, but the current structure returns immediately
+            # on success.
 
         self.hid_device = None
         self.selected_device_info = None

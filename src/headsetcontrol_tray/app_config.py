@@ -176,7 +176,7 @@ HID_CMD_SET_EQ_BANDS_PREFIX = [
 
 # Volume Limiter
 
-# REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main timer.
-# Kept for potential other uses or if a fixed interval is ever needed again.
+# REFRESH_INTERVAL_MS is no longer used by SystemTrayIcon directly for its main
+# timer. Kept for potential other uses or if a fixed interval is ever needed again.
 
 DEFAULT_CHAT_APP_IDENTIFIERS = ["Discord"]
