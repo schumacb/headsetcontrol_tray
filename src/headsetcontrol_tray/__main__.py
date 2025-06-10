@@ -1,4 +1,5 @@
 """Main entry point for the HeadsetControl Tray application."""
+
 import signal
 import sys
 

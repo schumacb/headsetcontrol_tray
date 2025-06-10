@@ -1,4 +1,5 @@
 """Manages the system tray icon, its context menu, and status updates."""
+
 from collections.abc import Callable  # Added Any # Moved import for linter
 import logging
 from typing import Any
@@ -101,7 +102,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         )  # Start with normal interval
         self.refresh_timer.start()
         logger.info(
-            "Refresh timer started with initial interval %sms.", self.NORMAL_REFRESH_INTERVAL_MS,
+            "Refresh timer started with initial interval %sms.",
+            self.NORMAL_REFRESH_INTERVAL_MS,
         )
 
         self.refresh_status()
@@ -210,7 +212,8 @@ class SystemTrayIcon(QSystemTrayIcon):
             ):
                 logger.debug(
                     "_create_status_icon: Attempting to draw charging indicator. Status: %s, Level: %s",
-                    self.battery_status_text, self.battery_level,
+                    self.battery_status_text,
+                    self.battery_level,
                 )
 
                 # Explicitly set pen and brush for the bolt
@@ -469,7 +472,8 @@ class SystemTrayIcon(QSystemTrayIcon):
     def refresh_status(self) -> None:
         """Refreshes headset status, updates tray icon, tooltip, and menu."""
         logger.debug(
-            "SystemTray: Refreshing status (Interval: %sms)...", self.refresh_timer.interval(),
+            "SystemTray: Refreshing status (Interval: %sms)...",
+            self.refresh_timer.interval(),
         )
 
         # Store previous known state for change detection
@@ -556,7 +560,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 self.chatmix_manager.update_volumes(self.chatmix_value)
             except Exception as e:
                 logger.error(
-                    "Error during chatmix_manager.update_volumes: %s", e,
+                    "Error during chatmix_manager.update_volumes: %s",
+                    e,
                     exc_info=True,
                 )
 
@@ -591,7 +596,8 @@ class SystemTrayIcon(QSystemTrayIcon):
             if self.refresh_timer.interval() != self.NORMAL_REFRESH_INTERVAL_MS:
                 self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
                 logger.debug(
-                    "Device disconnected. Switched to normal refresh interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS,
+                    "Device disconnected. Switched to normal refresh interval (%sms).",
+                    self.NORMAL_REFRESH_INTERVAL_MS,
                 )
             self.fast_poll_active = False
             self.fast_poll_no_change_counter = 0
@@ -606,7 +612,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                     self.fast_poll_active = False
                     self.fast_poll_no_change_counter = 0
                     logger.debug(
-                        "No change threshold reached on fast poll. Switched to normal interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS,
+                        "No change threshold reached on fast poll. Switched to normal interval (%sms).",
+                        self.NORMAL_REFRESH_INTERVAL_MS,
                     )
             else:  # Data changed on fast poll
                 self.fast_poll_no_change_counter = 0  # Reset counter, stay fast
@@ -617,7 +624,8 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.fast_poll_active = True
             self.fast_poll_no_change_counter = 0
             logger.debug(
-                "State change detected. Switched to fast refresh interval (%sms).", self.FAST_REFRESH_INTERVAL_MS,
+                "State change detected. Switched to fast refresh interval (%sms).",
+                self.FAST_REFRESH_INTERVAL_MS,
             )
 
         logger.debug("SystemTray: Refresh status complete.")
@@ -666,7 +674,10 @@ class SystemTrayIcon(QSystemTrayIcon):
             )
             self._update_menu_checks()
 
-    def _apply_eq_from_menu(self, eq_data: tuple[str, Any]) -> None:  # Changed any to Any
+    def _apply_eq_from_menu(
+        self,
+        eq_data: tuple[str, Any],
+    ) -> None:  # Changed any to Any
         eq_type, identifier = eq_data
         logger.info("Applying EQ from menu: Type=%s, ID/Name='%s'", eq_type, identifier)
 
@@ -750,7 +761,8 @@ class SystemTrayIcon(QSystemTrayIcon):
     @Slot(str)
     def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str) -> None:
         logger.info(
-            "SystemTray received eq_applied signal from SettingsDialog: '%s'", eq_identifier_signal_str,
+            "SystemTray received eq_applied signal from SettingsDialog: '%s'",
+            eq_identifier_signal_str,
         )
         self.refresh_status()
 

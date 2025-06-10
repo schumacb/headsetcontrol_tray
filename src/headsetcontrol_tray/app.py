@@ -1,4 +1,5 @@
 """Core application logic for the HeadsetControl Tray."""
+
 import logging
 import os
 import subprocess  # Added for pkexec
@@ -32,7 +33,8 @@ class SteelSeriesTrayApp:
     def __init__(self) -> None:
         """Initializes the SteelSeriesTrayApp."""
         logger.info(
-            "Application starting with log level %s", logging.getLevelName(logger.getEffectiveLevel()),
+            "Application starting with log level %s",
+            logging.getLevelName(logger.getEffectiveLevel()),
         )
         # Use existing QApplication instance if available (e.g., from pytest-qt),
         # else create a new one.
@@ -172,7 +174,8 @@ Without these rules, the application might not be able to detect or control your
                         check=False,
                     )
                     logger.info(
-                        "pkexec process completed. Return code: %s", result.returncode,
+                        "pkexec process completed. Return code: %s",
+                        result.returncode,
                     )
                     if result.stdout:
                         logger.info("pkexec stdout:\n%s", result.stdout.strip())
@@ -201,7 +204,8 @@ Without these rules, the application might not be able to detect or control your
                         feedback_dialog.exec()
                     elif result.returncode == 127:
                         logger.error(
-                            "pkexec authorization failed or error. stderr: %s", result.stderr.strip(),
+                            "pkexec authorization failed or error. stderr: %s",
+                            result.stderr.strip(),
                         )
                         feedback_dialog = QMessageBox()
                         feedback_dialog.setIcon(QMessageBox.Icon.Critical)
@@ -215,7 +219,9 @@ Without these rules, the application might not be able to detect or control your
                         feedback_dialog.exec()
                     else:
                         logger.error(
-                            "pkexec helper script failed with code %s. stderr: %s", result.returncode, result.stderr.strip(),
+                            "pkexec helper script failed with code %s. stderr: %s",
+                            result.returncode,
+                            result.stderr.strip(),
                         )
                         feedback_dialog = QMessageBox()
                         feedback_dialog.setIcon(QMessageBox.Icon.Critical)
@@ -238,7 +244,8 @@ Without these rules, the application might not be able to detect or control your
                     )
                 except Exception as e:
                     logger.error(
-                        "An unexpected error occurred during pkexec execution: %s", e,
+                        "An unexpected error occurred during pkexec execution: %s",
+                        e,
                     )
                     QMessageBox.critical(
                         dialog,

@@ -1,4 +1,5 @@
 """Provides the main settings dialog for the application."""
+
 import logging
 
 from PySide6.QtCore import Qt, Signal
