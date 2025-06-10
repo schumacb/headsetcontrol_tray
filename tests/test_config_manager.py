@@ -7,6 +7,7 @@ from unittest import mock
 # Assuming app_config and ConfigManager are in src/headsetcontrol_tray
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.config_manager import ConfigManager
+from headsetcontrol_tray.exceptions import ConfigError
 
 # Disable logging for tests to keep output clean, unless specifically testing logging
 logging.disable(logging.CRITICAL)
@@ -244,13 +245,13 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager()
             cm._custom_eq_curves = {}
             cm._settings = {}
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveLong", [0] * 11)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore[list-item]
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("NoValues", [])
 
     @mock.patch.object(ConfigManager, "_save_json_file")

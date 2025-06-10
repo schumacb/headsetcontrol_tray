@@ -11,6 +11,7 @@ sys.path.insert(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
 )
 
+from headsetcontrol_tray.exceptions import HIDCommunicationError
 from headsetcontrol_tray.hid_communicator import HIDCommunicator
 
 
@@ -40,7 +41,7 @@ class TestHIDCommunicator(unittest.TestCase):
         # self.mock_logger is now available
 
     def test_init_with_none_device_raises_value_error(self):  # Removed mock_logger arg
-        with self.assertRaises(ValueError):
+        with self.assertRaises(HIDCommunicationError):
             # Provide a dummy device_info for this specific error test
             HIDCommunicator(None, device_info={"path": b"", "product_string": ""})
         self.mock_logger.error.assert_called_with(
