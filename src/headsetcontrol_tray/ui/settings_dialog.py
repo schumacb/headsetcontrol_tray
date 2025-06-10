@@ -74,8 +74,8 @@ class SettingsDialog(QDialog):
 
         self.main_layout.addSpacerItem(
             QSpacerItem(
-                20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
-            )
+                20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding,
+            ),
         )
         self.setLayout(self.main_layout)
 
@@ -114,7 +114,7 @@ class SettingsDialog(QDialog):
         chat_apps_config_layout.setSpacing(5)
         chat_apps_config_layout.setContentsMargins(0, 10, 0, 0)
         chat_apps_label_info = QLabel(
-            "Chat Application Identifiers (comma-separated, case-insensitive):"
+            "Chat Application Identifiers (comma-separated, case-insensitive):",
         )
         chat_apps_label_info.setWordWrap(True)
         chat_apps_config_layout.addWidget(chat_apps_label_info)
@@ -136,7 +136,7 @@ class SettingsDialog(QDialog):
         self.sidetone_value_label = QLabel("0")
         self.sidetone_value_label.setMinimumWidth(35)
         self.sidetone_value_label.setAlignment(
-            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
         )
         sidetone_control_layout.addWidget(self.sidetone_value_label)
         sidetone_group_layout.addLayout(sidetone_control_layout)
@@ -157,10 +157,10 @@ class SettingsDialog(QDialog):
         eq_groupbox = QGroupBox("Equalizer")
         eq_group_layout = QVBoxLayout(eq_groupbox)
         self.equalizer_widget = EqualizerEditorWidget(
-            self.config_manager, self.headset_service, self
+            self.config_manager, self.headset_service, self,
         )
         self.equalizer_widget.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred,
         )
         eq_group_layout.addWidget(self.equalizer_widget)
         self.main_layout.addWidget(eq_groupbox)

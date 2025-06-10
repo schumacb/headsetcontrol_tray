@@ -65,12 +65,13 @@ class SteelSeriesTrayApp:
                 # If it is already a QApplication, we use it (create_new_qapp remains False).
             else:
                 # QApplication is mocked (e.g., in a test environment).
-                # We assume _q_instance (likely from a mocked QApplication.instance())
-                # is the mock object the test environment wants to use.
-                # The original check's purpose (differentiating QCoreApplication from
-                # QApplication) is less relevant here, or should be handled by the
-                # mock's configuration. So, we don't force creating a new
-                # QApplication([]), which might interfere with the mock.
+                # We assume _q_instance (likely from a mocked
+                # QApplication.instance()) is the mock object the test environment
+                # wants to use. The original check's purpose (differentiating
+                # QCoreApplication from QApplication) is less relevant here, or
+                # should be handled by the mock's configuration. So, we don't
+                # force creating a new QApplication([]), which might interfere
+                # with the mock.
                 pass  # create_new_qapp remains False, and we'll use _q_instance.
 
             if create_new_qapp:
@@ -138,7 +139,7 @@ class SteelSeriesTrayApp:
 
         if not helper_script_path.exists():
             logger.error("Helper script not found at %s", str(helper_script_path))
-            raise FileNotFoundError(f"Helper script not found: {helper_script_path}")
+            raise FileNotFoundError(f"Helper script missing: {helper_script_path.name}")
 
         # Ensure all parts of cmd are strings for subprocess.run
         cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
@@ -164,8 +165,10 @@ class SteelSeriesTrayApp:
         result: subprocess.CompletedProcess | None,
         error: Exception | None = None,
     ) -> None:
-        """Displays a feedback dialog based on the outcome of the udev helper script
-        execution."""
+        """
+        Displays a feedback dialog based on the outcome of the udev helper script
+        execution.
+        """
         feedback_dialog = QMessageBox(parent_dialog)
         feedback_dialog.setModal(True) # Ensure modality
 
@@ -204,11 +207,19 @@ class SteelSeriesTrayApp:
         dialog.setWindowTitle("Error")
         if isinstance(error, FileNotFoundError):
             if "Helper script not found" in str(error):
-                dialog.setText(f"Installation script not found:\n{error}\n\nPlease report this issue.")
+                dialog.setText(
+                    f"Installation script not found:\n{error}\n\nPlease report this issue."
+                )
             else:  # pkexec not found
-                dialog.setText("pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.")
+                dialog.setText(
+                    "pkexec command not found.\nPlease ensure PolicyKit is "
+                    "correctly installed and configured."
+                )
         else:  # General subprocess error or other unexpected error
-            dialog.setText(f"An unexpected error occurred while trying to run the helper script:\n{error}")
+            dialog.setText(
+                "An unexpected error occurred while trying to run the helper "
+                f"script:\n{error}"
+            )
         dialog.exec()
 
     def _handle_udev_success_feedback(self, dialog: QMessageBox) -> None:
@@ -217,7 +228,9 @@ class SteelSeriesTrayApp:
         dialog.setIcon(QMessageBox.Icon.Information)
         dialog.setWindowTitle("Success")
         dialog.setText("Udev rules installed successfully.")
-        dialog.setInformativeText("Please replug your headset for the changes to take effect.")
+        dialog.setInformativeText(
+            "Please replug your headset for the changes to take effect."
+        )
 
     def _handle_udev_pkexec_error_feedback(
         self, dialog: QMessageBox, result: subprocess.CompletedProcess,
@@ -229,17 +242,23 @@ class SteelSeriesTrayApp:
             dialog.setWindowTitle("Authentication Cancelled")
             dialog.setText("Udev rule installation was cancelled.")
             dialog.setInformativeText(
-                "Authentication was not provided. The udev rules have not been installed. "
-                "You can try again or use the manual instructions."
+                "Authentication was not provided. The udev rules have not been "
+                "installed. You can try again or use the manual instructions.",
             )
         elif result.returncode == PKEXEC_EXIT_AUTH_FAILED:
-            logger.error("pkexec authorization failed or error. stderr: %s", result.stderr.strip())
+            logger.error(
+                "pkexec authorization failed or error. stderr: %s",
+                result.stderr.strip(),
+            )
             dialog.setIcon(QMessageBox.Icon.Critical)
             dialog.setWindowTitle("Authorization Error")
-            dialog.setText("Failed to install udev rules due to an authorization error.")
+            dialog.setText(
+                "Failed to install udev rules due to an authorization error.",
+            )
             dialog.setInformativeText(
-                f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges "
-                "or contact support. You can also try the manual instructions."
+                f"Details: {result.stderr.strip()}\n\nPlease ensure you have "
+                "privileges or contact support. You can also try the manual "
+                "instructions.",
             )
 
     def _handle_udev_other_error_feedback(
@@ -256,7 +275,8 @@ class SteelSeriesTrayApp:
         dialog.setText("The udev rule installation script failed.")
         dialog.setInformativeText(
             f"Error (code {result.returncode}): {result.stderr.strip()}\n\n"
-            "Please check the output and try the manual instructions, or contact support."
+            "Please check the output and try the manual instructions, or contact "
+            "support.",
         )
 
     def _handle_udev_permissions_flow(self, udev_details: dict) -> None:

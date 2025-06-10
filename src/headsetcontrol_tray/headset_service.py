@@ -141,9 +141,10 @@ class HeadsetService:
 
     def _clear_last_hid_status(self, reason: str) -> None:
         """Clears the last known HID status and logs the reason."""
-        if self._last_hid_parsed_status is not None or self._last_hid_raw_read_data is not None:
+        if self._last_hid_parsed_status is not None or \
+           self._last_hid_raw_read_data is not None:
             logger.info(
-                "_get_parsed_status_hid: %s, clearing last known status.", reason
+                "_get_parsed_status_hid: %s, clearing last known status.", reason,
             )
         self._last_hid_raw_read_data = None
         self._last_hid_parsed_status = None
@@ -157,7 +158,8 @@ class HeadsetService:
         command_payload = app_config.HID_CMD_GET_STATUS
         if not self.hid_communicator.write_report(report_id=0, data=command_payload):
             logger.warning(
-                "_read_raw_hid_status: Failed to write HID status request. Closing connection."
+                "_read_raw_hid_status: Failed to write HID status request. "
+                "Closing connection.",
             )
             self.hid_connection_manager.close()
             self.hid_communicator = None
@@ -165,7 +167,7 @@ class HeadsetService:
             return None
 
         response_data_bytes = self.hid_communicator.read_report(
-            app_config.HID_INPUT_REPORT_LENGTH_STATUS
+            app_config.HID_INPUT_REPORT_LENGTH_STATUS,
         )
         if not response_data_bytes:
             self._clear_last_hid_status("Read failed or no data")
@@ -193,27 +195,31 @@ class HeadsetService:
             is_charging = parsed_status.get("battery_charging", False)
             current_log_status_byte = 0x01 if is_charging else 0x02 # Charging or Online
 
-            if prev_log_status_byte is None or prev_log_status_byte == 0x00: # Was Offline/Unknown
+            if prev_log_status_byte is None or prev_log_status_byte == 0x00:
                 logger.info(
-                    "Headset status change: Now %s (status byte %#02x), was previously offline or unknown.",
+                    "Headset status change: Now %s (status byte %#02x), "
+                    "was previously offline or unknown.",
                     "charging" if is_charging else "online",
                     raw_battery_status_byte,
                 )
-            elif is_charging and prev_log_status_byte != 0x01: # Was Online, now Charging
+            elif is_charging and prev_log_status_byte != 0x01:
                 logger.info(
-                    "Headset status change: Now charging (status byte %#02x), was previously online and not charging.",
+                    "Headset status change: Now charging (status byte %#02x), "
+                    "was previously online and not charging.",
                     raw_battery_status_byte,
                 )
-            elif not is_charging and prev_log_status_byte == 0x01: # Was Charging, now Online
+            elif not is_charging and prev_log_status_byte == 0x01:
                 logger.info(
-                    "Headset status change: Now online and not charging (status byte %#02x), was previously charging.",
+                    "Headset status change: Now online and not charging (status "
+                    "byte %#02x), was previously charging.",
                     raw_battery_status_byte,
                 )
             self._last_raw_battery_status_for_logging = current_log_status_byte
         else: # Headset is Offline
-            if prev_log_status_byte is not None and prev_log_status_byte != 0x00: # Was Online/Charging
+            if prev_log_status_byte is not None and prev_log_status_byte != 0x00:
                 logger.info(
-                    "Headset status change: Now offline (status byte %#02x), was previously online/charging.",
+                    "Headset status change: Now offline (status byte %#02x), "
+                    "was previously online/charging.",
                     raw_battery_status_byte,
                 )
             self._last_raw_battery_status_for_logging = 0x00
@@ -248,8 +254,9 @@ class HeadsetService:
                 self._last_hid_only_connection_logged_status is not False
             ):  # Log only on change to False
                 logger.warning(
-                    "is_device_connected: HID communicator not available (device path "
-                    "likely NOT active or permissions issue). Reporting as NOT connected.",
+                    "is_device_connected: HID communicator not available (device "
+                    "path likely NOT active or permissions issue). Reporting as NOT "
+                    "connected.",
                 )
                 self._last_hid_only_connection_logged_status = False
             return False
@@ -274,8 +281,8 @@ class HeadsetService:
                 logger.info(
                     (
                         "is_device_connected: HID path may be active, but headset "
-                        "reported as offline or status query failed. Reporting as NOT "
-                        "connected."
+                        "reported as offline or status query failed. Reporting as "
+                        "NOT connected.",
                     ),
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online

@@ -165,7 +165,8 @@ class HeadsetStatusParser:
         # If game=50, chat=50 => chatmix_value = 64 - (-32 + 32) = 64 (Center)
         # This matches the 0-128 UI scale where 0=Game, 64=Center, 128=Chat.
         mapped_game = int((raw_game_clamped / 100.0) * 64.0)
-        mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)  # Negative to pull "left"
+        # Negative to pull "left"
+        mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
         chatmix_value = 64 - (mapped_chat + mapped_game)  # Center point is 64.
         # If mapped_chat is negative, it adds to 64.
         # If mapped_game is positive, it subtracts from 64.
@@ -272,7 +273,7 @@ class HeadsetCommandEncoder:
         for val in float_values:
             clamped_val = max(-10.0, min(10.0, val))  # UI values are -10 to 10 dB
             # Hardware values are EQ_HW_VALUE_MIN (-10dB) to EQ_HW_VALUE_MAX (+10dB),
-            # centered at EQ_HW_VALUE_FLAT (0dB)
+        # centered at EQ_HW_VALUE_FLAT (0dB).
             byte_value = int(EQ_HW_VALUE_FLAT + clamped_val)
             byte_value = max(EQ_HW_VALUE_MIN, min(EQ_HW_VALUE_MAX, byte_value))
             # Clamp to hardware limits
@@ -354,11 +355,10 @@ class HeadsetCommandEncoder:
             float_values,
         )
 
-        # As per prompt: selecting a preset effectively sends its values as a "custom"
-        # EQ setting. This means it uses the same encode_set_eq_values method,
-        # which appends 0x00.
-        # If hardware presets require a different slot ID (e.g., 0x01-0x04),
-        # then encode_set_eq_values would need modification to accept a
-        # slot_id parameter.
+        # As per prompt: selecting a preset effectively sends its values as a
+        # "custom" EQ setting. This means it uses the same encode_set_eq_values
+        # method, which appends 0x00. If hardware presets require a different
+        # slot ID (e.g., 0x01-0x04), then encode_set_eq_values would need
+        # modification to accept a slot_id parameter.
         # For now, maintaining consistency with the original described behavior.
         return self.encode_set_eq_values(float_values)

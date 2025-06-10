@@ -179,14 +179,14 @@ class ChatMixManager:
         else:  # More towards Game (0.5 to 1.0)
             game_vol = self.reference_volume
             # Chat volume goes from reference_volume (at chatmix 0.5) down to 0
-            # (at chatmix 1.0). Scale the 0.5-1.0 range to 1.0-0.0 for the factor
+            # (at chatmix 1.0). Scale the 0.5-1.0 range to 1.0-0.0 for the factor.
             chat_vol_factor = (
                 1.0 - chatmix_norm
             ) * 2.0  # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
             chat_vol = self.reference_volume * chat_vol_factor
 
         # Clamp volumes (e.g., to prevent > 1.0 if reference_volume is 1.0)
-        # And ensure a minimum if desired (e.g., 0.05 to never fully mute)
+        # And ensure a minimum if desired (e.g., 0.05 to never fully mute).
         min_audible_volume = 0.0  # Can be set to a small value like 0.05
         chat_vol = max(min_audible_volume, min(self.reference_volume, chat_vol))
         game_vol = max(min_audible_volume, min(self.reference_volume, game_vol))

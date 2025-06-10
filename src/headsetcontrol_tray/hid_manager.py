@@ -86,8 +86,8 @@ class HIDConnectionManager:
                     d_info.get("product_id"),
                 )
                 return -2  # Highest priority
-            # This condition for PID 0x2202 seems very specific and might be
-            # less generic. Consider if it's universally applicable or needs to be
+            # This condition for PID 0x2202 seems very specific and might be less
+            # generic. Consider if it's universally applicable or needs to be
             # part of a more flexible configuration.
             if (
                 d_info.get("product_id") == app_config.ARCTIS_NOVA_7_USER_PID
@@ -103,8 +103,8 @@ class HIDConnectionManager:
                 d_info.get("interface_number") == STEELSERIES_INTERFACE_3
             ):  # Common interface for some SteelSeries headsets
                 logger.debug(
-                    "  SortKey: Prioritizing interface %s (generic) for PID 0x%04x "
-                    "(0)",
+                    "  SortKey: Prioritizing interface %s (generic) for PID "
+                    "0x%04x (0)",
                     STEELSERIES_INTERFACE_3,
                     d_info.get("product_id"),
                 )

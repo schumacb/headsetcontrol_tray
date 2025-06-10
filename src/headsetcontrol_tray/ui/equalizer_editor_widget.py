@@ -30,7 +30,8 @@ HW_PRESET_DISPLAY_PREFIX = "[HW] "
 
 
 class EqualizerEditorWidget(QWidget):
-    """Widget for editing and managing equalizer settings
+    """
+    Widget for editing and managing equalizer settings
     (custom curves and hardware presets).
     """
 
@@ -150,8 +151,10 @@ class EqualizerEditorWidget(QWidget):
         main_layout.addStretch(1)  # Pushes sliders up if window is tall
 
     def refresh_view(self) -> None:
-        """Refreshes the equalizer editor view, repopulating and selecting the
-        appropriate EQ."""
+        """
+        Refreshes the equalizer editor view, repopulating and selecting the
+        appropriate EQ.
+        """
         logger.debug("EqualizerEditorWidget: Refreshing view")
         self._populate_eq_combo()  # Updates combo items
         # _select_initial_eq_from_config will load the current config state
@@ -685,11 +688,10 @@ class EqualizerEditorWidget(QWidget):
             # After setCurrentIndex, _on_eq_selected_in_combo will fire, which
             # calls _process_eq_selection. This will handle setting config and
             # emitting eq_applied. So, explicitly calling _process_eq_selection
-            # here might be redundant or cause double-processing.
-            # Let's rely on the signal from setCurrentIndex.
-            # If it was blocked during the index set, we'd need to call
-            # _process_eq_selection manually.
-            # Since it's unblocked before setCurrentIndex, the signal should fire.
+            # here might be redundant or cause double-processing. Let's rely on
+            # the signal from setCurrentIndex. If it was blocked during the index
+            # set, we'd need to call _process_eq_selection manually. Since it's
+            # unblocked before setCurrentIndex, the signal should fire.
 
             # Manually process if the index didn't change but we need to register
             # it as the active one

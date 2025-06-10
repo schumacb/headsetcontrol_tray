@@ -104,8 +104,8 @@ class HIDCommunicator:
                     self.device_path_str,
                 )
                 # Consider if this class should handle device closure/reconnection
-                # or signal failure to a manager.
-                # For now, just report failure. The caller (HeadsetService) might need to handle this.
+                # or signal failure to a manager. For now, just report failure.
+                # The caller (HeadsetService) might need to handle this.
                 return False
         except hid.HIDException:
             logger.exception(
