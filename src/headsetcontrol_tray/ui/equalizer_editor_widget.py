@@ -325,13 +325,18 @@ class EqualizerEditorWidget(QWidget):
                 self.eq_applied.emit(curve_name)
             else:
                 QMessageBox.warning(
-                    self, "EQ Error", "Failed to apply custom EQ to headset."
+                    self,
+                    "EQ Error",
+                    "Failed to apply custom EQ to headset.",
                 )
 
         # If it's just a UI refresh due to external change, but user was editing
         # this curve, ensure _sliders_have_unsaved_changes reflects the
         # current slider vs saved state.
-        if force_ui_update_only and self._current_custom_curve_original_name == curve_name:
+        if (
+            force_ui_update_only
+            and self._current_custom_curve_original_name == curve_name
+        ):
             current_slider_vals = self._get_slider_values()
             self._sliders_have_unsaved_changes = (
                 current_slider_vals != self._current_custom_curve_saved_values
@@ -340,7 +345,7 @@ class EqualizerEditorWidget(QWidget):
     def _handle_hardware_eq_selection(
         self,
         preset_id: int,
-        eq_data: tuple[str, Any], # eq_data is passed to get display name
+        eq_data: tuple[str, Any],  # eq_data is passed to get display name
         is_initial_load: bool,
         force_ui_update_only: bool,
     ) -> None:
@@ -349,13 +354,14 @@ class EqualizerEditorWidget(QWidget):
         for i in range(self.eq_combo.count()):
             if self.eq_combo.itemData(i) == eq_data:
                 preset_name_display = self.eq_combo.itemText(i).replace(
-                    HW_PRESET_DISPLAY_PREFIX, ""
+                    HW_PRESET_DISPLAY_PREFIX,
+                    "",
                 )
                 break
 
         self._current_custom_curve_original_name = None
         self._sliders_have_unsaved_changes = False  # No unsaved changes for HW presets
-        self._set_slider_visuals([0] * 10) # Sliders are disabled for HW, show flat
+        self._set_slider_visuals([0] * 10)  # Sliders are disabled for HW, show flat
 
         if not is_initial_load and not force_ui_update_only:
             if self.headset_service.set_eq_preset_id(preset_id):
@@ -364,7 +370,9 @@ class EqualizerEditorWidget(QWidget):
                 self.eq_applied.emit(f"hw_preset:{preset_name_display}")
             else:
                 QMessageBox.warning(
-                    self, "EQ Error", f"Failed to apply HW preset '{preset_name_display}'."
+                    self,
+                    "EQ Error",
+                    f"Failed to apply HW preset '{preset_name_display}'.",
                 )
 
     def _process_eq_selection(
@@ -397,13 +405,16 @@ class EqualizerEditorWidget(QWidget):
             self._sliders_have_unsaved_changes = False
             self._set_slider_visuals([0] * 10)
 
-
         self._update_ui_for_active_eq(eq_type, eq_identifier)
 
     def _update_custom_eq_buttons_state(
-        self, is_custom_mode_active: bool, active_identifier: Any | None
+        self,
+        is_custom_mode_active: bool,
+        active_identifier: Any | None,
     ) -> None:
-        self.custom_eq_management_buttons_widget.setVisible(True) # Always visible for now
+        self.custom_eq_management_buttons_widget.setVisible(
+            True,
+        )  # Always visible for now
 
         can_save = (
             is_custom_mode_active
@@ -415,17 +426,18 @@ class EqualizerEditorWidget(QWidget):
         self.save_as_button.setEnabled(is_custom_mode_active)
 
         can_delete = is_custom_mode_active and bool(
-            active_identifier # This is the curve name for custom EQ
-            and active_identifier not in app_config.DEFAULT_EQ_CURVES
+            active_identifier  # This is the curve name for custom EQ
+            and active_identifier not in app_config.DEFAULT_EQ_CURVES,
         )
         self.delete_button.setEnabled(can_delete)
 
         self.discard_button.setEnabled(
-            is_custom_mode_active and self._sliders_have_unsaved_changes
+            is_custom_mode_active and self._sliders_have_unsaved_changes,
         )
 
     def _update_combo_text_for_unsaved_changes(
-        self, is_custom_mode_active: bool
+        self,
+        is_custom_mode_active: bool,
     ) -> None:
         if is_custom_mode_active and self._current_custom_curve_original_name:
             self.eq_combo.blockSignals(True)
@@ -453,7 +465,9 @@ class EqualizerEditorWidget(QWidget):
             current_selection_data = self.eq_combo.itemData(current_idx)
             if current_selection_data and current_selection_data[0] == EQ_TYPE_CUSTOM:
                 selected_curve_name = current_selection_data[1]
-                if selected_curve_name != active_curve_name and self.eq_combo.itemText(current_idx).endswith("*"):
+                if selected_curve_name != active_curve_name and self.eq_combo.itemText(
+                    current_idx,
+                ).endswith("*"):
                     original_text = self.eq_combo.itemText(current_idx).rstrip("*")
                     self.eq_combo.setItemText(current_idx, original_text)
 
@@ -465,7 +479,7 @@ class EqualizerEditorWidget(QWidget):
     def _update_ui_for_active_eq(
         self,
         active_eq_type: str | None,
-        active_identifier: Any | None, # curve_name or preset_id
+        active_identifier: Any | None,  # curve_name or preset_id
     ) -> None:
         is_custom_mode_active = active_eq_type == EQ_TYPE_CUSTOM
 
@@ -533,7 +547,9 @@ class EqualizerEditorWidget(QWidget):
                 self.config_manager.set_last_custom_eq_curve_name(
                     self._current_custom_curve_original_name,
                 )
-                self.eq_applied.emit(self._current_custom_curve_original_name)  # Notify tray
+                self.eq_applied.emit(
+                    self._current_custom_curve_original_name,
+                )  # Notify tray
         else:
             logger.error(
                 "EQ_EDITOR: Sliders applied, set_eq_values FAILED for '%s'",

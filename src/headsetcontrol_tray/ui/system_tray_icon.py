@@ -143,7 +143,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         painter.setPen(pen)
         margin = self.ICON_DRAW_SIZE // 10
         painter.drawLine(
-            self.ICON_DRAW_SIZE - margin, margin, margin, self.ICON_DRAW_SIZE - margin,
+            self.ICON_DRAW_SIZE - margin,
+            margin,
+            margin,
+            self.ICON_DRAW_SIZE - margin,
         )
 
     def _draw_battery_indicator(self, painter: QPainter) -> QRect | None:
@@ -217,7 +220,9 @@ class SystemTrayIcon(QSystemTrayIcon):
         return battery_body_rect
 
     def _draw_charging_indicator(
-        self, painter: QPainter, battery_body_rect: QRect,
+        self,
+        painter: QPainter,
+        battery_body_rect: QRect,
     ) -> None:
         """Draws the charging bolt symbol if applicable."""
         if not (
@@ -347,7 +352,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         sidetone_menu = self.context_menu.addMenu("Sidetone")
         current_sidetone_val = self.config_manager.get_last_sidetone_level()
         for text, level in sorted(
-            app_config.SIDETONE_OPTIONS.items(), key=lambda item: item[1],
+            app_config.SIDETONE_OPTIONS.items(),
+            key=lambda item: item[1],
         ):
             action = QAction(text, sidetone_menu, checkable=True)
             action.setData(level)
@@ -465,7 +471,9 @@ class SystemTrayIcon(QSystemTrayIcon):
                 )
 
     def _fetch_and_update_headset_data(
-        self, *, current_is_connected: bool,
+        self,
+        *,
+        current_is_connected: bool,
     ) -> tuple[str, str, bool]:
         """Fetches data from headset, updates internal state, returns menu texts and data_changed flag."""
         new_battery_text = "Battery: Disconnected"

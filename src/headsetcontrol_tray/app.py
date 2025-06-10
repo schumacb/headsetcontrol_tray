@@ -214,7 +214,7 @@ class SteelSeriesTrayApp:
         dialog.setIcon(QMessageBox.Icon.Critical)
         dialog.setWindowTitle("Error")
         if isinstance(error, FileNotFoundError):
-            if "Helper script missing" in str(error): # Check updated message
+            if "Helper script missing" in str(error):  # Check updated message
                 dialog.setText(
                     "Installation script not found.\nPlease report this issue.",
                 )
@@ -308,7 +308,7 @@ class SteelSeriesTrayApp:
             f"A rule file has been prepared at: {temp_file}\n\n"
             "To resolve this, you can use the 'Install Automatically' button, or "
             "follow these manual steps in a terminal:\n"
-            f"1. Copy the rule file:\n   sudo cp \"{temp_file}\" \"{final_file}\"\n"
+            f'1. Copy the rule file:\n   sudo cp "{temp_file}" "{final_file}"\n'
             "2. Reload udev rules:\n"
             "   sudo udevadm control --reload-rules && sudo udevadm trigger\n"
             "3. Replug your headset.\n\n"
@@ -337,7 +337,8 @@ class SteelSeriesTrayApp:
                 execution_error = e
             except OSError as e:  # More specific exception for OS related errors
                 logger.exception(
-                    "OS error during _execute_udev_helper_script: %s", e
+                    "OS error during _execute_udev_helper_script: %s",
+                    e,
                 )
                 execution_error = e
 
