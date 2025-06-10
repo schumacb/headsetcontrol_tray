@@ -1,4 +1,5 @@
 """Provides the main settings dialog for the application."""
+
 import logging
 
 from PySide6.QtCore import Qt, Signal
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray import config_manager as cfg_mgr
 from headsetcontrol_tray import headset_service as hs_svc
+
 from .equalizer_editor_widget import EqualizerEditorWidget
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")

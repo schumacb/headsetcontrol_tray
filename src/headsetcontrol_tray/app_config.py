@@ -1,4 +1,5 @@
 """Application configuration constants and default settings."""
+
 import os
 from pathlib import Path
 
