@@ -6,6 +6,7 @@ from typing import Any  # Added Dict, Any
 import hid
 
 from . import app_config  # Assuming app_config is in the same directory
+from .exceptions import HIDCommunicationError
 
 # Import HIDConnectionManager to type hint the constructor, but it's not strictly
 # needed for runtime in this class if device is passed in
@@ -31,7 +32,7 @@ class HIDCommunicator:
             logger.error(
                 "HIDCommunicator initialized with a None hid_device. This is unexpected.",
             )
-            raise ValueError("Invalid HID device.")
+            raise HIDCommunicationError()
         self.hid_device: hid.Device = hid_device
 
         # Extract and store info for logging

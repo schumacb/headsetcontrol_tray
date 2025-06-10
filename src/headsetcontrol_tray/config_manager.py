@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import app_config
+from .exceptions import ConfigError
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
@@ -72,7 +73,7 @@ class ConfigManager:
     def save_custom_eq_curve(self, name: str, values: list[int]) -> None:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (isinstance(values, list) and len(values) == NUM_EQ_BANDS and all(isinstance(v, int) for v in values)):
-            raise ValueError("Invalid EQ values.")
+            raise ConfigError()
         self._custom_eq_curves[name] = values
         self._save_json_file(app_config.CUSTOM_EQ_CURVES_FILE, self._custom_eq_curves)
 

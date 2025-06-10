@@ -12,6 +12,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from . import app_config
 from . import config_manager as cfg_mgr
 from . import headset_service as hs_svc
+from .exceptions import TrayAppInitializationError
 from .ui import system_tray_icon as sti
 
 # Initialize logging
@@ -141,7 +142,7 @@ class SteelSeriesTrayApp:
 
         if not helper_script_path.exists():
             logger.error("Helper script not found at %s", str(helper_script_path))
-            raise FileNotFoundError("Helper script missing.")
+            raise TrayAppInitializationError()
 
         # Ensure all parts of cmd are strings for subprocess.run
         cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
@@ -334,8 +335,7 @@ class SteelSeriesTrayApp:
                 execution_error = e
             except OSError as e:  # More specific exception for OS related errors
                 logger.exception(
-                    "OS error during _execute_udev_helper_script: %s",
-                    e,
+                    "OS error during _execute_udev_helper_script:",
                 )
                 execution_error = e
 
