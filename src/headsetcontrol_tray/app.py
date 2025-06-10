@@ -148,12 +148,12 @@ class SteelSeriesTrayApp:
         cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
         logger.info("Attempting to execute: %s", " ".join(cmd))
         try:
-            return subprocess.run(  # nosec B603
+            return subprocess.run(  # noqa: S603 # helper_script_path is internally defined, temp_file_path and final_file_path are file paths
                 cmd,
                 capture_output=True,
                 text=True,
                 check=False,  # We check returncode manually
-            )  # nosemgrep S603 # helper_script_path is internally defined,
+            )
         # temp_file_path and final_file_path are file paths, not direct commands.
         except FileNotFoundError:  # pkexec itself not found
             logger.exception("pkexec command not found.")

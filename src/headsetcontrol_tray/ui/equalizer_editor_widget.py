@@ -478,7 +478,8 @@ class EqualizerEditorWidget(QWidget):
             slider.setEnabled(is_custom_mode_active)
 
         self._update_custom_eq_buttons_state(
-            is_custom_mode_active=is_custom_mode_active, active_identifier=active_identifier,
+            is_custom_mode_active=is_custom_mode_active,
+            active_identifier=active_identifier,
         )
         self._update_combo_text_for_unsaved_changes(is_custom_mode_active=is_custom_mode_active)
 
