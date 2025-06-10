@@ -37,7 +37,7 @@ class HIDConnectionManager:
     def _sort_hid_devices(self, devices: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         # (Copy and adapt logic from HeadsetService._sort_hid_devices)
         # Ensure constants like HID_REPORT_INTERFACE are accessed via app_config
-        def sort_key(d_info):
+        def sort_key(d_info: Dict[str, Any]):
             if d_info["vendor_id"] == app_config.STEELSERIES_VID and \
                d_info["product_id"] in app_config.TARGET_PIDS and \
                d_info.get("interface_number") == app_config.HID_REPORT_INTERFACE and \

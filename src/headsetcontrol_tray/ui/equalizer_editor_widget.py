@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
@@ -38,7 +38,7 @@ class EqualizerEditorWidget(QWidget):
         self,
         config_manager: cfg_mgr.ConfigManager,
         headset_service: hs_svc.HeadsetService,
-        parent=None,
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.config_manager = config_manager

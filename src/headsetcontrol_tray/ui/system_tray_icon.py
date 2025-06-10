@@ -1,9 +1,9 @@
 import logging
-from typing import Any  # Added Any
+from typing import Any, Callable, Optional # Added Any
 
 from PySide6.QtCore import QRect, Qt, QTimer, Slot
 from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPen
-from PySide6.QtWidgets import QMenu, QSystemTrayIcon
+from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 
 from .. import app_config
 from .. import config_manager as cfg_mgr
@@ -35,8 +35,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         self,
         headset_service: hs_svc.HeadsetService,
         config_manager: cfg_mgr.ConfigManager,
-        application_quit_fn,
-        parent=None,
+        application_quit_fn: Callable[[], None],
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         logger.debug("SystemTrayIcon initializing.")
@@ -828,11 +828,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         )
         self.refresh_status()
 
-    def _on_settings_dialog_closed(self, result):
+    def _on_settings_dialog_closed(self, result: int):
         logger.debug(f"Settings dialog closed with result: {result}")
         self.refresh_status()
 
-    def _on_activated(self, reason):
+    def _on_activated(self, reason: QSystemTrayIcon.ActivationReason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self._open_settings_dialog()
         elif reason == QSystemTrayIcon.ActivationReason.Context:

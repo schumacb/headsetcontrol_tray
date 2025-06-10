@@ -4,6 +4,8 @@ import logging
 import subprocess
 from typing import Any
 
+from ..config_manager import ConfigManager
+
 # Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
 # Adjust the import path if necessary, e.g., from .. import app_config
 
@@ -16,7 +18,7 @@ logger = logging.getLogger(
 
 
 class ChatMixManager:
-    def __init__(self, config_manager):  # cfg_mgr.ConfigManager
+    def __init__(self, config_manager: ConfigManager):  # cfg_mgr.ConfigManager
         self.config_manager = config_manager
         # Load chat app identifiers (list of strings for application.name or application.process.binary)
         # Ensure these are lowercase for case-insensitive matching later.
