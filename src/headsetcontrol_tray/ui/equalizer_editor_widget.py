@@ -31,7 +31,8 @@ HW_PRESET_DISPLAY_PREFIX = "[HW] "
 
 class EqualizerEditorWidget(QWidget):
     """Widget for editing and managing equalizer settings
-(custom curves and hardware presets)."""
+    (custom curves and hardware presets).
+    """
 
     eq_applied = Signal(
         str,
@@ -92,7 +93,7 @@ class EqualizerEditorWidget(QWidget):
             0,
             5,
             0,
-            5, # COM812: Trailing comma
+            5,  # COM812: Trailing comma
         )  # Add some top/bottom margin
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self._save_custom_curve)
@@ -116,7 +117,16 @@ class EqualizerEditorWidget(QWidget):
         # Sliders
         slider_layout = QGridLayout()
         eq_bands_khz = [
-            "31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"
+            "31",
+            "62",
+            "125",
+            "250",
+            "500",
+            "1k",
+            "2k",
+            "4k",
+            "8k",
+            "16k",
         ]
         for i in range(10):
             slider_vbox = QVBoxLayout()
@@ -270,17 +280,19 @@ class EqualizerEditorWidget(QWidget):
             # or force_ui_update_only is false. This helps preserve the
             # "active editing" context if refresh_view is called while sliders are dirty.
             if not (
-                force_ui_update_only and
-                self._current_custom_curve_original_name == curve_name and
-                self._sliders_have_unsaved_changes
+                force_ui_update_only
+                and self._current_custom_curve_original_name == curve_name
+                and self._sliders_have_unsaved_changes
             ):
                 self._current_custom_curve_original_name = curve_name
 
             values = self.config_manager.get_custom_eq_curve(curve_name)
             if not values:
                 logger.warning(
-                    ("Custom curve '%s' not found in config manager. "
-                     "Defaulting to flat."),
+                    (
+                        "Custom curve '%s' not found in config manager. "
+                        "Defaulting to flat."
+                    ),
                     curve_name,
                 )
                 values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0] * 10)
@@ -290,7 +302,7 @@ class EqualizerEditorWidget(QWidget):
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
                 and self._sliders_have_unsaved_changes
-            ): # Wrapped condition
+            ):  # Wrapped condition
                 self._current_custom_curve_saved_values = list(values)
 
             # If force_ui_update_only is true AND there are unsaved changes for
@@ -299,7 +311,7 @@ class EqualizerEditorWidget(QWidget):
                 force_ui_update_only
                 and self._current_custom_curve_original_name == curve_name
                 and self._sliders_have_unsaved_changes
-            ): # Wrapped condition
+            ):  # Wrapped condition
                 self._set_slider_visuals(values)
                 if (
                     not is_initial_load
@@ -340,7 +352,8 @@ class EqualizerEditorWidget(QWidget):
             for i in range(self.eq_combo.count()):
                 if self.eq_combo.itemData(i) == eq_data:
                     preset_name_display = self.eq_combo.itemText(i).replace(
-                        HW_PRESET_DISPLAY_PREFIX, ""
+                        HW_PRESET_DISPLAY_PREFIX,
+                        "",
                     )
                     break
 
@@ -388,7 +401,7 @@ class EqualizerEditorWidget(QWidget):
         can_delete = is_custom_mode_active and bool(
             self._current_custom_curve_original_name
             and self._current_custom_curve_original_name
-            not in app_config.DEFAULT_EQ_CURVES, # COM812: Trailing comma
+            not in app_config.DEFAULT_EQ_CURVES,  # COM812: Trailing comma
         )
         self.delete_button.setEnabled(can_delete)
 
@@ -418,8 +431,8 @@ class EqualizerEditorWidget(QWidget):
                         # active curve already. This check prevents infinite loops
                         # if currentData points to the same logical curve.
                         current_selection_data = self.eq_combo.itemData(
-                            self.eq_combo.currentIndex(), # COM812: Trailing comma
-                        ) # Wrapped
+                            self.eq_combo.currentIndex(),  # COM812: Trailing comma
+                        )  # Wrapped
                         if not (
                             current_selection_data
                             and current_selection_data[0] == EQ_TYPE_CUSTOM
@@ -437,8 +450,8 @@ class EqualizerEditorWidget(QWidget):
             # If the current combo selection IS NOT the active custom curve,
             # reset its '*'
             current_selection_data = self.eq_combo.itemData(
-                self.eq_combo.currentIndex(), # COM812: Trailing comma
-            ) # Wrapped
+                self.eq_combo.currentIndex(),  # COM812: Trailing comma
+            )  # Wrapped
             if (
                 current_selection_data
                 and (
@@ -592,8 +605,10 @@ class EqualizerEditorWidget(QWidget):
             and self._current_custom_curve_original_name
         ):
             QMessageBox.warning(
-                self, "Save Error", "No custom curve active to save."
-            ) # Wrapped
+                self,
+                "Save Error",
+                "No custom curve active to save.",
+            )  # Wrapped
             return
 
         name_to_save = self._current_custom_curve_original_name
@@ -624,13 +639,15 @@ class EqualizerEditorWidget(QWidget):
             return
         new_name = new_name.strip()
         if (
-            new_name in self.config_manager.get_all_custom_eq_curves() and
-            QMessageBox.question(
+            new_name in self.config_manager.get_all_custom_eq_curves()
+            and QMessageBox.question(
                 self,
                 "Overwrite",
                 f"Curve '{new_name}' exists. Overwrite?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, # COM812: Trailing comma
-            ) == QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No,  # COM812: Trailing comma
+            )
+            == QMessageBox.StandardButton.No
         ):
             return
 
@@ -675,7 +692,9 @@ class EqualizerEditorWidget(QWidget):
             # Manually process if the index didn't change but we need to register
             # it as the active one
             if self.eq_combo.currentIndex() == found_idx:
-                self._process_eq_selection(new_curve_data, is_initial_load=False, force_ui_update_only=False) # Ensure all args are keywords
+                self._process_eq_selection(
+                    new_curve_data, is_initial_load=False, force_ui_update_only=False,
+                )  # Ensure all args are keywords
 
             QMessageBox.information(self, "Saved As", f"Curve '{new_name}' saved.")
 

@@ -1,7 +1,7 @@
 """Manages udev rule creation and provides guidance for headset permissions."""
 
 import logging
-from pathlib import Path # Added
+from pathlib import Path  # Added
 import tempfile
 
 from . import app_config
@@ -11,8 +11,10 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 # Format VID and PIDs as 4-digit lowercase hex strings
 VID_HEX = f"{app_config.STEELSERIES_VID:04x}"
 RULE_LINES: list[str] = [
-    (f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", '
-     f'ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"')
+    (
+        f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", '
+        f'ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"'
+    )
     for pid in app_config.TARGET_PIDS
 ]
 UDEV_RULE_CONTENT: str = "\n".join(RULE_LINES)
@@ -91,7 +93,7 @@ class UDEVManager:
         # Catching any unexpected error to prevent crash
         except Exception:
             logger.exception(
-                "An unexpected error occurred during temporary udev rule file creation"
+                "An unexpected error occurred during temporary udev rule file creation",
             )
             self.last_udev_setup_details = None
             return False

@@ -221,7 +221,9 @@ class SettingsDialog(QDialog):
         """Generates a descriptive tooltip string for a given ChatMix value."""
         if chatmix_val is None:
             return "ChatMix: N/A (Headset disconnected?)"
-        percentage = round((chatmix_val / CHATMIX_VALUE_FULL_GAME) * 100) # Use constant for max value
+        percentage = round(
+            (chatmix_val / CHATMIX_VALUE_FULL_GAME) * 100,
+        )  # Use constant for max value
         if chatmix_val == CHATMIX_VALUE_FULL_CHAT:
             return f"ChatMix: Full Chat ({percentage}%)"
         if chatmix_val == CHATMIX_VALUE_BALANCED:

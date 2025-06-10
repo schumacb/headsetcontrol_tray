@@ -1,8 +1,8 @@
 """Core application logic for the HeadsetControl Tray."""
 
 import logging
-from pathlib import Path # Added
-import os # Keep for os.environ
+import os  # Keep for os.environ
+from pathlib import Path  # Added
 import subprocess  # Added for pkexec
 import sys
 
@@ -55,8 +55,10 @@ class SteelSeriesTrayApp:
                     # This means _q_instance might be QCoreApplication
                     # or some other non-QApplication type.
                     logger.warning(
-                        ("Existing Qt instance found (type: %s), but it's not a "
-                         "QApplication. Creating new QApplication for GUI."),
+                        (
+                            "Existing Qt instance found (type: %s), but it's not a "
+                            "QApplication. Creating new QApplication for GUI."
+                        ),
                         _q_instance.__class__.__name__,
                     )
                     create_new_qapp = True
@@ -113,7 +115,9 @@ class SteelSeriesTrayApp:
         # Apply persisted settings on startup
         self.tray_icon.set_initial_headset_settings()
 
-    def _execute_udev_helper_script(self, temp_file_path: str, final_file_path: str) -> subprocess.CompletedProcess:
+    def _execute_udev_helper_script(
+        self, temp_file_path: str, final_file_path: str,
+    ) -> subprocess.CompletedProcess:
         """
         Executes the udev helper script using pkexec.
 
@@ -145,18 +149,27 @@ class SteelSeriesTrayApp:
                 capture_output=True,
                 text=True,
                 check=False,  # We check returncode manually
-            ) # nosec B603
+            )  # nosec B603
             return result
-        except FileNotFoundError: # pkexec itself not found
-            logger.exception("pkexec command not found. Please ensure PolicyKit agent and pkexec are installed.")
-            raise # Re-raise to be caught by the caller
-        except subprocess.SubprocessError: # Catch other potential subprocess errors
+        except FileNotFoundError:  # pkexec itself not found
+            logger.exception(
+                "pkexec command not found. Please ensure PolicyKit agent and pkexec are installed.",
+            )
+            raise  # Re-raise to be caught by the caller
+        except subprocess.SubprocessError:  # Catch other potential subprocess errors
             logger.exception("Subprocess error during pkexec execution:")
-            raise # Re-raise
+            raise  # Re-raise
 
-    def _show_udev_feedback_dialog(self, parent_dialog: QMessageBox, result: subprocess.CompletedProcess | None, error: Exception | None = None) -> None:
+    def _show_udev_feedback_dialog(
+        self,
+        parent_dialog: QMessageBox,
+        result: subprocess.CompletedProcess | None,
+        error: Exception | None = None,
+    ) -> None:
         """Displays a feedback dialog based on the outcome of the udev helper script execution."""
-        feedback_dialog = QMessageBox(parent_dialog) # Ensure parent is set for modality
+        feedback_dialog = QMessageBox(
+            parent_dialog,
+        )  # Ensure parent is set for modality
 
         if error:
             if isinstance(error, FileNotFoundError):
@@ -164,22 +177,34 @@ class SteelSeriesTrayApp:
                 feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                 feedback_dialog.setWindowTitle("Error")
                 if "Helper script not found" in str(error):
-                    feedback_dialog.setText(f"Installation script not found:\n{error}\n\nPlease report this issue.")
-                else: # pkexec not found
-                    feedback_dialog.setText("pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.")
-            else: # General subprocess error or other unexpected error
+                    feedback_dialog.setText(
+                        f"Installation script not found:\n{error}\n\nPlease report this issue.",
+                    )
+                else:  # pkexec not found
+                    feedback_dialog.setText(
+                        "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.",
+                    )
+            else:  # General subprocess error or other unexpected error
                 logger.exception("An unexpected error occurred:")
                 feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                 feedback_dialog.setWindowTitle("Error")
-                feedback_dialog.setText(f"An unexpected error occurred while trying to run the helper script:\n{error}")
+                feedback_dialog.setText(
+                    f"An unexpected error occurred while trying to run the helper script:\n{error}",
+                )
             feedback_dialog.exec()
             return
 
-        if result is None: # Should ideally be handled by error parameter, but as a safeguard
-            logger.error("No result from pkexec and no explicit error. This is unexpected.") # Keep as error, not an exception context
+        if (
+            result is None
+        ):  # Should ideally be handled by error parameter, but as a safeguard
+            logger.error(
+                "No result from pkexec and no explicit error. This is unexpected.",
+            )  # Keep as error, not an exception context
             feedback_dialog.setIcon(QMessageBox.Icon.Critical)
             feedback_dialog.setWindowTitle("Error")
-            feedback_dialog.setText("An unknown error occurred during the installation process.")
+            feedback_dialog.setText(
+                "An unknown error occurred during the installation process.",
+            )
             feedback_dialog.exec()
             return
 
@@ -195,7 +220,9 @@ class SteelSeriesTrayApp:
             feedback_dialog.setIcon(QMessageBox.Icon.Information)
             feedback_dialog.setWindowTitle("Success")
             feedback_dialog.setText("Udev rules installed successfully.")
-            feedback_dialog.setInformativeText("Please replug your headset for the changes to take effect.")
+            feedback_dialog.setInformativeText(
+                "Please replug your headset for the changes to take effect.",
+            )
         elif result.returncode == PKEXEC_EXIT_USER_CANCELLED:
             logger.warning("User cancelled pkexec authentication.")
             feedback_dialog.setIcon(QMessageBox.Icon.Warning)
@@ -203,25 +230,34 @@ class SteelSeriesTrayApp:
             feedback_dialog.setText("Udev rule installation was cancelled.")
             feedback_dialog.setInformativeText(
                 "Authentication was not provided. The udev rules have not been installed. "
-                "You can try again or use the manual instructions."
+                "You can try again or use the manual instructions.",
             )
         elif result.returncode == PKEXEC_EXIT_AUTH_FAILED:
-            logger.error("pkexec authorization failed or error. stderr: %s", result.stderr.strip())
+            logger.error(
+                "pkexec authorization failed or error. stderr: %s",
+                result.stderr.strip(),
+            )
             feedback_dialog.setIcon(QMessageBox.Icon.Critical)
             feedback_dialog.setWindowTitle("Authorization Error")
-            feedback_dialog.setText("Failed to install udev rules due to an authorization error.")
+            feedback_dialog.setText(
+                "Failed to install udev rules due to an authorization error.",
+            )
             feedback_dialog.setInformativeText(
                 f"Details: {result.stderr.strip()}\n\nPlease ensure you have privileges "
-                "or contact support. You can also try the manual instructions."
+                "or contact support. You can also try the manual instructions.",
             )
-        else: # Other script errors
-            logger.error("pkexec helper script failed with code %s. stderr: %s", result.returncode, result.stderr.strip())
+        else:  # Other script errors
+            logger.error(
+                "pkexec helper script failed with code %s. stderr: %s",
+                result.returncode,
+                result.stderr.strip(),
+            )
             feedback_dialog.setIcon(QMessageBox.Icon.Critical)
             feedback_dialog.setWindowTitle("Installation Failed")
             feedback_dialog.setText("The udev rule installation script failed.")
             feedback_dialog.setInformativeText(
                 f"Error (code {result.returncode}): {result.stderr.strip()}\n\n"
-                "Please check the output and try the manual instructions, or contact support."
+                "Please check the output and try the manual instructions, or contact support.",
             )
         feedback_dialog.exec()
 
@@ -252,7 +288,9 @@ your headset.
 """
         dialog.setInformativeText(informative_text_string.strip())
 
-        auto_button = dialog.addButton("Install Automatically", QMessageBox.ButtonRole.AcceptRole)
+        auto_button = dialog.addButton(
+            "Install Automatically", QMessageBox.ButtonRole.AcceptRole,
+        )
         _ = dialog.addButton(QMessageBox.StandardButton.Close)
         dialog.setDefaultButton(auto_button)
         dialog.exec()
@@ -263,12 +301,14 @@ your headset.
             execution_error: Exception | None = None
             try:
                 process_result = self._execute_udev_helper_script(temp_file, final_file)
-            except FileNotFoundError as e: # Helper script or pkexec not found
+            except FileNotFoundError as e:  # Helper script or pkexec not found
                 execution_error = e
-            except subprocess.SubprocessError as e: # Other subprocess errors
+            except subprocess.SubprocessError as e:  # Other subprocess errors
                 execution_error = e
-            except Exception as e: # Any other unexpected error from the helper
-                logger.error("Unexpected error during _execute_udev_helper_script: %s", e)
+            except Exception as e:  # Any other unexpected error from the helper
+                logger.error(
+                    "Unexpected error during _execute_udev_helper_script: %s", e,
+                )
                 execution_error = e
 
             self._show_udev_feedback_dialog(dialog, process_result, execution_error)

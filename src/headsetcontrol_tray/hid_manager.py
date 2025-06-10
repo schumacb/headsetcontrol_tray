@@ -1,7 +1,6 @@
 """Manages the discovery, connection, and sorting of HID devices."""
 
 import logging
-import contextlib # Added
 from typing import Any
 
 import hid
@@ -41,15 +40,17 @@ class HIDConnectionManager:
                 "Found %s SteelSeries VID devices during enumeration.",
                 len(devices_enum),
             )
-        except hid.HIDException as e_enum:
+        except hid.HIDException:
             logger.exception("Error enumerating HID devices")
             return []
 
         potential_devices = []
         for dev_info in devices_enum:
             logger.debug(
-                ("  Enumerated device: PID=0x%04x, Release=0x%04x, Interface=%s, "
-                 "UsagePage=0x%04x, Usage=0x%04x, Path=%s, Product='%s'"),
+                (
+                    "  Enumerated device: PID=0x%04x, Release=0x%04x, Interface=%s, "
+                    "UsagePage=0x%04x, Usage=0x%04x, Path=%s, Product='%s'"
+                ),
                 dev_info["product_id"],
                 dev_info.get("release_number", 0),
                 dev_info.get("interface_number", "N/A"),
@@ -78,8 +79,10 @@ class HIDConnectionManager:
                 and d_info.get("usage") == app_config.HID_REPORT_USAGE_ID
             ):
                 logger.debug(
-                    ("  SortKey: Prioritizing exact Arctis Nova 7 interface (0) "
-                     "for PID 0x%04x"),
+                    (
+                        "  SortKey: Prioritizing exact Arctis Nova 7 interface (0) "
+                        "for PID 0x%04x"
+                    ),
                     d_info.get("product_id"),
                 )
                 return -2  # Highest priority
@@ -105,7 +108,9 @@ class HIDConnectionManager:
                     d_info.get("product_id"),
                 )
                 return 0
-            if d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE:  # Common SteelSeries usage page
+            if (
+                d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE
+            ):  # Common SteelSeries usage page
                 logger.debug(
                     "  SortKey: Prioritizing usage page 0x%04x (generic) for PID 0x%04x (1)",
                     app_config.HID_REPORT_USAGE_PAGE,
@@ -113,8 +118,10 @@ class HIDConnectionManager:
                 )
                 return 1
             logger.debug(
-                ("  SortKey: Default priority 2 for PID 0x%04x, Interface %s, "
-                 "UsagePage 0x%04x"),
+                (
+                    "  SortKey: Default priority 2 for PID 0x%04x, Interface %s, "
+                    "UsagePage 0x%04x"
+                ),
                 d_info.get("product_id"),
                 d_info.get("interface_number", "N/A"),
                 d_info.get("usage_page", 0),
@@ -161,8 +168,10 @@ class HIDConnectionManager:
             h_temp = None
             path_str = dev_info_to_try["path"].decode("utf-8", errors="replace")
             logger.debug(
-                ("  Attempting to open path: %s (Interface: %s, UsagePage: 0x%04x, "
-                 "PID: 0x%04x)"),
+                (
+                    "  Attempting to open path: %s (Interface: %s, UsagePage: 0x%04x, "
+                    "PID: 0x%04x)"
+                ),
                 path_str,
                 dev_info_to_try.get("interface_number", "N/A"),
                 dev_info_to_try.get("usage_page", 0),
@@ -171,16 +180,15 @@ class HIDConnectionManager:
             try:
                 # Ensure path is bytes as expected by hid.Device constructor
                 h_temp = hid.Device(path=dev_info_to_try["path"])
-            except (hid.HIDException, OSError) as e_open:
+            except (hid.HIDException, OSError):
                 logger.exception("    Failed to open HID device path %s", path_str)
                 # h_temp would not be assigned if hid.Device() failed, so no need to check/close it here.
                 continue
-            else: # TRY300: Success path in else block
+            else:  # TRY300: Success path in else block
                 self.hid_device = h_temp
                 self.selected_device_info = dev_info_to_try
                 logger.info(
-                    ("Successfully opened HID device: %s on interface %s "
-                     "path %s"),
+                    ("Successfully opened HID device: %s on interface %s path %s"),
                     dev_info_to_try.get("product_string", "N/A"),
                     dev_info_to_try.get("interface_number", -1),
                     path_str,
@@ -232,7 +240,7 @@ class HIDConnectionManager:
             logger.debug("Closing HID device: %s", device_path)
             try:
                 self.hid_device.close()
-            except hid.HIDException as e:
+            except hid.HIDException:
                 logger.exception("Exception while closing HID device %s", device_path)
             finally:
                 self.hid_device = None

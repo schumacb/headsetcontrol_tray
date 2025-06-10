@@ -47,7 +47,7 @@ class ConfigManager:
         try:
             with file_path.open("w") as f:
                 json.dump(data, f, indent=4)
-        except OSError as e:  # More specific catch for IOErrors / general OS errors
+        except OSError:  # More specific catch for IOErrors / general OS errors
             logger.exception("Error saving file %s", file_path)
 
     # General Settings

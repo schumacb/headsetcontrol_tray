@@ -208,7 +208,10 @@ class SystemTrayIcon(QSystemTrayIcon):
                 if fill_max_width > 0:  # Ensure positive width
                     fill_width = max(
                         0,
-                        int(fill_max_width * (self.battery_level / float(BATTERY_LEVEL_FULL))),
+                        int(
+                            fill_max_width
+                            * (self.battery_level / float(BATTERY_LEVEL_FULL)),
+                        ),
                     )
                     fill_rect = QRect(
                         battery_body_rect.left() + border_thickness,
@@ -224,8 +227,10 @@ class SystemTrayIcon(QSystemTrayIcon):
                 and self.battery_status_text == "BATTERY_CHARGING"
             ):
                 logger.debug(
-                    ("_create_status_icon: Attempting to draw charging indicator. "
-                     "Status: %s, Level: %s"),
+                    (
+                        "_create_status_icon: Attempting to draw charging indicator. "
+                        "Status: %s, Level: %s"
+                    ),
                     self.battery_status_text,
                     self.battery_level,
                 )
@@ -280,11 +285,14 @@ class SystemTrayIcon(QSystemTrayIcon):
 
             # --- ChatMix Indicator (Top-Right) ---
             # Show only if battery is not critically low (<= BATTERY_LEVEL_MEDIUM_CRITICAL)
-            if not (
-                self.battery_level is not None and
-                self.battery_level <= BATTERY_LEVEL_MEDIUM_CRITICAL
-            ) and self.chatmix_value is not None and \
-               self.chatmix_value != CHATMIX_VALUE_BALANCED:
+            if (
+                not (
+                    self.battery_level is not None
+                    and self.battery_level <= BATTERY_LEVEL_MEDIUM_CRITICAL
+                )
+                and self.chatmix_value is not None
+                and self.chatmix_value != CHATMIX_VALUE_BALANCED
+            ):
                 dot_radius = self.ICON_DRAW_SIZE // 10 or 2  # Proportional dot size
                 dot_margin = self.ICON_DRAW_SIZE // 10 or 2
 
@@ -388,7 +396,9 @@ class SystemTrayIcon(QSystemTrayIcon):
             action.setData(level)
             action.setChecked(level == current_sidetone_val_from_config)
             action.triggered.connect(
-                lambda _checked, sidetone_val=level: self._set_sidetone_from_menu(sidetone_val),
+                lambda _checked, sidetone_val=level: self._set_sidetone_from_menu(
+                    sidetone_val,
+                ),
             )
             sidetone_menu.addAction(action)
             self.sidetone_action_group.append(action)

@@ -81,7 +81,9 @@ class HIDCommunicator:
         # report_id=0x06 would be used.
 
         logger.debug(
-            ("Writing HID report: ID=%s, Data=%s to device %s (%s)"), # Already wrapped, but the line itself is long
+            (
+                "Writing HID report: ID=%s, Data=%s to device %s (%s)"
+            ),  # Already wrapped, but the line itself is long
             report_id,
             final_report.hex(),
             self.device_product_str,
@@ -92,8 +94,10 @@ class HIDCommunicator:
             logger.debug("Bytes written: %s", bytes_written)
             if bytes_written <= 0:
                 logger.warning(
-                    ("HID write returned %s. This might indicate an issue with the "
-                     "device %s (%s)."),
+                    (
+                        "HID write returned %s. This might indicate an issue with the "
+                        "device %s (%s)."
+                    ),
                     bytes_written,
                     self.device_product_str,
                     self.device_path_str,
@@ -102,9 +106,8 @@ class HIDCommunicator:
                 # or signal failure to a manager.
                 # For now, just report failure. The caller (HeadsetService) might need to handle this.
                 return False
-            else:
-                return True
-        except hid.HIDException as e:
+            return True
+        except hid.HIDException:
             logger.exception(
                 "HID write error on device %s (%s)",
                 self.device_product_str,
@@ -163,7 +166,7 @@ class HIDCommunicator:
                 bytes(response_data).hex(),
             )
             return bytes(response_data)
-        except hid.HIDException as e:
+        except hid.HIDException:
             logger.exception(
                 "HID read error on device %s (%s)",
                 self.device_product_str,

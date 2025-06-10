@@ -63,20 +63,20 @@ class ChatMixManager:
                 capture_output=True,
                 text=True,
                 check=True,
-            ) # nosec B603
+            )  # nosec B603
             return result.stdout.strip()
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             logger.exception("Command '%s' failed", " ".join(command_args))
         except FileNotFoundError:
             logger.exception(
                 "Command '%s' not found. Is PipeWire installed and in PATH?",
-                 command_args[0] if command_args else "N/A"
+                command_args[0] if command_args else "N/A",
             )
         # Catching any other unexpected error during pipewire command execution
         except Exception:
             logger.exception(
                 "An unexpected error occurred while running '%s'",
-                " ".join(command_args)
+                " ".join(command_args),
             )
         return None
 
@@ -110,7 +110,7 @@ class ChatMixManager:
                 stream_id = obj.get("id")
                 if stream_id is None:
                     logger.warning(
-                        "Found Stream/Output/Audio node without an ID: %s", # Wrapped
+                        "Found Stream/Output/Audio node without an ID: %s",  # Wrapped
                         props.get("node.name", "N/A"),
                     )
                     continue
@@ -151,7 +151,7 @@ class ChatMixManager:
                         "current_channel_volumes": current_channel_volumes,  # For reference or if needed
                     },
                 )
-        logger.debug("Found %s Stream/Output/Audio nodes.", len(streams)) # Wrapped
+        logger.debug("Found %s Stream/Output/Audio nodes.", len(streams))  # Wrapped
         return streams
 
     def _calculate_volumes(self, chatmix_value: int) -> tuple[float, float]:
@@ -165,17 +165,23 @@ class ChatMixManager:
 
         # This creates a curve where at CHATMIX_NORMALIZED_MIDPOINT (balanced), both are full.
         # As it moves away from CHATMIX_NORMALIZED_MIDPOINT, one channel is attenuated.
-        if chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT:  # More towards Chat (0.0 to 0.5)
+        if (
+            chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT
+        ):  # More towards Chat (0.0 to 0.5)
             chat_vol = self.reference_volume
             # Game volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 0.0)
             # Scale the 0.0-0.5 range to 0.0-1.0 for the factor
-            game_vol_factor = chatmix_norm * 2.0 # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
+            game_vol_factor = (
+                chatmix_norm * 2.0
+            )  # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
             game_vol = self.reference_volume * game_vol_factor
         else:  # More towards Game (0.5 to 1.0)
             game_vol = self.reference_volume
             # Chat volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 1.0)
             # Scale the 0.5-1.0 range to 1.0-0.0 for the factor
-            chat_vol_factor = (1.0 - chatmix_norm) * 2.0 # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
+            chat_vol_factor = (
+                1.0 - chatmix_norm
+            ) * 2.0  # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
             chat_vol = self.reference_volume * chat_vol_factor
 
         # Clamp volumes (e.g., to prevent > 1.0 if reference_volume is 1.0)
@@ -210,7 +216,10 @@ class ChatMixManager:
         if (
             last_volumes is not None
             and len(last_volumes) == num_channels
-            and all(abs(last_vol - target_volume) < FLOAT_COMPARISON_TOLERANCE for last_vol in last_volumes)
+            and all(
+                abs(last_vol - target_volume) < FLOAT_COMPARISON_TOLERANCE
+                for last_vol in last_volumes
+            )
         ):  # Compare with a tolerance
             logger.debug(
                 "Volume for stream ID %s already at target %.2f. Skipping pw-cli.",
@@ -235,7 +244,7 @@ class ChatMixManager:
         logger.debug("Executing PipeWire command: %s", " ".join(cmd))
 
         try:
-            process = subprocess.run(cmd, capture_output=True, text=True, check=True) # nosec B603
+            process = subprocess.run(cmd, capture_output=True, text=True, check=True)  # nosec B603
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",
                 stream_id,
@@ -256,7 +265,7 @@ class ChatMixManager:
         except Exception:
             logger.exception(
                 "An unexpected error occurred while setting volume for stream %s",
-                stream_id
+                stream_id,
             )
 
     def update_volumes(self, chatmix_value: int | None) -> None:
@@ -302,8 +311,10 @@ class ChatMixManager:
                 stream_type = "CHAT"
 
             logger.debug(
-                ("Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, "
-                 "TargetVol=%.2f"),
+                (
+                    "Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, "
+                    "TargetVol=%.2f"
+                ),
                 stream_id,
                 props.get("application.name", ""),
                 props.get("application.process.binary", ""),
