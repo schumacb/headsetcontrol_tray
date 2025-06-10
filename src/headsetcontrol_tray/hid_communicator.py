@@ -32,7 +32,7 @@ class HIDCommunicator:
             logger.error(
                 "HIDCommunicator initialized with a None hid_device. This is unexpected.",
             )
-            raise HIDCommunicationError()
+            raise HIDCommunicationError
         self.hid_device: hid.Device = hid_device
 
         # Extract and store info for logging

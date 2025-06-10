@@ -142,18 +142,18 @@ class SteelSeriesTrayApp:
 
         if not helper_script_path.exists():
             logger.error("Helper script not found at %s", str(helper_script_path))
-            raise TrayAppInitializationError()
+            raise TrayAppInitializationError
 
         # Ensure all parts of cmd are strings for subprocess.run
         cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
         logger.info("Attempting to execute: %s", " ".join(cmd))
         try:
-            return subprocess.run(
+            return subprocess.run(  # nosec B603
                 cmd,
                 capture_output=True,
                 text=True,
                 check=False,  # We check returncode manually
-            )  # nosec B603 # nosemgrep S603 # helper_script_path is internally defined,
+            )  # nosemgrep S603 # helper_script_path is internally defined,
         # temp_file_path and final_file_path are file paths, not direct commands.
         except FileNotFoundError:  # pkexec itself not found
             logger.exception("pkexec command not found.")
@@ -168,9 +168,9 @@ class SteelSeriesTrayApp:
         result: subprocess.CompletedProcess | None,
         error: Exception | None = None,
     ) -> None:
-        """Displays a feedback dialog based on the outcome of the udev helper script
-        execution.
+        """Displays a feedback dialog based on the outcome of the udev helper script execution.
 
+        This informs the user of the outcome.
         """
         feedback_dialog = QMessageBox(parent_dialog)
         feedback_dialog.setModal(True)  # Ensure modality

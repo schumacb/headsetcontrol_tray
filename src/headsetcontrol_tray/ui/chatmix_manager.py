@@ -58,12 +58,12 @@ class ChatMixManager:
         """Runs a PipeWire command (like pw-dump or pw-cli) and returns its stdout."""
         try:
             logger.debug("Executing PipeWire command: %s", " ".join(command_args))
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 command_args,
                 capture_output=True,
                 text=True,
                 check=True,
-            )  # nosec B603 # nosemgrep S603 # command_args are typically static like ["pw-dump"]
+            )  # nosemgrep S603 # command_args are typically static like ["pw-dump"]
             return result.stdout.strip()
         except subprocess.CalledProcessError:
             logger.exception("Command '%s' failed", " ".join(command_args))
@@ -235,12 +235,12 @@ class ChatMixManager:
         logger.debug("Executing PipeWire command: %s", " ".join(cmd))
 
         try:
-            process = subprocess.run(
+            process = subprocess.run(  # nosec B603
                 cmd,
                 capture_output=True,
                 text=True,
                 check=True,
-            )  # nosec B603 # nosemgrep S603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
+            )  # nosemgrep S603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",
                 stream_id,

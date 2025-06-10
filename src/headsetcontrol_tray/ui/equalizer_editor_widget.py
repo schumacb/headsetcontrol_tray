@@ -30,9 +30,9 @@ HW_PRESET_DISPLAY_PREFIX = "[HW] "
 
 
 class EqualizerEditorWidget(QWidget):
-    """Widget for editing and managing equalizer settings
-    (custom curves and hardware presets).
+    """Widget for editing and managing equalizer settings.
 
+    This includes custom curves and hardware presets.
     """
 
     eq_applied = Signal(
@@ -151,9 +151,9 @@ class EqualizerEditorWidget(QWidget):
         main_layout.addStretch(1)  # Pushes sliders up if window is tall
 
     def refresh_view(self) -> None:
-        """Refreshes the equalizer editor view, repopulating and selecting the
-        appropriate EQ.
+        """Refreshes the equalizer editor view, repopulating and selecting the appropriate EQ.
 
+        The UI is updated to reflect the current state.
         """
         logger.debug("EqualizerEditorWidget: Refreshing view")
         self._populate_eq_combo()  # Updates combo items

@@ -3,11 +3,15 @@
 class HeadsetControlTrayError(Exception):
     """Base exception for headsetcontrol_tray application errors."""
     def __init__(self, message: str | None = None, *args: object) -> None:
+        """Initialize the HeadsetControlTrayError."""
         if message is not None:
             super().__init__(message, *args)
         else:
             # This allows subclasses to define a message if none is provided
-            super().__init__(self.default_message if hasattr(self, 'default_message') else "An unspecified error occurred.", *args)
+            default_msg = "An unspecified error occurred."
+            if hasattr(self, "default_message"):
+                default_msg = self.default_message
+            super().__init__(default_msg, *args,)
 
 
 class TrayAppInitializationError(HeadsetControlTrayError):
@@ -20,6 +24,7 @@ class ConfigError(HeadsetControlTrayError):
     default_message = "Invalid EQ values."
 
     def __init__(self, message: str | None = None, filepath: str | None = None) -> None:
+        """Initialize the ConfigError."""
         if filepath is not None:
             # This handles the "Configuration file not found" case specifically
             message = f"Configuration file not found at {filepath}"
