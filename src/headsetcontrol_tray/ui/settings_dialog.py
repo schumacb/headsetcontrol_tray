@@ -278,9 +278,7 @@ class SettingsDialog(QDialog):
 
     def _save_chat_app_identifiers(self) -> None:
         current_text = self.chat_apps_line_edit.text().strip()
-        new_identifiers = [
-            ident.strip() for ident in current_text.split(",") if ident.strip()
-        ]
+        new_identifiers = [ident.strip() for ident in current_text.split(",") if ident.strip()]
 
         old_identifiers = self.config_manager.get_setting(
             "chat_app_identifiers",

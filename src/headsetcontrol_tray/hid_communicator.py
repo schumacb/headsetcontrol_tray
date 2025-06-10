@@ -29,8 +29,7 @@ class HIDCommunicator:
             # This case should ideally be prevented by the caller
             # (e.g. HeadsetService ensuring connection first)
             logger.error(
-                "HIDCommunicator initialized with a None hid_device. "
-                "This is unexpected.",
+                "HIDCommunicator initialized with a None hid_device. This is unexpected.",
             )
             raise ValueError("Invalid HID device.")
         self.hid_device: hid.Device = hid_device
@@ -39,17 +38,11 @@ class HIDCommunicator:
         # Path is bytes in device_info, product_string is str
         _path_bytes = device_info.get("path")
         self.device_path_str: str = (
-            _path_bytes.decode("utf-8", "replace")
-            if isinstance(_path_bytes, bytes)
-            else "Unknown Path"
+            _path_bytes.decode("utf-8", "replace") if isinstance(_path_bytes, bytes) else "Unknown Path"
         )
         # Ensure product_string is treated as potentially None and provide a default
         _product_str_temp = device_info.get("product_string")
-        self.device_product_str: str = (
-            _product_str_temp
-            if isinstance(_product_str_temp, str)
-            else "Unknown Product"
-        )
+        self.device_product_str: str = _product_str_temp if isinstance(_product_str_temp, str) else "Unknown Product"
 
         logger.debug(
             "HIDCommunicator initialized for device: %s (%s)",
@@ -82,9 +75,7 @@ class HIDCommunicator:
         # report_id=0x06 would be used.
 
         logger.debug(
-            (
-                "Writing HID report: ID=%s, Data=%s to device %s (%s)"
-            ),  # Already wrapped, but the line itself is long
+            ("Writing HID report: ID=%s, Data=%s to device %s (%s)"),  # Already wrapped, but the line itself is long
             report_id,
             final_report.hex(),
             self.device_product_str,
@@ -95,10 +86,7 @@ class HIDCommunicator:
             logger.debug("Bytes written: %s", bytes_written)
             if bytes_written <= 0:
                 logger.warning(
-                    (
-                        "HID write returned %s. This might indicate an issue with "
-                        "the device %s (%s)."
-                    ),
+                    ("HID write returned %s. This might indicate an issue with the device %s (%s)."),
                     bytes_written,
                     self.device_product_str,
                     self.device_path_str,

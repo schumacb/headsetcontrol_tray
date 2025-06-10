@@ -130,8 +130,7 @@ class ChatMixManager:
                     # "Props" parameter is usually an array with one object in it
                     props_param_instance = (
                         node_params["Props"][0]
-                        if isinstance(node_params["Props"], list)
-                        and node_params["Props"]
+                        if isinstance(node_params["Props"], list) and node_params["Props"]
                         else {}
                     )
                     if "channelVolumes" in props_param_instance:
@@ -166,23 +165,17 @@ class ChatMixManager:
 
         # This curve ensures at CHATMIX_NORMALIZED_MIDPOINT (balanced), both are full.
         # As it moves away, one channel is attenuated.
-        if (
-            chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT
-        ):  # More towards Chat (0.0 to 0.5)
+        if chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT:  # More towards Chat (0.0 to 0.5)
             chat_vol = self.reference_volume
             # Game vol goes from reference_volume (at 0.5) down to 0 (at 0.0).
             # Scale the 0.0-0.5 range to 0.0-1.0 for factor.
-            game_vol_factor = (
-                chatmix_norm * 2.0
-            )  # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
+            game_vol_factor = chatmix_norm * 2.0  # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
             game_vol = self.reference_volume * game_vol_factor
         else:  # More towards Game (0.5 to 1.0)
             game_vol = self.reference_volume
             # Chat volume goes from reference_volume (at chatmix 0.5) down to 0
             # (at chatmix 1.0). Scale the 0.5-1.0 range to 1.0-0.0 for the factor.
-            chat_vol_factor = (
-                1.0 - chatmix_norm
-            ) * 2.0  # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
+            chat_vol_factor = (1.0 - chatmix_norm) * 2.0  # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
             chat_vol = self.reference_volume * chat_vol_factor
 
         # Clamp volumes (e.g., to prevent > 1.0 if reference_volume is 1.0)
@@ -217,10 +210,7 @@ class ChatMixManager:
         if (
             last_volumes is not None
             and len(last_volumes) == num_channels
-            and all(
-                abs(last_vol - target_volume) < FLOAT_COMPARISON_TOLERANCE
-                for last_vol in last_volumes
-            )
+            and all(abs(last_vol - target_volume) < FLOAT_COMPARISON_TOLERANCE for last_vol in last_volumes)
         ):  # Compare with a tolerance
             logger.debug(
                 "Volume for stream ID %s already at target %.2f. Skipping pw-cli.",
@@ -256,9 +246,7 @@ class ChatMixManager:
                 stream_id,
                 process.stdout.strip(),
             )
-            self._last_set_stream_volumes[stream_id] = (
-                target_volumes_list  # Update last set volumes
-            )
+            self._last_set_stream_volumes[stream_id] = target_volumes_list  # Update last set volumes
         except FileNotFoundError:
             logger.exception("pw-cli command not found.")
         except subprocess.CalledProcessError as e:
@@ -317,10 +305,7 @@ class ChatMixManager:
                 stream_type = "CHAT"
 
             logger.debug(
-                (
-                    "Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, "
-                    "TargetVol=%.2f"
-                ),
+                ("Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, TargetVol=%.2f"),
                 stream_id,
                 props.get("application.name", ""),
                 props.get("application.process.binary", ""),

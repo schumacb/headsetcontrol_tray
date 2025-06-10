@@ -54,17 +54,12 @@ class HeadsetStatusParser:
         # (Copy from HeadsetService._determine_headset_online_status)
         if len(response_data) <= app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE:
             logger.warning(
-                (
-                    "_determine_headset_online_status: Response data too short. "
-                    "Expected > %s bytes, got %s"
-                ),
+                ("_determine_headset_online_status: Response data too short. Expected > %s bytes, got %s"),
                 app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE,
                 len(response_data),
             )
             return False  # Or raise error
-        raw_battery_status = response_data[
-            app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE
-        ]
+        raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
         return raw_battery_status != 0x00
 
     def _parse_battery_info(
@@ -83,10 +78,7 @@ class HeadsetStatusParser:
         )
         if len(response_data) <= required_length:
             logger.warning(
-                (
-                    "_parse_battery_info: Response data too short for battery info. "
-                    "Expected > %s bytes, got %s"
-                ),
+                ("_parse_battery_info: Response data too short for battery info. Expected > %s bytes, got %s"),
                 required_length,
                 len(response_data),
             )
@@ -111,12 +103,8 @@ class HeadsetStatusParser:
             )
             battery_percent = None
 
-        raw_battery_status_byte = response_data[
-            app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE
-        ]
-        battery_charging = (
-            raw_battery_status_byte == 0x01
-        )  # 0x01 = charging, 0x02 = online, 0x00 = offline
+        raw_battery_status_byte = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
+        battery_charging = raw_battery_status_byte == 0x01  # 0x01 = charging, 0x02 = online, 0x00 = offline
 
         return {
             "battery_percent": battery_percent,
@@ -139,10 +127,7 @@ class HeadsetStatusParser:
         )
         if len(response_data) <= required_length:
             logger.warning(
-                (
-                    "_parse_chatmix_info: Response data too short for chatmix info. "
-                    "Expected > %s bytes, got %s"
-                ),
+                ("_parse_chatmix_info: Response data too short for chatmix info. Expected > %s bytes, got %s"),
                 required_length,
                 len(response_data),
             )
@@ -173,15 +158,9 @@ class HeadsetStatusParser:
     def parse_status_report(self, response_data: bytes) -> dict[str, Any] | None:
         """Parses the raw HID status report data from the headset."""
         # (Adapt logic from HeadsetService._get_parsed_status_hid that handles parsing)
-        if (
-            not response_data
-            or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS
-        ):
+        if not response_data or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
             logger.warning(
-                (
-                    "parse_status_report: Insufficient data. Expected at least "
-                    "%s bytes, got %s."
-                ),
+                ("parse_status_report: Insufficient data. Expected at least %s bytes, got %s."),
                 app_config.HID_INPUT_REPORT_LENGTH_STATUS,
                 len(response_data) if response_data else 0,
             )
@@ -194,9 +173,7 @@ class HeadsetStatusParser:
             is_online=headset_online,
         )
 
-        raw_battery_status_byte = response_data[
-            app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE
-        ]
+        raw_battery_status_byte = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
 
         parsed_status = {
             "headset_online": headset_online,
@@ -279,16 +256,11 @@ class HeadsetCommandEncoder:
 
         # Original code appends a 0x00 if length is (prefix_len + num_bands).
         # This 0x00 is likely an identifier for "custom EQ slot" or similar.
-        if len(command_payload) == (
-            len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS
-        ):
+        if len(command_payload) == (len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS):
             command_payload.append(EQ_PAYLOAD_TERMINATOR_OR_SLOT_ID)
         else:
             logger.error(
-                (
-                    "encode_set_eq_values: Error constructing EQ payload. "
-                    "Length before terminator: %s. Expected %s."
-                ),
+                ("encode_set_eq_values: Error constructing EQ payload. Length before terminator: %s. Expected %s."),
                 len(command_payload),
                 len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS,
             )
@@ -306,10 +278,7 @@ class HeadsetCommandEncoder:
         # (Adapt from HeadsetService._set_eq_preset_hid)
         if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
             logger.error(
-                (
-                    "encode_set_eq_preset_id: Invalid preset ID: %s. "
-                    "Not in ARCTIS_NOVA_7_HW_PRESETS."
-                ),
+                ("encode_set_eq_preset_id: Invalid preset ID: %s. Not in ARCTIS_NOVA_7_HW_PRESETS."),
                 preset_id,
             )
             return None
@@ -317,14 +286,9 @@ class HeadsetCommandEncoder:
         preset_data = app_config.ARCTIS_NOVA_7_HW_PRESETS[preset_id]
         float_values_obj = preset_data.get("values")
 
-        if not isinstance(float_values_obj, list) or not all(
-            isinstance(v, float | int) for v in float_values_obj
-        ):
+        if not isinstance(float_values_obj, list) or not all(isinstance(v, float | int) for v in float_values_obj):
             logger.error(
-                (
-                    "encode_set_eq_preset_id: Preset data 'values' for ID %s "
-                    "is not a list of numbers."
-                ),
+                ("encode_set_eq_preset_id: Preset data 'values' for ID %s is not a list of numbers."),
                 preset_id,
             )
             return None
@@ -334,8 +298,7 @@ class HeadsetCommandEncoder:
         if len(float_values) != NUM_EQ_BANDS:
             logger.error(
                 (
-                    "encode_set_eq_preset_id: Malformed preset data for ID %s. "
-                    "Expected %s bands, got %s."
+                    "encode_set_eq_preset_id: Malformed preset data for ID %s. Expected %s bands, got %s."
                 ),  # Ensure this line is short enough
                 preset_id,
                 NUM_EQ_BANDS,  # Added missing argument
@@ -344,10 +307,7 @@ class HeadsetCommandEncoder:
             return None
 
         logger.info(
-            (
-                "encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) "
-                "using its bands: %s"
-            ),
+            ("encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) using its bands: %s"),
             preset_data.get("name", "Unknown"),
             preset_id,
             float_values,

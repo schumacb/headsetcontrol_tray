@@ -220,13 +220,11 @@ class SteelSeriesTrayApp:
                 )
             else:  # pkexec not found
                 dialog.setText(
-                    "pkexec command not found.\nPlease ensure PolicyKit is "
-                    "correctly installed and configured.",
+                    "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.",
                 )
         else:  # General subprocess error or other unexpected error
             dialog.setText(
-                "An unexpected error occurred while trying to run the helper "
-                f"script:\n{error}",
+                f"An unexpected error occurred while trying to run the helper script:\n{error}",
             )
         dialog.exec()
 
@@ -300,8 +298,7 @@ class SteelSeriesTrayApp:
         dialog.setWindowTitle("Headset Permissions Setup Required")
         dialog.setIcon(QMessageBox.Icon.Information)
         dialog.setText(
-            "Could not connect to your SteelSeries headset. This may be due to "
-            "missing udev permissions (udev rules).",
+            "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
         )
 
         informative_text_string = (
@@ -345,8 +342,7 @@ class SteelSeriesTrayApp:
             self._show_udev_feedback_dialog(dialog, process_result, execution_error)
         else:
             logger.info(
-                "User closed or cancelled the udev rules dialog, or did not choose "
-                "automatic install.",
+                "User closed or cancelled the udev rules dialog, or did not choose automatic install.",
             )
 
     def run(self) -> int:

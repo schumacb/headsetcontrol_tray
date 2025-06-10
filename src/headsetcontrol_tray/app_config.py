@@ -25,9 +25,7 @@ TARGET_PIDS = [
 ]
 
 # Configuration File
-CONFIG_DIR = (
-    Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
-)
+CONFIG_DIR = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
 CONFIG_FILE = CONFIG_DIR / "settings.json"
 CUSTOM_EQ_CURVES_FILE = CONFIG_DIR / "custom_eq_curves.json"
 

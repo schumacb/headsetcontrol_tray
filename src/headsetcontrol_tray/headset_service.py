@@ -35,9 +35,7 @@ class HeadsetService:
 
         self.udev_setup_details: dict[str, Any] | None = None
         self._last_hid_only_connection_logged_status: bool | None = None
-        self._last_hid_raw_read_data: list[int] | None = (
-            None  # Store as list of ints for direct comparison
-        )
+        self._last_hid_raw_read_data: list[int] | None = None  # Store as list of ints for direct comparison
         self._last_hid_parsed_status: dict[str, Any] | None = None
         self._last_reported_battery_level: int | None = None
         self._last_reported_chatmix: int | None = None
@@ -53,14 +51,12 @@ class HeadsetService:
         if (
             self.hid_communicator
             and self.hid_connection_manager.hid_device
-            and self.hid_communicator.hid_device
-            == self.hid_connection_manager.hid_device
+            and self.hid_communicator.hid_device == self.hid_connection_manager.hid_device
         ):
             return True
 
         logger.debug(
-            "_ensure_hid_communicator: Attempting to establish/refresh HID "
-            "communicator.",
+            "_ensure_hid_communicator: Attempting to establish/refresh HID communicator.",
         )
         if self.hid_connection_manager.ensure_connection():
             active_hid_device = self.hid_connection_manager.get_hid_device()
@@ -84,8 +80,7 @@ class HeadsetService:
                 # identity has changed. HIDConnectionManager is the source of
                 # truth for the current device and its info.
                 if (
-                    self.hid_communicator is None
-                    or self.hid_communicator.hid_device != active_hid_device
+                    self.hid_communicator is None or self.hid_communicator.hid_device != active_hid_device
                 ):  # Wrapped condition
                     self.hid_communicator = HIDCommunicator(
                         hid_device=active_hid_device,
@@ -112,20 +107,14 @@ class HeadsetService:
         final_rules_path = Path("/etc/udev/rules.d/") / STEELSERIES_UDEV_FILENAME
         if not final_rules_path.exists():
             logger.info(
-                "Udev rules file not found at %s. Triggering interactive udev rule "
-                "creation guide.",
+                "Udev rules file not found at %s. Triggering interactive udev rule creation guide.",
                 str(final_rules_path),  # Convert Path to string for logging
             )
-            if (
-                self.udev_manager.create_rules_interactive()
-            ):  # This method logs its own success/failure
-                self.udev_setup_details = (
-                    self.udev_manager.get_last_udev_setup_details()
-                )
+            if self.udev_manager.create_rules_interactive():  # This method logs its own success/failure
+                self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
         else:
             logger.debug(
-                "Udev rules file %s exists. Skipping interactive udev guide "
-                "related to connection failure.",
+                "Udev rules file %s exists. Skipping interactive udev guide related to connection failure.",
                 str(final_rules_path),  # Convert Path to string for logging
             )
         return False
@@ -135,16 +124,12 @@ class HeadsetService:
         self.hid_connection_manager.close()  # This will set its hid_device to None
         self.hid_communicator = None  # Clear our communicator instance
         logger.debug(
-            "HeadsetService: HID connection closed via manager, local "
-            "communicator cleared.",
+            "HeadsetService: HID connection closed via manager, local communicator cleared.",
         )
 
     def _clear_last_hid_status(self, reason: str) -> None:
         """Clears the last known HID status and logs the reason."""
-        if (
-            self._last_hid_parsed_status is not None
-            or self._last_hid_raw_read_data is not None
-        ):
+        if self._last_hid_parsed_status is not None or self._last_hid_raw_read_data is not None:
             logger.info(
                 "_get_parsed_status_hid: %s, clearing last known status.",
                 reason,
@@ -161,8 +146,7 @@ class HeadsetService:
         command_payload = app_config.HID_CMD_GET_STATUS
         if not self.hid_communicator.write_report(report_id=0, data=command_payload):
             logger.warning(
-                "_read_raw_hid_status: Failed to write HID status request. "
-                "Closing connection.",
+                "_read_raw_hid_status: Failed to write HID status request. Closing connection.",
             )
             self.hid_connection_manager.close()
             self.hid_communicator = None
@@ -196,35 +180,29 @@ class HeadsetService:
 
         if is_online:
             is_charging = parsed_status.get("battery_charging", False)
-            current_log_status_byte = (
-                0x01 if is_charging else 0x02
-            )  # Charging or Online
+            current_log_status_byte = 0x01 if is_charging else 0x02  # Charging or Online
 
             if prev_log_status_byte is None or prev_log_status_byte == 0x00:
                 logger.info(
-                    "Headset status change: Now %s (status byte %#02x), "
-                    "was previously offline or unknown.",
+                    "Headset status change: Now %s (status byte %#02x), was previously offline or unknown.",
                     "charging" if is_charging else "online",
                     raw_battery_status_byte,
                 )
             elif is_charging and prev_log_status_byte != 0x01:
                 logger.info(
-                    "Headset status change: Now charging (status byte %#02x), "
-                    "was previously online and not charging.",
+                    "Headset status change: Now charging (status byte %#02x), was previously online and not charging.",
                     raw_battery_status_byte,
                 )
             elif not is_charging and prev_log_status_byte == 0x01:
                 logger.info(
-                    "Headset status change: Now online and not charging (status "
-                    "byte %#02x), was previously charging.",
+                    "Headset status change: Now online and not charging (status byte %#02x), was previously charging.",
                     raw_battery_status_byte,
                 )
             self._last_raw_battery_status_for_logging = current_log_status_byte
         else:  # Headset is Offline
             if prev_log_status_byte is not None and prev_log_status_byte != 0x00:
                 logger.info(
-                    "Headset status change: Now offline (status byte %#02x), "
-                    "was previously online/charging.",
+                    "Headset status change: Now offline (status byte %#02x), was previously online/charging.",
                     raw_battery_status_byte,
                 )
             self._last_raw_battery_status_for_logging = 0x00
@@ -255,9 +233,7 @@ class HeadsetService:
         self._ensure_hid_communicator()
 
         if not self.hid_communicator:  # Check after attempting to ensure it
-            if (
-                self._last_hid_only_connection_logged_status is not False
-            ):  # Log only on change to False
+            if self._last_hid_only_connection_logged_status is not False:  # Log only on change to False
                 logger.warning(
                     "is_device_connected: HID communicator not available (device "
                     "path likely NOT active or permissions issue). Reporting as NOT "
@@ -278,8 +254,7 @@ class HeadsetService:
         if is_functionally_online != self._last_hid_only_connection_logged_status:
             if is_functionally_online:
                 logger.info(
-                    "is_device_connected: HID connection is active and headset "
-                    "reports as online.",
+                    "is_device_connected: HID connection is active and headset reports as online.",
                 )
             else:
                 # Covers cases where communicator exists, but headset is offline
@@ -298,23 +273,16 @@ class HeadsetService:
     def get_battery_level(self) -> int | None:
         """Retrieves the current battery level percentage from the headset."""
         status = self._get_parsed_status_hid()
-        if (
-            status
-            and status.get("headset_online")
-            and status.get("battery_percent") is not None
-        ):
+        if status and status.get("headset_online") and status.get("battery_percent") is not None:
             current_value = status["battery_percent"]
             if current_value != self._last_reported_battery_level:
                 logger.debug("Battery level from parsed status: %s%%", current_value)
                 self._last_reported_battery_level = current_value
             return current_value
         # If status is None, headset_online is False, or battery_percent is None
-        if (
-            self._last_reported_battery_level is not None
-        ):  # Log if we are clearing a known value
+        if self._last_reported_battery_level is not None:  # Log if we are clearing a known value
             logger.info(
-                "get_battery_level: Could not retrieve valid battery level, "
-                "clearing last known value.",
+                "get_battery_level: Could not retrieve valid battery level, clearing last known value.",
             )
         self._last_reported_battery_level = None
         return None
@@ -322,24 +290,15 @@ class HeadsetService:
     def get_chatmix_value(self) -> int | None:
         """Retrieves the current ChatMix value (0-128) from the headset."""
         status = self._get_parsed_status_hid()
-        if (
-            status
-            and status.get("headset_online")
-            and status.get("chatmix") is not None
-        ):
+        if status and status.get("headset_online") and status.get("chatmix") is not None:
             current_value = status["chatmix"]
             if current_value != self._last_reported_chatmix:
                 logger.debug("ChatMix value from parsed status: %s", current_value)
                 self._last_reported_chatmix = current_value
             return current_value
-        if (
-            self._last_reported_chatmix is not None
-        ):  # Log if we are clearing a known value
+        if self._last_reported_chatmix is not None:  # Log if we are clearing a known value
             logger.info(
-                (
-                    "get_chatmix_value: Could not retrieve valid chatmix value, "
-                    "clearing last known value."
-                ),
+                ("get_chatmix_value: Could not retrieve valid chatmix value, clearing last known value."),
             )
         self._last_reported_chatmix = None
         return None
@@ -347,22 +306,15 @@ class HeadsetService:
     def is_charging(self) -> bool | None:
         """Checks if the headset is currently charging."""
         status = self._get_parsed_status_hid()
-        if (
-            status
-            and status.get("headset_online")
-            and status.get("battery_charging") is not None
-        ):
+        if status and status.get("headset_online") and status.get("battery_charging") is not None:
             current_value = status["battery_charging"]
             if current_value != self._last_reported_charging_status:
                 logger.debug("Charging status from parsed status: %s", current_value)
                 self._last_reported_charging_status = current_value
             return current_value
-        if (
-            self._last_reported_charging_status is not None
-        ):  # Log if we are clearing a known value
+        if self._last_reported_charging_status is not None:  # Log if we are clearing a known value
             logger.info(
-                "is_charging: Could not retrieve valid charging status, "
-                "clearing last known value.",
+                "is_charging: Could not retrieve valid charging status, clearing last known value.",
             )
         self._last_reported_charging_status = None
         return None
@@ -382,8 +334,7 @@ class HeadsetService:
 
         if encoded_payload is None:  # Encoder might return None if input is invalid
             logger.error(
-                "%s: Encoded payload is None (likely due to invalid input to "
-                "encoder). Command not sent.",
+                "%s: Encoded payload is None (likely due to invalid input to encoder). Command not sent.",
                 command_name_log,
             )
             return False
@@ -396,10 +347,7 @@ class HeadsetService:
             logger.info("%s: Successfully sent command.", command_name_log)
         else:
             logger.warning(
-                (
-                    "%s: Failed to send command via communicator. Closing HID "
-                    "connection as it might be stale."
-                ),
+                ("%s: Failed to send command via communicator. Closing HID connection as it might be stale."),
                 command_name_log,
             )
             self.hid_connection_manager.close()  # Close via manager

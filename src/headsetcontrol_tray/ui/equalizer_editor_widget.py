@@ -164,9 +164,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _populate_eq_combo(self) -> None:
         self.eq_combo.blockSignals(b=True)
-        current_combo_data = (
-            self.eq_combo.currentData()
-        )  # Preserve selection if possible
+        current_combo_data = self.eq_combo.currentData()  # Preserve selection if possible
         self.eq_combo.clear()
 
         custom_curves = self.config_manager.get_all_custom_eq_curves()
@@ -272,6 +270,7 @@ class EqualizerEditorWidget(QWidget):
     def _handle_custom_eq_selection(
         self,
         curve_name: str,
+        *,
         is_initial_load: bool,
         force_ui_update_only: bool,
     ) -> None:
@@ -310,9 +309,7 @@ class EqualizerEditorWidget(QWidget):
             and self._sliders_have_unsaved_changes
         ):
             self._set_slider_visuals(values)
-            if (
-                not is_initial_load
-            ):  # Only reset unsaved changes if it's a new selection by user
+            if not is_initial_load:  # Only reset unsaved changes if it's a new selection by user
                 self._sliders_have_unsaved_changes = False
 
         # Apply to headset only on user action or if not preserving UI for
@@ -333,19 +330,15 @@ class EqualizerEditorWidget(QWidget):
         # If it's just a UI refresh due to external change, but user was editing
         # this curve, ensure _sliders_have_unsaved_changes reflects the
         # current slider vs saved state.
-        if (
-            force_ui_update_only
-            and self._current_custom_curve_original_name == curve_name
-        ):
+        if force_ui_update_only and self._current_custom_curve_original_name == curve_name:
             current_slider_vals = self._get_slider_values()
-            self._sliders_have_unsaved_changes = (
-                current_slider_vals != self._current_custom_curve_saved_values
-            )
+            self._sliders_have_unsaved_changes = current_slider_vals != self._current_custom_curve_saved_values
 
     def _handle_hardware_eq_selection(
         self,
         preset_id: int,
         eq_data: tuple[str, Any],  # eq_data is passed to get display name
+        *,
         is_initial_load: bool,
         force_ui_update_only: bool,
     ) -> None:
@@ -387,15 +380,15 @@ class EqualizerEditorWidget(QWidget):
         if eq_type == EQ_TYPE_CUSTOM:
             self._handle_custom_eq_selection(
                 curve_name=eq_identifier,
-                is_initial_load=is_initial_load,
-                force_ui_update_only=force_ui_update_only,
+                is_initial_load=is_initial_load,  # Changed to keyword argument
+                force_ui_update_only=force_ui_update_only,  # Changed to keyword argument
             )
         elif eq_type == EQ_TYPE_HARDWARE:
             self._handle_hardware_eq_selection(
                 preset_id=eq_identifier,
                 eq_data=eq_data,
-                is_initial_load=is_initial_load,
-                force_ui_update_only=force_ui_update_only,
+                is_initial_load=is_initial_load,  # Changed to keyword argument
+                force_ui_update_only=force_ui_update_only,  # Changed to keyword argument
             )
         # Add handling for other types or None if necessary
         else:
@@ -409,6 +402,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _update_custom_eq_buttons_state(
         self,
+        *,
         is_custom_mode_active: bool,
         active_identifier: Any | None,
     ) -> None:
@@ -437,6 +431,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _update_combo_text_for_unsaved_changes(
         self,
+        *,
         is_custom_mode_active: bool,
     ) -> None:
         if is_custom_mode_active and self._current_custom_curve_original_name:
@@ -444,11 +439,7 @@ class EqualizerEditorWidget(QWidget):
             active_curve_name = self._current_custom_curve_original_name
             for i in range(self.eq_combo.count()):
                 item_data = self.eq_combo.itemData(i)
-                if (
-                    item_data
-                    and item_data[0] == EQ_TYPE_CUSTOM
-                    and item_data[1] == active_curve_name
-                ):
+                if item_data and item_data[0] == EQ_TYPE_CUSTOM and item_data[1] == active_curve_name:
                     text_to_display = active_curve_name
                     if self._sliders_have_unsaved_changes:
                         text_to_display += "*"
@@ -486,8 +477,10 @@ class EqualizerEditorWidget(QWidget):
         for slider in self.sliders:
             slider.setEnabled(is_custom_mode_active)
 
-        self._update_custom_eq_buttons_state(is_custom_mode_active, active_identifier)
-        self._update_combo_text_for_unsaved_changes(is_custom_mode_active)
+        self._update_custom_eq_buttons_state(
+            is_custom_mode_active=is_custom_mode_active, active_identifier=active_identifier
+        )
+        self._update_combo_text_for_unsaved_changes(is_custom_mode_active=is_custom_mode_active)
 
     def _remove_all_unsaved_indicators_from_combo(self) -> None:
         self.eq_combo.blockSignals(b=True)
@@ -516,9 +509,7 @@ class EqualizerEditorWidget(QWidget):
         # Mark unsaved changes immediately when slider moves
         current_slider_vals = self._get_slider_values()
         if self._current_custom_curve_original_name:
-            self._sliders_have_unsaved_changes = (
-                current_slider_vals != self._current_custom_curve_saved_values
-            )
+            self._sliders_have_unsaved_changes = current_slider_vals != self._current_custom_curve_saved_values
         self._update_ui_for_active_eq(
             EQ_TYPE_CUSTOM,
             self._current_custom_curve_original_name,
@@ -620,11 +611,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _save_custom_curve(self) -> None:
         active_data = self.eq_combo.currentData()
-        if not (
-            active_data
-            and active_data[0] == EQ_TYPE_CUSTOM
-            and self._current_custom_curve_original_name
-        ):
+        if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
             QMessageBox.warning(
                 self,
                 "Save Error",
@@ -665,8 +652,7 @@ class EqualizerEditorWidget(QWidget):
                 self,
                 "Overwrite",
                 f"Curve '{new_name}' exists. Overwrite?",
-                QMessageBox.StandardButton.Yes
-                | QMessageBox.StandardButton.No,  # COM812: Trailing comma
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,  # COM812: Trailing comma
             )
             == QMessageBox.StandardButton.No
         ):
@@ -675,9 +661,7 @@ class EqualizerEditorWidget(QWidget):
         values = self._get_slider_values()
         try:
             self.config_manager.save_custom_eq_curve(new_name, values)
-            self._current_custom_curve_original_name = (
-                new_name  # This is now the active curve
-            )
+            self._current_custom_curve_original_name = new_name  # This is now the active curve
             self._current_custom_curve_saved_values = list(values)
             self._sliders_have_unsaved_changes = False
 
@@ -725,11 +709,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _delete_custom_curve(self) -> None:
         active_data = self.eq_combo.currentData()
-        if not (
-            active_data
-            and active_data[0] == EQ_TYPE_CUSTOM
-            and self._current_custom_curve_original_name
-        ):
+        if not (active_data and active_data[0] == EQ_TYPE_CUSTOM and self._current_custom_curve_original_name):
             QMessageBox.warning(
                 self,
                 "Delete Error",

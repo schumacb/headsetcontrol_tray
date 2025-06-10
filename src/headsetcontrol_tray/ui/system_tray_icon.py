@@ -42,9 +42,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     NORMAL_REFRESH_INTERVAL_MS = 1000
     FAST_REFRESH_INTERVAL_MS = 100
-    FAST_POLL_NO_CHANGE_THRESHOLD = (
-        3  # Number of fast polls with no change before reverting to normal
-    )
+    FAST_POLL_NO_CHANGE_THRESHOLD = 3  # Number of fast polls with no change before reverting to normal
     ICON_DRAW_SIZE = 32  # The size we'll use for generating our pixmap
 
     def __init__(
@@ -155,12 +153,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         battery_area_size_h = self.ICON_DRAW_SIZE // 3
         battery_margin_x = 2
         battery_margin_y = 2
-        battery_outer_rect_x = (
-            self.ICON_DRAW_SIZE - battery_area_size_w - battery_margin_x
-        )
-        battery_outer_rect_y = (
-            self.ICON_DRAW_SIZE - battery_area_size_h - battery_margin_y
-        )
+        battery_outer_rect_x = self.ICON_DRAW_SIZE - battery_area_size_w - battery_margin_x
+        battery_outer_rect_y = self.ICON_DRAW_SIZE - battery_area_size_h - battery_margin_y
         battery_outer_rect = QRect(
             battery_outer_rect_x,
             battery_outer_rect_y,
@@ -169,12 +163,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         )
         body_width = int(battery_outer_rect.width() * 0.75)
         body_height = int(battery_outer_rect.height() * 0.70)
-        body_x = (
-            battery_outer_rect.left() + (battery_outer_rect.width() - body_width) // 2
-        )
-        body_y = (
-            battery_outer_rect.top() + (battery_outer_rect.height() - body_height) // 2
-        )
+        body_x = battery_outer_rect.left() + (battery_outer_rect.width() - body_width) // 2
+        body_y = battery_outer_rect.top() + (battery_outer_rect.height() - body_height) // 2
         battery_body_rect = QRect(body_x, body_y, body_width, body_height)
 
         cap_width = max(1, body_width // 8)
@@ -206,8 +196,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 fill_width = max(
                     0,
                     int(
-                        fill_max_width
-                        * (self.battery_level / float(BATTERY_LEVEL_FULL)),
+                        fill_max_width * (self.battery_level / float(BATTERY_LEVEL_FULL)),
                     ),
                 )
                 fill_rect = QRect(
@@ -225,10 +214,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         battery_body_rect: QRect,
     ) -> None:
         """Draws the charging bolt symbol if applicable."""
-        if not (
-            self.is_tray_view_connected
-            and self.battery_status_text == "BATTERY_CHARGING"
-        ):
+        if not (self.is_tray_view_connected and self.battery_status_text == "BATTERY_CHARGING"):
             return
 
         logger.debug(
@@ -258,13 +244,9 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _draw_chatmix_indicator(self, painter: QPainter) -> None:
         """Draws the chatmix dot indicator if applicable."""
         battery_is_not_critical_or_unknown = (
-            self.battery_level is None
-            or self.battery_level > BATTERY_LEVEL_MEDIUM_CRITICAL
+            self.battery_level is None or self.battery_level > BATTERY_LEVEL_MEDIUM_CRITICAL
         )
-        chatmix_is_active = (
-            self.chatmix_value is not None
-            and self.chatmix_value != CHATMIX_VALUE_BALANCED
-        )
+        chatmix_is_active = self.chatmix_value is not None and self.chatmix_value != CHATMIX_VALUE_BALANCED
 
         if battery_is_not_critical_or_unknown and chatmix_is_active:
             dot_radius = self.ICON_DRAW_SIZE // 10 or 2
@@ -462,8 +444,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             eq_type, identifier = action_data
             if eq_type == EQ_TYPE_CUSTOM:
                 action.setChecked(
-                    active_eq_type == EQ_TYPE_CUSTOM
-                    and identifier == active_custom_name,
+                    active_eq_type == EQ_TYPE_CUSTOM and identifier == active_custom_name,
                 )
             elif eq_type == EQ_TYPE_HARDWARE:
                 action.setChecked(
@@ -525,14 +506,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         # Update tooltip state from ConfigManager (EQ settings)
         self.active_eq_type_for_tooltip = self.config_manager.get_active_eq_type()
         if self.active_eq_type_for_tooltip == EQ_TYPE_CUSTOM:
-            self.current_custom_eq_name_for_tooltip = (
-                self.config_manager.get_last_custom_eq_curve_name()
-            )
+            self.current_custom_eq_name_for_tooltip = self.config_manager.get_last_custom_eq_curve_name()
         elif self.active_eq_type_for_tooltip == EQ_TYPE_HARDWARE:
             hw_id = self.config_manager.get_last_active_eq_preset_id()
-            self.current_hw_preset_name_for_tooltip = (
-                app_config.HARDWARE_EQ_PRESET_NAMES.get(hw_id, f"Preset {hw_id}")
-            )
+            self.current_hw_preset_name_for_tooltip = app_config.HARDWARE_EQ_PRESET_NAMES.get(hw_id, f"Preset {hw_id}")
 
         self._update_menu_checks()
         self._update_tooltip_and_icon()
@@ -561,16 +538,12 @@ class SystemTrayIcon(QSystemTrayIcon):
         elif self.fast_poll_active:
             if not data_changed_while_connected:
                 self.fast_poll_no_change_counter += 1
-                if (
-                    self.fast_poll_no_change_counter
-                    >= self.FAST_POLL_NO_CHANGE_THRESHOLD
-                ):
+                if self.fast_poll_no_change_counter >= self.FAST_POLL_NO_CHANGE_THRESHOLD:
                     self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
                     self.fast_poll_active = False
                     self.fast_poll_no_change_counter = 0
                     logger.debug(
-                        "No change threshold reached on fast poll. Switched to "
-                        "normal interval (%sms).",
+                        "No change threshold reached on fast poll. Switched to normal interval (%sms).",
                         self.NORMAL_REFRESH_INTERVAL_MS,
                     )
             else:
@@ -603,10 +576,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 "connected" if current_is_connected else "disconnected",
             )
 
-        new_battery_text, new_chatmix_text, data_changed = (
-            self._fetch_and_update_headset_data(
-                current_is_connected=current_is_connected,
-            )
+        new_battery_text, new_chatmix_text, data_changed = self._fetch_and_update_headset_data(
+            current_is_connected=current_is_connected,
         )
         self._update_ui_elements(new_battery_text, new_chatmix_text)
 
