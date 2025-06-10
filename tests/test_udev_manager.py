@@ -64,19 +64,30 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             expected_details['temp_file_path'],
         )
 
-        # Verify key phrases were logged
-        log_messages = " ".join(
-            [
-                call_obj.args[0]
-                for call_obj in self.mock_logger.info.call_args_list
-                if call_obj.args
-            ]
+        # Verify key log messages using call objects
+        expected_action_required_log = call(
+            "ACTION REQUIRED: To complete headset setup, please run the "
+            "following commands:"
         )
-        self.assertIn("ACTION REQUIRED:", log_messages)
-        self.assertIn(
-            f'sudo cp "{expected_details["temp_file_path"]}" "{expected_details["final_file_path"]}"',
-            log_messages,
+        self.assertIn(expected_action_required_log, self.mock_logger.info.call_args_list)
+
+        expected_cp_log = call(
+            '1. Copy the rule file: sudo cp "%s" "%s"',
+            expected_details["temp_file_path"],
+            expected_details["final_file_path"]
         )
+        self.assertIn(expected_cp_log, self.mock_logger.info.call_args_list)
+
+        expected_reload_log = call(
+            "2. Reload udev rules: sudo udevadm control --reload-rules && "
+            "sudo udevadm trigger"
+        )
+        self.assertIn(expected_reload_log, self.mock_logger.info.call_args_list)
+
+        expected_replug_log = call(
+            "3. Replug your SteelSeries headset if it was connected."
+        )
+        self.assertIn(expected_replug_log, self.mock_logger.info.call_args_list)
 
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_os_error_on_write(

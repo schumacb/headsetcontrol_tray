@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch, call, ANY
 import hid  # Keep for type hinting if hid.Device is used
 import os
 import sys
+from pathlib import Path # Added
 
 # Ensure src is in path for imports
 sys.path.insert(

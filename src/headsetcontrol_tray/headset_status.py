@@ -317,6 +317,7 @@ class HeadsetCommandEncoder:
                 ("encode_set_eq_preset_id: Malformed preset data for ID %s. "
                  "Expected %s bands, got %s."),
                 preset_id,
+                NUM_EQ_BANDS, # Added missing argument
                 len(float_values),
             )
             return None

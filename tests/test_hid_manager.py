@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock # Added
 from unittest.mock import MagicMock, patch, call, ANY
 import hid
 import sys
