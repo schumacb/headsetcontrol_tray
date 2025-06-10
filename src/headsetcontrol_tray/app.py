@@ -1,3 +1,4 @@
+"""Core application logic for the HeadsetControl Tray."""
 import logging
 import os
 import subprocess  # Added for pkexec
@@ -28,7 +29,8 @@ class SteelSeriesTrayApp:
 
     qt_app: QApplication  # Class level type annotation
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initializes the SteelSeriesTrayApp."""
         logger.info(
             f"Application starting with log level {logging.getLevelName(logger.getEffectiveLevel())}",
         )

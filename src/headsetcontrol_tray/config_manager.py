@@ -1,3 +1,4 @@
+"""Manages loading and saving of application settings and EQ curves."""
 import json
 import logging
 from pathlib import Path
@@ -11,7 +12,8 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 class ConfigManager:
     """Manages application settings and custom EQ curves persistence."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initializes the ConfigManager, loading settings and EQ curves."""
         app_config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         self._settings: dict[str, Any] = self._load_json_file(app_config.CONFIG_FILE)
         self._custom_eq_curves: dict[str, list[int]] = self._load_json_file(

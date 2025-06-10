@@ -1,0 +1,1 @@
+"""HeadsetControl Tray Application."""

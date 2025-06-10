@@ -1,3 +1,4 @@
+"""Main entry point for the HeadsetControl Tray application."""
 import signal
 import sys
 
@@ -11,6 +12,7 @@ from headsetcontrol_tray.app import SteelSeriesTrayApp  # noqa: E402
 
 
 def main() -> None:
+    """Runs the main application."""
     # Graceful exit on Ctrl+C
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -19,4 +21,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover

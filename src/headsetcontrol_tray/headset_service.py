@@ -1,32 +1,43 @@
+"""
+Service layer for interacting with the headset.
+
+This module abstracts the HID communication and status parsing, providing a
+cleaner interface for the rest of the application to get headset status and
+send commands.
+"""
 import logging
 import os
-from typing import Any, Optional, Dict, List
+from typing import Any
 
 from . import app_config
-from .hid_manager import HIDConnectionManager
+from .headset_status import HeadsetCommandEncoder, HeadsetStatusParser
 from .hid_communicator import HIDCommunicator
+from .hid_manager import HIDConnectionManager
+from .udev_manager import (
+    UDEV_RULE_FILENAME as STEELSERIES_UDEV_FILENAME,  # Import for udev check
+)
 from .udev_manager import UDEVManager
-from .udev_manager import UDEV_RULE_FILENAME as STEELSERIES_UDEV_FILENAME # Import for udev check
-from .headset_status import HeadsetStatusParser, HeadsetCommandEncoder
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 class HeadsetService:
-    def __init__(self):
+    """Provides an interface to interact with the headset."""
+    def __init__(self) -> None:
+        """Initializes the HeadsetService."""
         self.hid_connection_manager = HIDConnectionManager()
-        self.hid_communicator: Optional[HIDCommunicator] = None
+        self.hid_communicator: HIDCommunicator | None = None
         self.udev_manager = UDEVManager()
         self.status_parser = HeadsetStatusParser()
         self.command_encoder = HeadsetCommandEncoder()
 
-        self.udev_setup_details: Optional[Dict[str, Any]] = None
-        self._last_hid_only_connection_logged_status: Optional[bool] = None
-        self._last_hid_raw_read_data: Optional[List[int]] = None # Store as list of ints for direct comparison
-        self._last_hid_parsed_status: Optional[Dict[str, Any]] = None
-        self._last_reported_battery_level: Optional[int] = None
-        self._last_reported_chatmix: Optional[int] = None
-        self._last_reported_charging_status: Optional[bool] = None
-        self._last_raw_battery_status_for_logging: Optional[int] = None
+        self.udev_setup_details: dict[str, Any] | None = None
+        self._last_hid_only_connection_logged_status: bool | None = None
+        self._last_hid_raw_read_data: list[int] | None = None # Store as list of ints for direct comparison
+        self._last_hid_parsed_status: dict[str, Any] | None = None
+        self._last_reported_battery_level: int | None = None
+        self._last_reported_chatmix: int | None = None
+        self._last_reported_charging_status: bool | None = None
+        self._last_raw_battery_status_for_logging: int | None = None
 
         logger.debug("HeadsetService initialized with new component managers.")
         self._ensure_hid_communicator()
@@ -36,7 +47,6 @@ class HeadsetService:
         if self.hid_communicator and \
            self.hid_connection_manager.hid_device and \
            self.hid_communicator.hid_device == self.hid_connection_manager.hid_device:
-            # logger.debug("_ensure_hid_communicator: Existing communicator is valid.") # Can be too verbose
             return True
 
         logger.debug("_ensure_hid_communicator: Attempting to establish/refresh HID communicator.")
@@ -56,25 +66,24 @@ class HeadsetService:
                 if self.hid_communicator is None or self.hid_communicator.hid_device != active_hid_device:
                     self.hid_communicator = HIDCommunicator(hid_device=active_hid_device, device_info=device_info_for_comm)
                     # The HIDCommunicator's own __init__ log is now sufficient.
-                    # logger.debug("_ensure_hid_communicator: HIDCommunicator initialized/refreshed with device info.")
                 return True
-            else: # Should not happen if ensure_connection() was true and returned a device
-                logger.error("_ensure_hid_communicator: Connection manager reported success but no device found by get_hid_device().")
-                self.hid_communicator = None # Ensure communicator is cleared
-                return False
-        else: # Connection manager failed to ensure connection
-            logger.warning("_ensure_hid_communicator: Failed to ensure HID connection via manager.")
+            # Should not happen if ensure_connection() was true and returned a device
+            logger.error("_ensure_hid_communicator: Connection manager reported success but no device found by get_hid_device().")
             self.hid_communicator = None # Ensure communicator is cleared
-
-            # If connection fails, check for udev rules and guide user if missing
-            final_rules_path = os.path.join("/etc/udev/rules.d/", STEELSERIES_UDEV_FILENAME)
-            if not os.path.exists(final_rules_path):
-                logger.info(f"Udev rules file not found at {final_rules_path}. Triggering interactive udev rule creation guide.")
-                if self.udev_manager.create_rules_interactive(): # This method logs its own success/failure
-                    self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
-            else:
-                logger.debug(f"Udev rules file {final_rules_path} exists. Skipping interactive udev guide related to connection failure.")
             return False
+        # Connection manager failed to ensure connection
+        logger.warning("_ensure_hid_communicator: Failed to ensure HID connection via manager.")
+        self.hid_communicator = None # Ensure communicator is cleared
+
+        # If connection fails, check for udev rules and guide user if missing
+        final_rules_path = os.path.join("/etc/udev/rules.d/", STEELSERIES_UDEV_FILENAME)
+        if not os.path.exists(final_rules_path):
+            logger.info(f"Udev rules file not found at {final_rules_path}. Triggering interactive udev rule creation guide.")
+            if self.udev_manager.create_rules_interactive(): # This method logs its own success/failure
+                self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
+        else:
+            logger.debug(f"Udev rules file {final_rules_path} exists. Skipping interactive udev guide related to connection failure.")
+        return False
 
     def close(self) -> None:
         """Closes the HID connection and clears the communicator."""
@@ -82,7 +91,7 @@ class HeadsetService:
         self.hid_communicator = None # Clear our communicator instance
         logger.debug("HeadsetService: HID connection closed via manager, local communicator cleared.")
 
-    def _get_parsed_status_hid(self) -> Optional[Dict[str, Any]]:
+    def _get_parsed_status_hid(self) -> dict[str, Any] | None:
         if not self._ensure_hid_communicator() or not self.hid_communicator:
             if self._last_hid_parsed_status is not None:
                 logger.info("_get_parsed_status_hid: HID communicator not available, clearing last known status.")
@@ -183,7 +192,7 @@ class HeadsetService:
 
         return is_functionally_online
 
-    def get_battery_level(self) -> Optional[int]:
+    def get_battery_level(self) -> int | None:
         """Retrieves the current battery level percentage from the headset."""
         status = self._get_parsed_status_hid()
         if (
@@ -202,7 +211,7 @@ class HeadsetService:
         self._last_reported_battery_level = None
         return None
 
-    def get_chatmix_value(self) -> Optional[int]:
+    def get_chatmix_value(self) -> int | None:
         """Retrieves the current ChatMix value (0-128) from the headset."""
         status = self._get_parsed_status_hid()
         if (
@@ -220,7 +229,7 @@ class HeadsetService:
         self._last_reported_chatmix = None
         return None
 
-    def is_charging(self) -> Optional[bool]:
+    def is_charging(self) -> bool | None:
         """Checks if the headset is currently charging."""
         status = self._get_parsed_status_hid()
         if (
@@ -238,7 +247,7 @@ class HeadsetService:
         self._last_reported_charging_status = None
         return None
 
-    def _generic_set_command(self, command_name_log: str, encoded_payload: Optional[List[int]], report_id: int = 0) -> bool:
+    def _generic_set_command(self, command_name_log: str, encoded_payload: list[int] | None, report_id: int = 0) -> bool:
         if not self._ensure_hid_communicator() or not self.hid_communicator:
             logger.warning(f"{command_name_log}: HID communicator not available. Cannot send command.")
             return False
@@ -269,7 +278,7 @@ class HeadsetService:
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(f"Set Inactive Timeout ({clamped_minutes}min)", payload, report_id=0)
 
-    def set_eq_values(self, values: List[float]) -> bool:
+    def set_eq_values(self, values: list[float]) -> bool:
         """Sets custom equalizer values on the headset."""
         # values are typically -10.0 to 10.0 dB for 10 bands
         payload = self.command_encoder.encode_set_eq_values(values)
@@ -284,7 +293,7 @@ class HeadsetService:
         payload = self.command_encoder.encode_set_eq_preset_id(preset_id)
         return self._generic_set_command(f"Set EQ Preset ID ({preset_id})", payload, report_id=0)
 
-    def get_udev_setup_details(self) -> Optional[Dict[str, Any]]:
+    def get_udev_setup_details(self) -> dict[str, Any] | None:
         """Returns details about udev setup if guided during the current session."""
         # This returns details if udev setup was guided *during this session*
         return self.udev_setup_details

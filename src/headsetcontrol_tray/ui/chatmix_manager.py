@@ -1,10 +1,11 @@
+"""Manages PipeWire stream volumes for ChatMix functionality."""
 # chatmix_manager.py
 import json
 import logging
 import subprocess
 from typing import Any
 
-from ..config_manager import ConfigManager
+from headsetcontrol_tray.config_manager import ConfigManager
 
 # Assuming app_config is in the parent directory relative to this file if it's in a 'ui' subfolder
 # Adjust the import path if necessary, e.g., from .. import app_config
@@ -18,7 +19,14 @@ logger = logging.getLogger(
 
 
 class ChatMixManager:
-    def __init__(self, config_manager: ConfigManager):  # cfg_mgr.ConfigManager
+    """Handles automatic volume adjustment of applications based on ChatMix values."""
+    def __init__(self, config_manager: ConfigManager) -> None:  # cfg_mgr.ConfigManager
+        """
+        Initializes the ChatMixManager.
+
+        Args:
+            config_manager: The application's ConfigManager instance.
+        """
         self.config_manager = config_manager
         # Load chat app identifiers (list of strings for application.name or application.process.binary)
         # Ensure these are lowercase for case-insensitive matching later.

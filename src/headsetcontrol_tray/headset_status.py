@@ -1,12 +1,22 @@
+"""
+Parses status reports from the headset and encodes commands to be sent.
+
+This module contains classes responsible for interpreting raw data from the
+headset (like battery level, ChatMix status) and for constructing the raw
+byte sequences for commands to be sent to the headset (like setting sidetone
+or EQ).
+"""
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import app_config
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 class HeadsetStatusParser:
-    def __init__(self):
+    """Parses status reports received from the headset device."""
+    def __init__(self) -> None:
+        """Initializes the HeadsetStatusParser."""
         # This class is stateless, so init might not be strictly needed
         # but can be kept for consistency or future stateful parsing logic.
         logger.debug("HeadsetStatusParser initialized.")
@@ -20,7 +30,7 @@ class HeadsetStatusParser:
         raw_battery_status = response_data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE]
         return raw_battery_status != 0x00
 
-    def _parse_battery_info(self, response_data: bytes, is_online: bool) -> Dict[str, Any]:
+    def _parse_battery_info(self, response_data: bytes, is_online: bool) -> dict[str, Any]:
         # (Copy from HeadsetService._parse_battery_info)
         if not is_online:
             return {"battery_percent": None, "battery_charging": None}
@@ -30,7 +40,7 @@ class HeadsetStatusParser:
              logger.warning(f"_parse_battery_info: Response data too short for battery info. Expected > {required_length} bytes, got {len(response_data)}")
              return {"battery_percent": None, "battery_charging": None} # Or raise
 
-        battery_percent: Optional[int] = None
+        battery_percent: int | None = None
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
         if raw_battery_level == 0x00: battery_percent = 0
         elif raw_battery_level == 0x01: battery_percent = 25
@@ -46,7 +56,7 @@ class HeadsetStatusParser:
 
         return {"battery_percent": battery_percent, "battery_charging": battery_charging}
 
-    def _parse_chatmix_info(self, response_data: bytes, is_online: bool) -> Optional[int]:
+    def _parse_chatmix_info(self, response_data: bytes, is_online: bool) -> int | None:
         # (Copy from HeadsetService._parse_chatmix_info)
         if not is_online:
             return None
@@ -63,9 +73,6 @@ class HeadsetStatusParser:
         # Game: 0 (full chat) to 100 (full game) -> maps to 0 to 64
         # Chat: 0 (full game) to 100 (full chat) -> maps to 0 to -64 (effectively)
         # The logic from headsetcontrol seems to be:
-        # mapped_game = (raw_game / 100.0) * 64.0
-        # mapped_chat = (raw_chat / 100.0) * -64.0 (or similar, to represent chat pulling "left")
-        # chatmix_value = 64 - (mapped_chat + mapped_game)
         # Let's use the interpretation from the original HeadsetControl GUI if possible or simplify.
         # The prompt's logic:
         raw_game_clamped = max(0, min(100, raw_game))
@@ -84,7 +91,7 @@ class HeadsetStatusParser:
 
         return max(0, min(128, chatmix_value))
 
-    def parse_status_report(self, response_data: bytes) -> Optional[Dict[str, Any]]:
+    def parse_status_report(self, response_data: bytes) -> dict[str, Any] | None:
         """Parses the raw HID status report data from the headset."""
         # (Adapt logic from HeadsetService._get_parsed_status_hid that handles parsing)
         if not response_data or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
@@ -101,17 +108,19 @@ class HeadsetStatusParser:
             "headset_online": headset_online,
             **battery_info, # battery_percent, battery_charging
             "chatmix": chatmix_value,
-            "raw_battery_status_byte": raw_battery_status_byte # For logging state changes in HeadsetService
+            "raw_battery_status_byte": raw_battery_status_byte, # For logging state changes in HeadsetService
         }
         logger.debug(f"Parsed HID status report: {parsed_status}")
         return parsed_status
 
 class HeadsetCommandEncoder:
-    def __init__(self):
+    """Encodes commands into byte sequences to be sent to the headset device."""
+    def __init__(self) -> None:
+        """Initializes the HeadsetCommandEncoder."""
         # This class is also stateless for now.
         logger.debug("HeadsetCommandEncoder initialized.")
 
-    def encode_set_sidetone(self, level: int) -> List[int]:
+    def encode_set_sidetone(self, level: int) -> list[int]:
         """Encodes the command to set the sidetone level."""
         # (Adapt from HeadsetService._set_sidetone_level_hid)
         # Level is 0-128 UI scale (representing Off, Low, Medium, High)
@@ -127,7 +136,7 @@ class HeadsetCommandEncoder:
         logger.debug(f"Encoded set_sidetone: UI level {level} -> HW value {mapped_value:#02x}, payload {command_payload}")
         return command_payload
 
-    def encode_set_inactive_timeout(self, minutes: int) -> List[int]:
+    def encode_set_inactive_timeout(self, minutes: int) -> list[int]:
         """Encodes the command to set the inactive timeout."""
         # (Adapt from HeadsetService._set_inactive_timeout_hid)
         # minutes is 0-90
@@ -137,7 +146,7 @@ class HeadsetCommandEncoder:
         logger.debug(f"Encoded set_inactive_timeout: minutes {minutes} (clamped: {clamped_minutes}) -> payload {command_payload}")
         return command_payload
 
-    def encode_set_eq_values(self, float_values: List[float]) -> Optional[List[int]]:
+    def encode_set_eq_values(self, float_values: list[float]) -> list[int] | None:
         """Encodes the command to set custom equalizer values."""
         # (Adapt from HeadsetService._set_eq_values_hid)
         if len(float_values) != 10:
@@ -148,7 +157,6 @@ class HeadsetCommandEncoder:
         for val in float_values:
             clamped_val = max(-10.0, min(10.0, val)) # UI values are -10 to 10 dB
             # Hardware values are 0x0A (-10dB) to 0x1E (+10dB), centered at 0x14 (0dB)
-            # So, byte_value = 0x14 (center) + gain_in_db_float
             byte_value = int(0x14 + clamped_val)
             byte_value = max(0x0A, min(0x1E, byte_value)) # Clamp to hardware limits
             command_payload.append(byte_value)
@@ -165,7 +173,7 @@ class HeadsetCommandEncoder:
         logger.debug(f"Encoded set_eq_values: values {float_values} -> payload {[f'{x:#02x}' for x in command_payload]}")
         return command_payload
 
-    def encode_set_eq_preset_id(self, preset_id: int) -> Optional[List[int]]:
+    def encode_set_eq_preset_id(self, preset_id: int) -> list[int] | None:
         """Encodes the command to set a hardware equalizer preset by its ID."""
         # (Adapt from HeadsetService._set_eq_preset_hid)
         if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
@@ -179,7 +187,7 @@ class HeadsetCommandEncoder:
             logger.error(f"encode_set_eq_preset_id: Preset data 'values' for ID {preset_id} is not a list of numbers.")
             return None
 
-        float_values: List[float] = [float(v) for v in float_values_obj]
+        float_values: list[float] = [float(v) for v in float_values_obj]
 
         if len(float_values) != 10:
             logger.error(f"encode_set_eq_preset_id: Malformed preset data for ID {preset_id}. Expected 10 bands, got {len(float_values)}.")

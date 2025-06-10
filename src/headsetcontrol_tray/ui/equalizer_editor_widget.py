@@ -1,5 +1,6 @@
+"""Provides a Qt widget for editing and managing equalizer presets."""
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
@@ -15,9 +16,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .. import app_config
-from .. import config_manager as cfg_mgr
-from .. import headset_service as hs_svc
+from headsetcontrol_tray import app_config
+from headsetcontrol_tray import config_manager as cfg_mgr
+from headsetcontrol_tray import headset_service as hs_svc
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
@@ -38,8 +39,16 @@ class EqualizerEditorWidget(QWidget):
         self,
         config_manager: cfg_mgr.ConfigManager,
         headset_service: hs_svc.HeadsetService,
-        parent: Optional[QWidget] = None,
-    ):
+        parent: QWidget | None = None,
+    ) -> None:
+        """
+        Initializes the EqualizerEditorWidget.
+
+        Args:
+            config_manager: The application's ConfigManager instance.
+            headset_service: The application's HeadsetService instance.
+            parent: Optional parent widget.
+        """
         super().__init__(parent)
         self.config_manager = config_manager
         self.headset_service = headset_service

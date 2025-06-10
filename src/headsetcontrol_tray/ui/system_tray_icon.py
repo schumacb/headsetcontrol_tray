@@ -1,13 +1,15 @@
+"""Manages the system tray icon, its context menu, and status updates."""
+from collections.abc import Callable  # Added Any # Moved import for linter
 import logging
-from typing import Any, Callable, Optional # Added Any
+from typing import Any
 
 from PySide6.QtCore import QRect, Qt, QTimer, Slot
 from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 
-from .. import app_config
-from .. import config_manager as cfg_mgr
-from .. import headset_service as hs_svc
+from headsetcontrol_tray import app_config
+from headsetcontrol_tray import config_manager as cfg_mgr
+from headsetcontrol_tray import headset_service as hs_svc
 from .chatmix_manager import ChatMixManager
 
 # Ensure EqualizerEditorWidget constants are accessible if needed, or rely on string parsing
@@ -36,8 +38,17 @@ class SystemTrayIcon(QSystemTrayIcon):
         headset_service: hs_svc.HeadsetService,
         config_manager: cfg_mgr.ConfigManager,
         application_quit_fn: Callable[[], None],
-        parent: Optional[QWidget] = None,
-    ):
+        parent: QWidget | None = None,
+    ) -> None:
+        """
+        Initializes the SystemTrayIcon.
+
+        Args:
+            headset_service: The application's HeadsetService instance.
+            config_manager: The application's ConfigManager instance.
+            application_quit_fn: Function to call to quit the application.
+            parent: Optional parent widget.
+        """
         super().__init__(parent)
         logger.debug("SystemTrayIcon initializing.")
         self.headset_service = headset_service
@@ -227,98 +238,10 @@ class SystemTrayIcon(QSystemTrayIcon):
                 )  # Ensure at least 1px offset for width
 
                 # Define a simpler, more standard lightning bolt shape (7 points)
-                #   P1
-                #  /  \
-                # P2--P3
-                #     /
-                #    P4
-                #   /  \
-                #  P5--P6
-                #     /
-                #    P7
-
-                p1y = cy - bolt_total_h / 2
-                p7y = cy + bolt_total_h / 2
-
-                bolt_path.moveTo(cx, p1y)  # P1 (Top point)
-                bolt_path.lineTo(cx - bolt_point_offset_x, p1y + bolt_segment_h)  # P2
-                bolt_path.lineTo(cx + bolt_point_offset_x, p1y + bolt_segment_h)  # P3
-                bolt_path.lineTo(cx, p1y + 2 * bolt_segment_h)  # P4 (Middle point)
-                bolt_path.lineTo(
-                    cx + bolt_point_offset_x,
-                    p1y + 2 * bolt_segment_h,
-                )  # P5 (Shifted for typical bolt shape)
-                bolt_path.lineTo(cx - bolt_point_offset_x, p7y)  # P6
-                bolt_path.lineTo(
-                    cx,
-                    p7y,
-                )  # Back to center line bottom P7 (original was P7y, this closes it better)
-                # Corrected path to make it look more like a bolt, P5, P6, P7 sequence.
-                # Let's try a slightly different common path structure:
-                # Top -> Left-Mid -> Right-Top-Mid -> Center-Mid -> Left-Bottom-Mid -> Right-Mid -> Bottom
-                bolt_path.clear()  # Clear previous attempt
-                bolt_path.moveTo(cx, cy - bolt_total_h / 2)  # Top point
-                bolt_path.lineTo(cx - bolt_point_offset_x, cy)  # Left-mid point
-                bolt_path.lineTo(
-                    cx + bolt_point_offset_x / 2,
-                    cy,
-                )  # Right-mid (slightly inwards)
-                bolt_path.lineTo(cx, cy + bolt_total_h / 2)  # Bottom point
-                # This is a very simplified 4-point path. Let's refine.
-
-                # Standard 7-point bolt:
-                bolt_path.clear()
-                y_offset = (
-                    bolt_total_h * 0.1
-                )  # Start slightly offset from true center for P4
-                bolt_path.moveTo(
-                    cx + bolt_point_offset_x,
-                    cy - bolt_total_h * 0.5,
-                )  # P1 - Top Right
-                bolt_path.lineTo(
-                    cx - bolt_point_offset_x,
-                    cy + y_offset,
-                )  # P2 - Mid Left
-                bolt_path.lineTo(cx, cy + y_offset)  # P3 - Mid Center (towards right)
-                bolt_path.lineTo(
-                    cx + bolt_point_offset_x,
-                    cy + y_offset + bolt_total_h * 0.05,
-                )  # P3.5 to give thickness
-                bolt_path.lineTo(
-                    cx - bolt_point_offset_x,
-                    cy + bolt_total_h * 0.5,
-                )  # P4 - Bottom Left
-                bolt_path.lineTo(
-                    cx + bolt_point_offset_x,
-                    cy - y_offset,
-                )  # P5 - Mid Right
-                bolt_path.lineTo(cx, cy - y_offset)  # P6 - Mid Center (towards left)
-                bolt_path.lineTo(
-                    cx - bolt_point_offset_x,
-                    cy - y_offset - bolt_total_h * 0.05,
-                )  # P6.5 to give thickness
-                bolt_path.closeSubpath()  # Close path from P6.5 to P1
-
-                # The previous closeSubpath one was complex. Let's use an even simpler one from an example:
-                # A very simple bolt: top-center, middle-left, middle-right, bottom-center
-                bolt_path.clear()
-                bolt_path.moveTo(cx, battery_body_rect.top() + 1)  # Top of battery body
-                bolt_path.lineTo(cx - bolt_point_offset_x, cy)
-                bolt_path.lineTo(cx + bolt_point_offset_x, cy)
-                bolt_path.lineTo(cx, battery_body_rect.bottom() - 1)
-                bolt_path.closeSubpath()  # This will make a triangle if not careful.
-
-                # Simpler path based on typical representations:
-                # Points: (0, -h/2), (-w, 0), (0,0), (w,0), (0, h/2), (-w/2, h/2*0.8) ... this is getting too complex.
-
-                # Let's use the test rectangle approach first if this path is problematic.
-                # For now, will try the 7-point bolt from before but ensure it's drawn.
-                # The previous one was:
-                # This path uses bolt_w_half which was very small. Using new bolt_point_offset_x and bolt_total_h
-
+                # Simplified path for the lightning bolt
                 bolt_path.clear()
                 bolt_path.moveTo(
-                    cx - bolt_point_offset_x,
+                    cx - bolt_point_offset_x,  # P1
                     cy - bolt_total_h * 0.2,
                 )  # P1
                 bolt_path.lineTo(
