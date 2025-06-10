@@ -195,7 +195,7 @@ class EqualizerEditorWidget(QWidget):
             target_data_to_select = (EQ_TYPE_CUSTOM, curve_name)
 
         logger.debug(
-            "Selecting initial EQ in combo. Target data: %s", target_data_to_select
+            "Selecting initial EQ in combo. Target data: %s", target_data_to_select,
         )
 
         found_idx = -1
@@ -224,7 +224,7 @@ class EqualizerEditorWidget(QWidget):
                 )
         elif self.eq_combo.count() > 0:
             logger.warning(
-                "Initial EQ target %s not found in combo. Selecting first available.", target_data_to_select
+                "Initial EQ target %s not found in combo. Selecting first available.", target_data_to_select,
             )
             self.eq_combo.blockSignals(True)
             self.eq_combo.setCurrentIndex(0)
@@ -243,7 +243,7 @@ class EqualizerEditorWidget(QWidget):
             return
 
         logger.debug(
-            "User selected EQ in combo: %s, Data: %s", self.eq_combo.itemText(index), selected_data
+            "User selected EQ in combo: %s, Data: %s", self.eq_combo.itemText(index), selected_data,
         )
         self._process_eq_selection(selected_data, is_initial_load=False)
 
@@ -269,7 +269,7 @@ class EqualizerEditorWidget(QWidget):
             values = self.config_manager.get_custom_eq_curve(curve_name)
             if not values:
                 logger.warning(
-                    "Custom curve '%s' not found in config manager. Defaulting to flat.", curve_name
+                    "Custom curve '%s' not found in config manager. Defaulting to flat.", curve_name,
                 )
                 values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0] * 10)
 
@@ -413,7 +413,7 @@ class EqualizerEditorWidget(QWidget):
                             == self._current_custom_curve_original_name
                         ):
                             logger.debug(
-                                "Force selecting %s in combo as it's active.", self._current_custom_curve_original_name
+                                "Force selecting %s in combo as it's active.", self._current_custom_curve_original_name,
                             )
 
                             # Handled by _select_initial_eq_from_config or combo signal
@@ -488,7 +488,7 @@ class EqualizerEditorWidget(QWidget):
         float_current_values = [float(v) for v in current_values]
         if self.headset_service.set_eq_values(float_current_values):
             logger.info(
-                "EQ_EDITOR: Sliders applied, set_eq_values SUCCESS for '%s'", self._current_custom_curve_original_name
+                "EQ_EDITOR: Sliders applied, set_eq_values SUCCESS for '%s'", self._current_custom_curve_original_name,
             )
             if self._current_custom_curve_original_name:
                 # On successful application, update ConfigManager for the active curve
@@ -501,7 +501,7 @@ class EqualizerEditorWidget(QWidget):
                 )  # Notify tray
         else:
             logger.error(
-                "EQ_EDITOR: Sliders applied, set_eq_values FAILED for '%s'", self._current_custom_curve_original_name
+                "EQ_EDITOR: Sliders applied, set_eq_values FAILED for '%s'", self._current_custom_curve_original_name,
             )
             QMessageBox.warning(
                 self,
@@ -544,7 +544,7 @@ class EqualizerEditorWidget(QWidget):
         float_saved_values = [float(v) for v in self._current_custom_curve_saved_values]
         if self.headset_service.set_eq_values(float_saved_values):
             logger.info(
-                "EQ_EDITOR: Discarded changes, set_eq_values SUCCESS for '%s'", self._current_custom_curve_original_name
+                "EQ_EDITOR: Discarded changes, set_eq_values SUCCESS for '%s'", self._current_custom_curve_original_name,
             )
             # Ensure config reflects this (it should already, but to be safe)
             self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
@@ -554,7 +554,7 @@ class EqualizerEditorWidget(QWidget):
             self.eq_applied.emit(self._current_custom_curve_original_name)
         else:
             logger.error(
-                "EQ_EDITOR: Discarded changes, set_eq_values FAILED for '%s'", self._current_custom_curve_original_name
+                "EQ_EDITOR: Discarded changes, set_eq_values FAILED for '%s'", self._current_custom_curve_original_name,
             )
 
         self._sliders_have_unsaved_changes = False

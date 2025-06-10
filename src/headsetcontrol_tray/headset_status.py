@@ -173,7 +173,7 @@ class HeadsetCommandEncoder:
                          len(command_payload), len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + 10)
             return None
 
-        logger.debug("Encoded set_eq_values: values %s -> payload %s", float_values, [f'{x:#02x}' for x in command_payload])
+        logger.debug("Encoded set_eq_values: values %s -> payload %s", float_values, [f"{x:#02x}" for x in command_payload])
         return command_payload
 
     def encode_set_eq_preset_id(self, preset_id: int) -> list[int] | None:
@@ -196,7 +196,7 @@ class HeadsetCommandEncoder:
             logger.error("encode_set_eq_preset_id: Malformed preset data for ID %s. Expected 10 bands, got %s.", preset_id, len(float_values))
             return None
 
-        logger.info("encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) using its bands: %s", preset_data.get('name', 'Unknown'), preset_id, float_values)
+        logger.info("encode_set_eq_preset_id: Encoding hardware preset '%s' (ID: %s) using its bands: %s", preset_data.get("name", "Unknown"), preset_id, float_values)
 
         # As per prompt: selecting a preset effectively sends its values as a "custom" EQ setting.
         # This means it uses the same encode_set_eq_values method, which appends 0x00.

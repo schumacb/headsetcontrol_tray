@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray import config_manager as cfg_mgr
 from headsetcontrol_tray import headset_service as hs_svc
+
 from .chatmix_manager import ChatMixManager
 
 # Ensure EqualizerEditorWidget constants are accessible if needed, or rely on string parsing
@@ -100,7 +101,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         )  # Start with normal interval
         self.refresh_timer.start()
         logger.info(
-            "Refresh timer started with initial interval %sms.", self.NORMAL_REFRESH_INTERVAL_MS
+            "Refresh timer started with initial interval %sms.", self.NORMAL_REFRESH_INTERVAL_MS,
         )
 
         self.refresh_status()
@@ -209,7 +210,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             ):
                 logger.debug(
                     "_create_status_icon: Attempting to draw charging indicator. Status: %s, Level: %s",
-                    self.battery_status_text, self.battery_level
+                    self.battery_status_text, self.battery_level,
                 )
 
                 # Explicitly set pen and brush for the bolt
@@ -468,7 +469,7 @@ class SystemTrayIcon(QSystemTrayIcon):
     def refresh_status(self) -> None:
         """Refreshes headset status, updates tray icon, tooltip, and menu."""
         logger.debug(
-            "SystemTray: Refreshing status (Interval: %sms)...", self.refresh_timer.interval()
+            "SystemTray: Refreshing status (Interval: %sms)...", self.refresh_timer.interval(),
         )
 
         # Store previous known state for change detection
@@ -590,7 +591,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             if self.refresh_timer.interval() != self.NORMAL_REFRESH_INTERVAL_MS:
                 self.refresh_timer.setInterval(self.NORMAL_REFRESH_INTERVAL_MS)
                 logger.debug(
-                    "Device disconnected. Switched to normal refresh interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS
+                    "Device disconnected. Switched to normal refresh interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS,
                 )
             self.fast_poll_active = False
             self.fast_poll_no_change_counter = 0
@@ -605,7 +606,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                     self.fast_poll_active = False
                     self.fast_poll_no_change_counter = 0
                     logger.debug(
-                        "No change threshold reached on fast poll. Switched to normal interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS
+                        "No change threshold reached on fast poll. Switched to normal interval (%sms).", self.NORMAL_REFRESH_INTERVAL_MS,
                     )
             else:  # Data changed on fast poll
                 self.fast_poll_no_change_counter = 0  # Reset counter, stay fast
@@ -616,7 +617,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             self.fast_poll_active = True
             self.fast_poll_no_change_counter = 0
             logger.debug(
-                "State change detected. Switched to fast refresh interval (%sms).", self.FAST_REFRESH_INTERVAL_MS
+                "State change detected. Switched to fast refresh interval (%sms).", self.FAST_REFRESH_INTERVAL_MS,
             )
 
         logger.debug("SystemTray: Refresh status complete.")
@@ -749,7 +750,7 @@ class SystemTrayIcon(QSystemTrayIcon):
     @Slot(str)
     def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str) -> None:
         logger.info(
-            "SystemTray received eq_applied signal from SettingsDialog: '%s'", eq_identifier_signal_str
+            "SystemTray received eq_applied signal from SettingsDialog: '%s'", eq_identifier_signal_str,
         )
         self.refresh_status()
 

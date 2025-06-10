@@ -147,7 +147,7 @@ class HeadsetService:
                 current_effective_status_for_log = 0x01 if is_charging_from_parser else 0x02 # Simple: 0x01 charging, 0x02 online (not charging)
 
                 if prev_log_status is None or prev_log_status == 0x00: # Was unknown or offline
-                    logger.info("Headset status change: Now %s (status byte %#02x), was previously offline or unknown.", 'charging' if is_charging_from_parser else 'online', raw_battery_status_byte_from_parser)
+                    logger.info("Headset status change: Now %s (status byte %#02x), was previously offline or unknown.", "charging" if is_charging_from_parser else "online", raw_battery_status_byte_from_parser)
                 elif is_charging_from_parser and prev_log_status != 0x01: # Was online but not charging, now charging
                      logger.info("Headset status change: Now charging (status byte %#02x), was previously online and not charging.", raw_battery_status_byte_from_parser)
                 elif not is_charging_from_parser and prev_log_status == 0x01: # Was charging, now online but not charging
