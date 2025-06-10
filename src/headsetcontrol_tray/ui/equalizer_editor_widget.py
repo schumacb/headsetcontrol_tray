@@ -30,9 +30,9 @@ HW_PRESET_DISPLAY_PREFIX = "[HW] "
 
 
 class EqualizerEditorWidget(QWidget):
-    """
-    Widget for editing and managing equalizer settings
+    """Widget for editing and managing equalizer settings
     (custom curves and hardware presets).
+
     """
 
     eq_applied = Signal(
@@ -151,9 +151,9 @@ class EqualizerEditorWidget(QWidget):
         main_layout.addStretch(1)  # Pushes sliders up if window is tall
 
     def refresh_view(self) -> None:
-        """
-        Refreshes the equalizer editor view, repopulating and selecting the
+        """Refreshes the equalizer editor view, repopulating and selecting the
         appropriate EQ.
+
         """
         logger.debug("EqualizerEditorWidget: Refreshing view")
         self._populate_eq_combo()  # Updates combo items
@@ -269,6 +269,104 @@ class EqualizerEditorWidget(QWidget):
         )
         self._process_eq_selection(selected_data, is_initial_load=False)
 
+    def _handle_custom_eq_selection(
+        self,
+        curve_name: str,
+        is_initial_load: bool,
+        force_ui_update_only: bool,
+    ) -> None:
+        # Only update _current_custom_curve_original_name if it's different
+        # or force_ui_update_only is false. This helps preserve the
+        # "active editing" context if refresh_view is called while sliders are
+        # dirty.
+        if not (
+            force_ui_update_only
+            and self._current_custom_curve_original_name == curve_name
+            and self._sliders_have_unsaved_changes
+        ):
+            self._current_custom_curve_original_name = curve_name
+
+        values = self.config_manager.get_custom_eq_curve(curve_name)
+        if not values:
+            logger.warning(
+                ("Custom curve '%s' not found in config manager. Defaulting to flat."),
+                curve_name,
+            )
+            values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0] * 10)
+
+        # Update saved values only if not preserving unsaved changes
+        if not (
+            force_ui_update_only
+            and self._current_custom_curve_original_name == curve_name
+            and self._sliders_have_unsaved_changes
+        ):
+            self._current_custom_curve_saved_values = list(values)
+
+        # If force_ui_update_only is true AND there are unsaved changes for
+        # this curve, do NOT reset sliders from saved values. Let them be.
+        if not (
+            force_ui_update_only
+            and self._current_custom_curve_original_name == curve_name
+            and self._sliders_have_unsaved_changes
+        ):
+            self._set_slider_visuals(values)
+            if (
+                not is_initial_load
+            ):  # Only reset unsaved changes if it's a new selection by user
+                self._sliders_have_unsaved_changes = False
+
+        # Apply to headset only on user action or if not preserving UI for
+        # unsaved changes
+        if not is_initial_load and not force_ui_update_only:
+            float_values = [float(v) for v in values]
+            if self.headset_service.set_eq_values(float_values):
+                self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
+                self.config_manager.set_last_custom_eq_curve_name(curve_name)
+                self.eq_applied.emit(curve_name)
+            else:
+                QMessageBox.warning(
+                    self, "EQ Error", "Failed to apply custom EQ to headset."
+                )
+
+        # If it's just a UI refresh due to external change, but user was editing
+        # this curve, ensure _sliders_have_unsaved_changes reflects the
+        # current slider vs saved state.
+        if force_ui_update_only and self._current_custom_curve_original_name == curve_name:
+            current_slider_vals = self._get_slider_values()
+            self._sliders_have_unsaved_changes = (
+                current_slider_vals != self._current_custom_curve_saved_values
+            )
+
+    def _handle_hardware_eq_selection(
+        self,
+        preset_id: int,
+        eq_data: tuple[str, Any], # eq_data is passed to get display name
+        is_initial_load: bool,
+        force_ui_update_only: bool,
+    ) -> None:
+        preset_name_display = ""
+        # Get display name for signal
+        for i in range(self.eq_combo.count()):
+            if self.eq_combo.itemData(i) == eq_data:
+                preset_name_display = self.eq_combo.itemText(i).replace(
+                    HW_PRESET_DISPLAY_PREFIX, ""
+                )
+                break
+
+        self._current_custom_curve_original_name = None
+        self._sliders_have_unsaved_changes = False  # No unsaved changes for HW presets
+        self._set_slider_visuals([0] * 10) # Sliders are disabled for HW, show flat
+
+        if not is_initial_load and not force_ui_update_only:
+            if self.headset_service.set_eq_preset_id(preset_id):
+                self.config_manager.set_setting("active_eq_type", EQ_TYPE_HARDWARE)
+                self.config_manager.set_last_active_eq_preset_id(preset_id)
+                self.eq_applied.emit(f"hw_preset:{preset_name_display}")
+            else:
+                QMessageBox.warning(
+                    self, "EQ Error", f"Failed to apply HW preset '{preset_name_display}'."
+                )
+
     def _process_eq_selection(
         self,
         eq_data: tuple[str, Any],
@@ -279,120 +377,33 @@ class EqualizerEditorWidget(QWidget):
         eq_type, eq_identifier = eq_data
 
         if eq_type == EQ_TYPE_CUSTOM:
-            curve_name = eq_identifier
-            # Only update _current_custom_curve_original_name if it's different
-            # or force_ui_update_only is false. This helps preserve the
-            # "active editing" context if refresh_view is called while sliders are
-            # dirty.
-            if not (
-                force_ui_update_only
-                and self._current_custom_curve_original_name == curve_name
-                and self._sliders_have_unsaved_changes
-            ):
-                self._current_custom_curve_original_name = curve_name
-
-            values = self.config_manager.get_custom_eq_curve(curve_name)
-            if not values:
-                logger.warning(
-                    (
-                        "Custom curve '%s' not found in config manager. "
-                        "Defaulting to flat."
-                    ),
-                    curve_name,
-                )
-                values = app_config.DEFAULT_EQ_CURVES.get("Flat", [0] * 10)
-
-            # Update saved values only if not preserving unsaved changes
-            if not (
-                force_ui_update_only
-                and self._current_custom_curve_original_name == curve_name
-                and self._sliders_have_unsaved_changes
-            ):  # Wrapped condition
-                self._current_custom_curve_saved_values = list(values)
-
-            # If force_ui_update_only is true AND there are unsaved changes for
-            # this curve, do NOT reset sliders from saved values. Let them be.
-            if not (
-                force_ui_update_only
-                and self._current_custom_curve_original_name == curve_name
-                and self._sliders_have_unsaved_changes
-            ):  # Wrapped condition
-                self._set_slider_visuals(values)
-                if (
-                    not is_initial_load
-                ):  # Only reset unsaved changes if it's a new selection by user
-                    self._sliders_have_unsaved_changes = False
-
-            # Apply to headset only on user action or if not preserving UI for
-            # unsaved changes
-            if not is_initial_load and not force_ui_update_only:
-                float_values = [float(v) for v in values]
-                if self.headset_service.set_eq_values(float_values):
-                    self.config_manager.set_setting("active_eq_type", EQ_TYPE_CUSTOM)
-                    self.config_manager.set_last_custom_eq_curve_name(curve_name)
-                    self.eq_applied.emit(curve_name)
-                else:
-                    QMessageBox.warning(
-                        self,
-                        "EQ Error",
-                        "Failed to apply custom EQ to headset.",
-                    )
-
-            # If it's just a UI refresh due to external change, but user was editing
-            # this curve, ensure _sliders_have_unsaved_changes reflects the
-            # current slider vs saved state.
-            if (
-                force_ui_update_only
-                and self._current_custom_curve_original_name == curve_name
-            ):
-                current_slider_vals = self._get_slider_values()
-                self._sliders_have_unsaved_changes = (
-                    current_slider_vals != self._current_custom_curve_saved_values
-                )
-
-        elif eq_type == EQ_TYPE_HARDWARE:
-            preset_id = eq_identifier
-            preset_name_display = ""
-            # Get display name for signal
-            for i in range(self.eq_combo.count()):
-                if self.eq_combo.itemData(i) == eq_data:
-                    preset_name_display = self.eq_combo.itemText(i).replace(
-                        HW_PRESET_DISPLAY_PREFIX,
-                        "",
-                    )
-                    break
-
-            self._current_custom_curve_original_name = None
-            self._sliders_have_unsaved_changes = (
-                False  # No unsaved changes for HW presets
+            self._handle_custom_eq_selection(
+                curve_name=eq_identifier,
+                is_initial_load=is_initial_load,
+                force_ui_update_only=force_ui_update_only,
             )
+        elif eq_type == EQ_TYPE_HARDWARE:
+            self._handle_hardware_eq_selection(
+                preset_id=eq_identifier,
+                eq_data=eq_data,
+                is_initial_load=is_initial_load,
+                force_ui_update_only=force_ui_update_only,
+            )
+        # Add handling for other types or None if necessary
+        else:
+            logger.warning("Unknown EQ type selected: %s", eq_type)
+            # Potentially reset UI to a default "no EQ active" state
+            self._current_custom_curve_original_name = None
+            self._sliders_have_unsaved_changes = False
             self._set_slider_visuals([0] * 10)
 
-            if not is_initial_load and not force_ui_update_only:
-                if self.headset_service.set_eq_preset_id(preset_id):
-                    self.config_manager.set_setting("active_eq_type", EQ_TYPE_HARDWARE)
-                    self.config_manager.set_last_active_eq_preset_id(preset_id)
-                    self.eq_applied.emit(f"hw_preset:{preset_name_display}")
-                else:
-                    QMessageBox.warning(
-                        self,
-                        "EQ Error",
-                        f"Failed to apply HW preset '{preset_name_display}'.",
-                    )
 
         self._update_ui_for_active_eq(eq_type, eq_identifier)
 
-    def _update_ui_for_active_eq(
-        self,
-        active_eq_type: str | None,
-        _active_identifier: Any | None,
+    def _update_custom_eq_buttons_state(
+        self, is_custom_mode_active: bool, active_identifier: Any | None
     ) -> None:
-        is_custom_mode_active = active_eq_type == EQ_TYPE_CUSTOM
-
-        for slider in self.sliders:
-            slider.setEnabled(is_custom_mode_active)
-
-        self.custom_eq_management_buttons_widget.setVisible(True)
+        self.custom_eq_management_buttons_widget.setVisible(True) # Always visible for now
 
         can_save = (
             is_custom_mode_active
@@ -404,77 +415,68 @@ class EqualizerEditorWidget(QWidget):
         self.save_as_button.setEnabled(is_custom_mode_active)
 
         can_delete = is_custom_mode_active and bool(
-            self._current_custom_curve_original_name
-            and self._current_custom_curve_original_name
-            not in app_config.DEFAULT_EQ_CURVES,  # COM812: Trailing comma
+            active_identifier # This is the curve name for custom EQ
+            and active_identifier not in app_config.DEFAULT_EQ_CURVES
         )
         self.delete_button.setEnabled(can_delete)
 
         self.discard_button.setEnabled(
-            is_custom_mode_active and self._sliders_have_unsaved_changes,
+            is_custom_mode_active and self._sliders_have_unsaved_changes
         )
 
+    def _update_combo_text_for_unsaved_changes(
+        self, is_custom_mode_active: bool
+    ) -> None:
         if is_custom_mode_active and self._current_custom_curve_original_name:
-            self.eq_combo.blockSignals(True)  # noqa: FBT003
-            # current_idx was unused
-            # active_curve_found_in_combo was unused
+            self.eq_combo.blockSignals(True)
+            active_curve_name = self._current_custom_curve_original_name
             for i in range(self.eq_combo.count()):
                 item_data = self.eq_combo.itemData(i)
                 if (
                     item_data
                     and item_data[0] == EQ_TYPE_CUSTOM
-                    and item_data[1] == self._current_custom_curve_original_name
+                    and item_data[1] == active_curve_name
                 ):
-                    text_to_display = self._current_custom_curve_original_name
+                    text_to_display = active_curve_name
                     if self._sliders_have_unsaved_changes:
                         text_to_display += "*"
                     if self.eq_combo.itemText(i) != text_to_display:
                         self.eq_combo.setItemText(i, text_to_display)
-                    # Ensure this item is selected if it's the active one
-                    if self.eq_combo.currentIndex() != i:
-                        # Only force selection if the current selection is not this
-                        # active curve already. This check prevents infinite loops
-                        # if currentData points to the same logical curve.
-                        current_selection_data = self.eq_combo.itemData(
-                            self.eq_combo.currentIndex(),  # COM812: Trailing comma
-                        )  # Wrapped
-                        if not (
-                            current_selection_data
-                            and current_selection_data[0] == EQ_TYPE_CUSTOM
-                            and current_selection_data[1]
-                            == self._current_custom_curve_original_name
-                        ):
-                            logger.debug(
-                                "Force selecting %s in combo as it's active.",
-                                self._current_custom_curve_original_name,
-                            )
-
-                            # Handled by _select_initial_eq_from_config or combo signal
+                    # No need to force selection here, this is about text update
                     break
 
             # If the current combo selection IS NOT the active custom curve,
-            # reset its '*'
-            current_selection_data = self.eq_combo.itemData(
-                self.eq_combo.currentIndex(),  # COM812: Trailing comma
-            )  # Wrapped
-            if (
-                current_selection_data
-                and (
-                    current_selection_data[0] != EQ_TYPE_CUSTOM
-                    or current_selection_data[1]
-                    != self._current_custom_curve_original_name
-                )
-                and self.eq_combo.currentText().endswith("*")
-            ):
-                original_text = self.eq_combo.currentText().rstrip("*")
-                self.eq_combo.setItemText(self.eq_combo.currentIndex(), original_text)
+            # but it's a custom curve and has an asterisk, remove it.
+            # Also handles cases where a custom curve was active, user switched to HW,
+            # then this is called.
+            current_idx = self.eq_combo.currentIndex()
+            current_selection_data = self.eq_combo.itemData(current_idx)
+            if current_selection_data and current_selection_data[0] == EQ_TYPE_CUSTOM:
+                selected_curve_name = current_selection_data[1]
+                if selected_curve_name != active_curve_name and self.eq_combo.itemText(current_idx).endswith("*"):
+                    original_text = self.eq_combo.itemText(current_idx).rstrip("*")
+                    self.eq_combo.setItemText(current_idx, original_text)
 
-            self.eq_combo.blockSignals(False)  # noqa: FBT003
+            self.eq_combo.blockSignals(False)
         elif not is_custom_mode_active:
+            # If not in custom mode, remove all unsaved indicators
             self._remove_all_unsaved_indicators_from_combo()
 
+    def _update_ui_for_active_eq(
+        self,
+        active_eq_type: str | None,
+        active_identifier: Any | None, # curve_name or preset_id
+    ) -> None:
+        is_custom_mode_active = active_eq_type == EQ_TYPE_CUSTOM
+
+        for slider in self.sliders:
+            slider.setEnabled(is_custom_mode_active)
+
+        self._update_custom_eq_buttons_state(is_custom_mode_active, active_identifier)
+        self._update_combo_text_for_unsaved_changes(is_custom_mode_active)
+
     def _remove_all_unsaved_indicators_from_combo(self) -> None:
-        self.eq_combo.blockSignals(True)  # noqa: FBT003
+        self.eq_combo.blockSignals(True)
         current_idx = self.eq_combo.currentIndex()  # Preserve if it's a HW preset
         for i in range(self.eq_combo.count()):
             item_data = self.eq_combo.itemData(i)
@@ -531,9 +533,7 @@ class EqualizerEditorWidget(QWidget):
                 self.config_manager.set_last_custom_eq_curve_name(
                     self._current_custom_curve_original_name,
                 )
-                self.eq_applied.emit(
-                    self._current_custom_curve_original_name,
-                )  # Notify tray
+                self.eq_applied.emit(self._current_custom_curve_original_name)  # Notify tray
         else:
             logger.error(
                 "EQ_EDITOR: Sliders applied, set_eq_values FAILED for '%s'",

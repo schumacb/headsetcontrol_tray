@@ -32,7 +32,7 @@ class HIDCommunicator:
                 "HIDCommunicator initialized with a None hid_device. "
                 "This is unexpected.",
             )
-            raise ValueError("Invalid hid.Device object.")
+            raise ValueError("Invalid HID device.")
         self.hid_device: hid.Device = hid_device
 
         # Extract and store info for logging

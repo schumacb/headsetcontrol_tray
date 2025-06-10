@@ -63,7 +63,7 @@ class ChatMixManager:
                 capture_output=True,
                 text=True,
                 check=True,
-            )  # nosec B603 # command_args are typically static like ["pw-dump"]
+            )  # nosec B603 # nosemgrep S603 # command_args are typically static like ["pw-dump"]
             return result.stdout.strip()
         except subprocess.CalledProcessError:
             logger.exception("Command '%s' failed", " ".join(command_args))
@@ -164,14 +164,14 @@ class ChatMixManager:
         """
         chatmix_norm = chatmix_value / 128.0  # Normalize to 0.0 - 1.0
 
-        # This creates a curve where at CHATMIX_NORMALIZED_MIDPOINT (balanced), both are full.
-        # As it moves away from CHATMIX_NORMALIZED_MIDPOINT, one channel is attenuated.
+        # This curve ensures at CHATMIX_NORMALIZED_MIDPOINT (balanced), both are full.
+        # As it moves away, one channel is attenuated.
         if (
             chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT
         ):  # More towards Chat (0.0 to 0.5)
             chat_vol = self.reference_volume
-            # Game volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 0.0)
-            # Scale the 0.0-0.5 range to 0.0-1.0 for the factor
+            # Game vol goes from reference_volume (at 0.5) down to 0 (at 0.0).
+            # Scale the 0.0-0.5 range to 0.0-1.0 for factor.
             game_vol_factor = (
                 chatmix_norm * 2.0
             )  # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
@@ -250,7 +250,7 @@ class ChatMixManager:
                 capture_output=True,
                 text=True,
                 check=True,
-            )  # nosec B603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
+            )  # nosec B603 # nosemgrep S603 # cmd uses pw-cli with stream_id from pw-dump and controlled JSON.
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",
                 stream_id,

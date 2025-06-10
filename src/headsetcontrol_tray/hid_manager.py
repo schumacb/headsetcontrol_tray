@@ -112,7 +112,10 @@ class HIDConnectionManager:
                 d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE
             ):  # Common SteelSeries usage page
                 logger.debug(
-                    "  SortKey: Prioritizing usage page 0x%04x (generic) for PID 0x%04x (1)",
+                    (
+                        "  SortKey: Prioritizing usage page 0x%04x (generic) "
+                        "for PID 0x%04x (1)"
+                    ),
                     app_config.HID_REPORT_USAGE_PAGE,
                     d_info.get("product_id"),
                 )
@@ -169,8 +172,8 @@ class HIDConnectionManager:
             path_str = dev_info_to_try["path"].decode("utf-8", errors="replace")
             logger.debug(
                 (
-                    "  Attempting to open path: %s (Interface: %s, UsagePage: 0x%04x, "
-                    "PID: 0x%04x)"
+                    "  Attempting to open path: %s (Interface: %s, "
+                    "UsagePage: 0x%04x, PID: 0x%04x)"
                 ),
                 path_str,
                 dev_info_to_try.get("interface_number", "N/A"),

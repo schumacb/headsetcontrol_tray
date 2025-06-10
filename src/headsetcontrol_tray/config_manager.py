@@ -76,7 +76,7 @@ class ConfigManager:
             and len(values) == NUM_EQ_BANDS
             and all(isinstance(v, int) for v in values)
         ):
-            raise ValueError("Invalid EQ curve format.")
+            raise ValueError("Invalid EQ values.")
         self._custom_eq_curves[name] = values
         self._save_json_file(app_config.CUSTOM_EQ_CURVES_FILE, self._custom_eq_curves)
 

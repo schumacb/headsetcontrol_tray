@@ -282,7 +282,8 @@ class HeadsetService:
                     "reports as online.",
                 )
             else:
-                # This covers cases where communicator exists, but headset is offline or status fails
+                # Covers cases where communicator exists, but headset is offline
+                # or status query fails.
                 logger.info(
                     (
                         "is_device_connected: HID path may be active, but headset "
@@ -307,7 +308,7 @@ class HeadsetService:
                 logger.debug("Battery level from parsed status: %s%%", current_value)
                 self._last_reported_battery_level = current_value
             return current_value
-        # If status is None, or headset_online is False, or battery_percent is None
+        # If status is None, headset_online is False, or battery_percent is None
         if (
             self._last_reported_battery_level is not None
         ):  # Log if we are clearing a known value

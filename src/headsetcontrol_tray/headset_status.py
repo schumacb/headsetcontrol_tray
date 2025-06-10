@@ -161,12 +161,6 @@ class HeadsetStatusParser:
         raw_game_clamped = max(0, min(100, raw_game))
         raw_chat_clamped = max(0, min(100, raw_chat))
 
-        # This mapping seems specific. If raw_game=100, mapped_game=64. If raw_chat=100,
-        # mapped_chat=-64.
-        # If game=100, chat=0 => chatmix_value = 64 - (0 + 64) = 0 (Full Game)
-        # If game=0, chat=100 => chatmix_value = 64 - (-64 + 0) = 128 (Full Chat)
-        # If game=50, chat=50 => chatmix_value = 64 - (-32 + 32) = 64 (Center)
-        # This matches the 0-128 UI scale where 0=Game, 64=Center, 128=Chat.
         mapped_game = int((raw_game_clamped / 100.0) * 64.0)
         # Negative to pull "left"
         mapped_chat = int((raw_chat_clamped / 100.0) * -64.0)
@@ -185,8 +179,8 @@ class HeadsetStatusParser:
         ):
             logger.warning(
                 (
-                    "parse_status_report: Insufficient data. Expected at least %s bytes, "
-                    "got %s."
+                    "parse_status_report: Insufficient data. Expected at least "
+                    "%s bytes, got %s."
                 ),
                 app_config.HID_INPUT_REPORT_LENGTH_STATUS,
                 len(response_data) if response_data else 0,
@@ -292,8 +286,8 @@ class HeadsetCommandEncoder:
         else:
             logger.error(
                 (
-                    "encode_set_eq_values: Error constructing EQ payload. Length before "
-                    "terminator: %s. Expected %s."
+                    "encode_set_eq_values: Error constructing EQ payload. "
+                    "Length before terminator: %s. Expected %s."
                 ),
                 len(command_payload),
                 len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS,
@@ -342,7 +336,7 @@ class HeadsetCommandEncoder:
                 (
                     "encode_set_eq_preset_id: Malformed preset data for ID %s. "
                     "Expected %s bands, got %s."
-                ),
+                ),  # Ensure this line is short enough
                 preset_id,
                 NUM_EQ_BANDS,  # Added missing argument
                 len(float_values),

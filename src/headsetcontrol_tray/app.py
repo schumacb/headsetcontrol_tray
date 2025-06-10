@@ -72,7 +72,7 @@ class SteelSeriesTrayApp:
                 # should be handled by the mock's configuration. So, we don't
                 # force creating a new QApplication([]), which might interfere
                 # with the mock.
-                pass  # create_new_qapp remains False, and we'll use _q_instance.
+                pass  # Use existing mock instance. create_new_qapp remains False.
 
             if create_new_qapp:
                 self.qt_app = QApplication([])
@@ -141,7 +141,7 @@ class SteelSeriesTrayApp:
 
         if not helper_script_path.exists():
             logger.error("Helper script not found at %s", str(helper_script_path))
-            raise FileNotFoundError(f"Helper script missing: {helper_script_path.name}")
+            raise FileNotFoundError("Helper script missing.")
 
         # Ensure all parts of cmd are strings for subprocess.run
         cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
@@ -152,7 +152,7 @@ class SteelSeriesTrayApp:
                 capture_output=True,
                 text=True,
                 check=False,  # We check returncode manually
-            )  # nosec B603 # helper_script_path is internally defined,
+            )  # nosec B603 # nosemgrep S603 # helper_script_path is internally defined,
         # temp_file_path and final_file_path are file paths, not direct commands.
         except FileNotFoundError:  # pkexec itself not found
             logger.exception("pkexec command not found.")
@@ -167,9 +167,9 @@ class SteelSeriesTrayApp:
         result: subprocess.CompletedProcess | None,
         error: Exception | None = None,
     ) -> None:
-        """
-        Displays a feedback dialog based on the outcome of the udev helper script
+        """Displays a feedback dialog based on the outcome of the udev helper script
         execution.
+
         """
         feedback_dialog = QMessageBox(parent_dialog)
         feedback_dialog.setModal(True)  # Ensure modality
@@ -214,9 +214,9 @@ class SteelSeriesTrayApp:
         dialog.setIcon(QMessageBox.Icon.Critical)
         dialog.setWindowTitle("Error")
         if isinstance(error, FileNotFoundError):
-            if "Helper script not found" in str(error):
+            if "Helper script missing" in str(error): # Check updated message
                 dialog.setText(
-                    f"Installation script not found:\n{error}\n\nPlease report this issue.",
+                    "Installation script not found.\nPlease report this issue.",
                 )
             else:  # pkexec not found
                 dialog.setText(
@@ -304,20 +304,18 @@ class SteelSeriesTrayApp:
             "missing udev permissions (udev rules).",
         )
 
-        informative_text_string = f"""A rule file has been prepared at: \
-{temp_file}
-
-To resolve this, you can use the 'Install Automatically' button, or follow these manual steps in a terminal:
-1. Copy the rule file:
-   sudo cp "{temp_file}" "{final_file}"
-2. Reload udev rules:
-   sudo udevadm control --reload-rules && sudo udevadm trigger
-3. Replug your headset.
-
-Without these rules, the application might not be able to detect or control
-your headset.
-"""
-        dialog.setInformativeText(informative_text_string.strip())
+        informative_text_string = (
+            f"A rule file has been prepared at: {temp_file}\n\n"
+            "To resolve this, you can use the 'Install Automatically' button, or "
+            "follow these manual steps in a terminal:\n"
+            f"1. Copy the rule file:\n   sudo cp \"{temp_file}\" \"{final_file}\"\n"
+            "2. Reload udev rules:\n"
+            "   sudo udevadm control --reload-rules && sudo udevadm trigger\n"
+            "3. Replug your headset.\n\n"
+            "Without these rules, the application might not be able to detect or "
+            "control your headset."
+        )
+        dialog.setInformativeText(informative_text_string)
 
         auto_button = dialog.addButton(
             "Install Automatically",
@@ -337,10 +335,9 @@ your headset.
                 execution_error = e
             except subprocess.SubprocessError as e:  # Other subprocess errors
                 execution_error = e
-            except Exception as e:  # Any other unexpected error from the helper
-                logger.error(
-                    "Unexpected error during _execute_udev_helper_script: %s",
-                    e,
+            except OSError as e:  # More specific exception for OS related errors
+                logger.exception(
+                    "OS error during _execute_udev_helper_script: %s", e
                 )
                 execution_error = e
 
