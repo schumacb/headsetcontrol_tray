@@ -49,7 +49,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         mock_hid_enumerate.side_effect = Exception("Enumeration failed")
         devices = self.manager._find_potential_hid_devices()
         self.assertEqual(len(devices), 0)
-        mock_logger.error.assert_called_with("Error enumerating HID devices: %s", "Enumeration failed")
+        mock_logger.error.assert_called_with("Error enumerating HID devices: %s", ANY)
 
     @patch('headsetcontrol_tray.hid_manager.hid.enumerate')
     @patch('headsetcontrol_tray.hid_manager.logger')

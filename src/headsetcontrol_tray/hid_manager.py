@@ -24,7 +24,7 @@ class HIDConnectionManager:
             devices_enum = hid.enumerate(app_config.STEELSERIES_VID, 0)
             logger.debug("Found %s SteelSeries VID devices during enumeration.", len(devices_enum))
         except Exception as e_enum:
-            logger.error("Error enumerating HID devices: %s", e_enum)
+            logger.error("Error enumerating HID devices: %s", str(e_enum))
             return []
 
         potential_devices = []
@@ -107,7 +107,7 @@ class HIDConnectionManager:
                              dev_info_to_try.get('interface_number', -1), path_str)
                 return True
             except Exception as e_open:
-                logger.warning("    Failed to open HID device path %s: %s", path_str, e_open)
+                logger.warning("    Failed to open HID device path %s: %s", path_str, str(e_open))
                 if h_temp:
                     try:
                         h_temp.close()
@@ -151,7 +151,7 @@ class HIDConnectionManager:
             try:
                 self.hid_device.close()
             except Exception as e: # pylint: disable=broad-except
-                logger.warning("Exception while closing HID device %s: %s", device_path, e)
+                logger.warning("Exception while closing HID device %s: %s", device_path, str(e))
             finally:
                 self.hid_device = None
                 self.selected_device_info = None

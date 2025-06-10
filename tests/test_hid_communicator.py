@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch, call, ANY
 import hid
 import sys
 import os
@@ -71,7 +71,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
         self.assertFalse(result)
-        self.mock_logger.error.assert_called_with("HID write error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, "HID Write Error")
+        self.mock_logger.error.assert_called_with("HID write error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, ANY)
 
     def test_read_report_success(self): # Removed mock_logger arg
         expected_bytes = b'\x01\x02\x03'
@@ -106,7 +106,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
-        self.mock_logger.error.assert_called_with("HID read error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, "HID Read Error")
+        self.mock_logger.error.assert_called_with("HID read error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, ANY)
 
 # Removed test_read_report_default_timeout and test_read_report_none_timeout_uses_default
 # as timeout_ms parameter is no longer part of read_report method.

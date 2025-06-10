@@ -70,7 +70,7 @@ class HIDCommunicator:
                 return False
             return True
         except Exception as e: # hid.HIDException can be more specific if available and appropriate
-            logger.error("HID write error on device %s (%s): %s", self.device_product_str, self.device_path_str, e)
+            logger.error("HID write error on device %s (%s): %s", self.device_product_str, self.device_path_str, str(e))
             # Similar to bytes_written <= 0, signal failure.
             return False
 
@@ -99,5 +99,5 @@ class HIDCommunicator:
             logger.debug("HID read successful from %s (%s): %s", self.device_product_str, self.device_path_str, bytes(response_data).hex())
             return bytes(response_data)
         except Exception as e: # hid.HIDException can be more specific
-            logger.error("HID read error on device %s (%s): %s", self.device_product_str, self.device_path_str, e)
+            logger.error("HID read error on device %s (%s): %s", self.device_product_str, self.device_path_str, str(e))
             return None
