@@ -127,6 +127,7 @@ class EqualizerEditorWidget(QWidget):
         main_layout.addStretch(1)  # Pushes sliders up if window is tall
 
     def refresh_view(self) -> None:
+        """Refreshes the equalizer editor view, repopulating and selecting the appropriate EQ."""
         logger.debug("EqualizerEditorWidget: Refreshing view")
         self._populate_eq_combo()  # Updates combo items
         # _select_initial_eq_from_config will load the current config state

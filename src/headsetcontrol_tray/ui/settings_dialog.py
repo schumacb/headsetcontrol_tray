@@ -203,6 +203,7 @@ class SettingsDialog(QDialog):
         self.refresh_chatmix_display()
 
     def get_chatmix_tooltip_string(self, chatmix_val: int | None) -> str:
+        """Generates a descriptive tooltip string for a given ChatMix value."""
         if chatmix_val is None:
             return "ChatMix: N/A (Headset disconnected?)"
         percentage = round((chatmix_val / 128) * 100)
@@ -215,6 +216,7 @@ class SettingsDialog(QDialog):
         return f"ChatMix: Custom Mix ({percentage}%)"
 
     def refresh_chatmix_display(self) -> None:
+        """Refreshes the ChatMix visual display based on current headset value."""
         chatmix_val = self.headset_service.get_chatmix_value()
         tooltip_str = self.get_chatmix_tooltip_string(chatmix_val)
         self.chatmix_slider_bar.setToolTip(tooltip_str)
@@ -263,6 +265,7 @@ class SettingsDialog(QDialog):
             self._load_initial_settings()
 
     def showEvent(self, event: QShowEvent) -> None:
+        """Reloads settings and refreshes view when the dialog is shown."""
         super().showEvent(event)
         self._load_initial_settings()
         self.equalizer_widget.refresh_view()
