@@ -9,6 +9,8 @@ from . import app_config
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
+NUM_EQ_BANDS = 10  # Number of equalizer bands (could be moved to app_config)
+
 
 class ConfigManager:
     """Manages application settings and custom EQ curves persistence."""
@@ -31,11 +33,11 @@ class ConfigManager:
     def _load_json_file(self, file_path: Path) -> dict:
         if file_path.exists():
             try:
-                with open(file_path) as f:
+                with file_path.open() as f:
                     return json.load(f)
             except json.JSONDecodeError:
-                logger.warning(
-                    "Could not decode JSON from %s. Using empty config.",
+                logger.exception(
+                    "Failed to load JSON file %s. Using empty config.",
                     file_path,
                 )
                 return {}
@@ -43,12 +45,10 @@ class ConfigManager:
 
     def _save_json_file(self, file_path: Path, data: dict) -> None:
         try:
-            with open(file_path, "w") as f:
+            with file_path.open("w") as f:
                 json.dump(data, f, indent=4)
-        except OSError as e:  # More specific catch for IOErrors
-            logger.error("IOError saving file %s: %s", file_path, e)
-        except OSError as e:  # Catch other OS-related errors
-            logger.error("OSError saving file %s: %s", file_path, e)
+        except OSError as e:  # More specific catch for IOErrors / general OS errors
+            logger.exception("Error saving file %s", file_path)
 
     # General Settings
     def get_setting(self, key: str, default: Any = None) -> Any:
@@ -73,10 +73,10 @@ class ConfigManager:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (
             isinstance(values, list)
-            and len(values) == 10
+            and len(values) == NUM_EQ_BANDS
             and all(isinstance(v, int) for v in values)
         ):
-            raise ValueError("EQ curve must be a list of 10 integers.")
+            raise ValueError(f"EQ curve must be a list of {NUM_EQ_BANDS} integers.")
         self._custom_eq_curves[name] = values
         self._save_json_file(app_config.CUSTOM_EQ_CURVES_FILE, self._custom_eq_curves)
 

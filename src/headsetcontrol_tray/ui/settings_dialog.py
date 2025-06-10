@@ -29,6 +29,11 @@ from .equalizer_editor_widget import EqualizerEditorWidget
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
+# ChatMix specific values for display logic
+CHATMIX_VALUE_FULL_CHAT = 0
+CHATMIX_VALUE_BALANCED = 64
+CHATMIX_VALUE_FULL_GAME = 128
+
 
 class SettingsDialog(QDialog):
     """Main settings dialog for the application."""
@@ -216,12 +221,12 @@ class SettingsDialog(QDialog):
         """Generates a descriptive tooltip string for a given ChatMix value."""
         if chatmix_val is None:
             return "ChatMix: N/A (Headset disconnected?)"
-        percentage = round((chatmix_val / 128) * 100)
-        if chatmix_val == 0:
+        percentage = round((chatmix_val / CHATMIX_VALUE_FULL_GAME) * 100) # Use constant for max value
+        if chatmix_val == CHATMIX_VALUE_FULL_CHAT:
             return f"ChatMix: Full Chat ({percentage}%)"
-        if chatmix_val == 64:
+        if chatmix_val == CHATMIX_VALUE_BALANCED:
             return f"ChatMix: Balanced ({percentage}%)"
-        if chatmix_val == 128:
+        if chatmix_val == CHATMIX_VALUE_FULL_GAME:
             return f"ChatMix: Full Game ({percentage}%)"
         return f"ChatMix: Custom Mix ({percentage}%)"
 
@@ -238,7 +243,7 @@ class SettingsDialog(QDialog):
             )  # Ensure it remains visually disabled
         else:
             self.chatmix_slider_bar.setValue(
-                64,
+                CHATMIX_VALUE_BALANCED,
             )  # Default visual to balanced if no value
             self.chatmix_slider_bar.setEnabled(False)
 
@@ -274,7 +279,7 @@ class SettingsDialog(QDialog):
             )
             self._load_initial_settings()
 
-    def showEvent(self, event: QShowEvent) -> None:
+    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802
         """Reloads settings and refreshes view when the dialog is shown."""
         super().showEvent(event)
         self._load_initial_settings()

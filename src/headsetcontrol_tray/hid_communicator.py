@@ -66,10 +66,7 @@ class HIDCommunicator:
         # If write fails due to device issue, this method could return False or raise an exception.
 
         payload = bytes(data)
-        if report_id > 0:
-            final_report = bytes([report_id]) + payload
-        else:  # report_id is 0 or not used (common for SteelSeries commands starting with 0x00)
-            final_report = payload
+        final_report = bytes([report_id]) + payload if report_id > 0 else payload
 
         # It's important to determine if the first byte of `data`
         # (e.g. app_config.HID_REPORT_FIXED_FIRST_BYTE) is itself a report ID or
@@ -78,12 +75,13 @@ class HIDCommunicator:
         # - If report_id > 0, it prepends it.
         # - If report_id == 0, it sends data as-is.
         # This seems correct if commands in app_config that start with 0x00 are
-        # meant to be sent with report_id=0, and that 0x00 is part of the payload.
+        # meant to be sent with report_id=0, and that 0x00 is part of the
+        # payload.
         # For commands like HID_CMD_SAVE_SETTINGS = [0x06, 0x09],
         # report_id=0x06 would be used.
 
         logger.debug(
-            ("Writing HID report: ID=%s, Data=%s to device %s (%s)"),
+            ("Writing HID report: ID=%s, Data=%s to device %s (%s)"), # Already wrapped, but the line itself is long
             report_id,
             final_report.hex(),
             self.device_product_str,
@@ -104,15 +102,13 @@ class HIDCommunicator:
                 # or signal failure to a manager.
                 # For now, just report failure. The caller (HeadsetService) might need to handle this.
                 return False
-            return True
-        except (
-            Exception
-        ) as e:  # hid.HIDException can be more specific if available and appropriate
-            logger.error(
-                "HID write error on device %s (%s): %s",
+            else:
+                return True
+        except hid.HIDException as e:
+            logger.exception(
+                "HID write error on device %s (%s)",
                 self.device_product_str,
                 self.device_path_str,
-                str(e),
             )
             # Similar to bytes_written <= 0, signal failure.
             return False
@@ -141,7 +137,7 @@ class HIDCommunicator:
 
             if not response_data:
                 logger.warning(
-                    "No data received from HID read on %s (%s) (length %s).",
+                    ("No data received from HID read on %s (%s) (length %s)."),
                     self.device_product_str,
                     self.device_path_str,
                     report_length,
@@ -167,11 +163,10 @@ class HIDCommunicator:
                 bytes(response_data).hex(),
             )
             return bytes(response_data)
-        except Exception as e:  # hid.HIDException can be more specific
-            logger.error(
-                "HID read error on device %s (%s): %s",
+        except hid.HIDException as e:
+            logger.exception(
+                "HID read error on device %s (%s)",
                 self.device_product_str,
                 self.device_path_str,
-                str(e),
             )
             return None

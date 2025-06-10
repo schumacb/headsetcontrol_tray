@@ -25,6 +25,17 @@ from .settings_dialog import SettingsDialog
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
+# --- Constants for Magic Numbers ---
+# Battery Icon Thresholds
+BATTERY_LEVEL_HIGH = 70
+BATTERY_LEVEL_MEDIUM_CRITICAL = 25  # Critical if below or equal to this
+BATTERY_LEVEL_FULL = 100
+
+# ChatMix Values for display logic
+CHATMIX_VALUE_FULL_CHAT = 0
+CHATMIX_VALUE_BALANCED = 64
+CHATMIX_VALUE_FULL_GAME = 128  # Max value for normalization
+
 
 class SystemTrayIcon(QSystemTrayIcon):
     """Manages the system tray icon and its context menu."""
@@ -134,22 +145,22 @@ class SystemTrayIcon(QSystemTrayIcon):
             # --- Battery Indicator (Bottom Right) ---
             # Define dimensions for the small battery symbol relative to ICON_DRAW_SIZE
             # These numbers are tuned for a 32x32 icon, adjust if ICON_DRAW_SIZE changes.
-            BATTERY_AREA_SIZE_W = self.ICON_DRAW_SIZE // 2
-            BATTERY_AREA_SIZE_H = self.ICON_DRAW_SIZE // 3
-            BATTERY_MARGIN_X = 2
-            BATTERY_MARGIN_Y = 2
+            battery_area_size_w = self.ICON_DRAW_SIZE // 2
+            battery_area_size_h = self.ICON_DRAW_SIZE // 3
+            battery_margin_x = 2
+            battery_margin_y = 2
 
             battery_outer_rect_x = (
-                self.ICON_DRAW_SIZE - BATTERY_AREA_SIZE_W - BATTERY_MARGIN_X
+                self.ICON_DRAW_SIZE - battery_area_size_w - battery_margin_x
             )
             battery_outer_rect_y = (
-                self.ICON_DRAW_SIZE - BATTERY_AREA_SIZE_H - BATTERY_MARGIN_Y
+                self.ICON_DRAW_SIZE - battery_area_size_h - battery_margin_y
             )
             battery_outer_rect = QRect(
                 battery_outer_rect_x,
                 battery_outer_rect_y,
-                BATTERY_AREA_SIZE_W,
-                BATTERY_AREA_SIZE_H,
+                battery_area_size_w,
+                battery_area_size_h,
             )
 
             # Actual battery body dimensions, smaller than its designated area
@@ -183,12 +194,12 @@ class SystemTrayIcon(QSystemTrayIcon):
 
             if self.battery_level is not None:
                 fill_color = QColor(Qt.GlobalColor.gray)
-                if self.battery_level > 70:
+                if self.battery_level > BATTERY_LEVEL_HIGH:
                     fill_color = QColor(Qt.GlobalColor.green)
-                elif self.battery_level > 25:
+                elif self.battery_level > BATTERY_LEVEL_MEDIUM_CRITICAL:
                     fill_color = QColor(
                         Qt.GlobalColor.yellow,
-                    )  # Changed from 30 to 25 for critical
+                    )
                 else:
                     fill_color = QColor(Qt.GlobalColor.red)
 
@@ -197,7 +208,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 if fill_max_width > 0:  # Ensure positive width
                     fill_width = max(
                         0,
-                        int(fill_max_width * (self.battery_level / 100.0)),
+                        int(fill_max_width * (self.battery_level / float(BATTERY_LEVEL_FULL))),
                     )
                     fill_rect = QRect(
                         battery_body_rect.left() + border_thickness,
@@ -238,7 +249,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                     4,
                     int(battery_body_rect.height() * 0.6),
                 )  # Ensure at least 4px high
-                bolt_segment_h = bolt_total_h / 3
+                # bolt_segment_h = bolt_total_h / 3 # F841: Unused
 
                 # Width of the zig-zag points from center line
                 bolt_point_offset_x = max(
@@ -268,17 +279,20 @@ class SystemTrayIcon(QSystemTrayIcon):
                 logger.debug("Path drawn. Bounds: %s", bolt_path.boundingRect())
 
             # --- ChatMix Indicator (Top-Right) ---
-            # Show only if battery is not critically low (<=25%)
-            if not (self.battery_level is not None and self.battery_level <= 25):
-                if self.chatmix_value is not None and self.chatmix_value != 64:
-                    dot_radius = self.ICON_DRAW_SIZE // 10 or 2  # Proportional dot size
-                    dot_margin = self.ICON_DRAW_SIZE // 10 or 2
+            # Show only if battery is not critically low (<= BATTERY_LEVEL_MEDIUM_CRITICAL)
+            if not (
+                self.battery_level is not None and
+                self.battery_level <= BATTERY_LEVEL_MEDIUM_CRITICAL
+            ) and self.chatmix_value is not None and \
+               self.chatmix_value != CHATMIX_VALUE_BALANCED:
+                dot_radius = self.ICON_DRAW_SIZE // 10 or 2  # Proportional dot size
+                dot_margin = self.ICON_DRAW_SIZE // 10 or 2
 
-                    chatmix_indicator_color = QColor(Qt.GlobalColor.gray)  # Default
-                    if self.chatmix_value < 64:  # Towards Chat
-                        chatmix_indicator_color = QColor(Qt.GlobalColor.cyan)
-                    else:  # Towards Game
-                        chatmix_indicator_color = QColor(Qt.GlobalColor.green)
+                chatmix_indicator_color = QColor(Qt.GlobalColor.gray)  # Default
+                if self.chatmix_value < CHATMIX_VALUE_BALANCED:  # Towards Chat
+                    chatmix_indicator_color = QColor(Qt.GlobalColor.cyan)
+                else:  # Towards Game
+                    chatmix_indicator_color = QColor(Qt.GlobalColor.green)
 
                     painter.setBrush(chatmix_indicator_color)
                     painter.setPen(Qt.PenStyle.NoPen)
@@ -294,12 +308,12 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _get_chatmix_display_string_for_tray(self, chatmix_val: int | None) -> str:
         if chatmix_val is None:
             return "N/A"
-        percentage = round((chatmix_val / 128) * 100)
-        if chatmix_val == 0:
+        percentage = round((chatmix_val / float(CHATMIX_VALUE_FULL_GAME)) * 100)
+        if chatmix_val == CHATMIX_VALUE_FULL_CHAT:
             return f"Chat ({percentage}%)"
-        if chatmix_val == 64:
+        if chatmix_val == CHATMIX_VALUE_BALANCED:
             return f"Balanced ({percentage}%)"
-        if chatmix_val == 128:
+        if chatmix_val == CHATMIX_VALUE_FULL_GAME:
             return f"Game ({percentage}%)"
         return f"{chatmix_val} ({percentage}%)"
 
@@ -374,7 +388,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             action.setData(level)
             action.setChecked(level == current_sidetone_val_from_config)
             action.triggered.connect(
-                lambda _checked, l=level: self._set_sidetone_from_menu(l),
+                lambda _checked, sidetone_val=level: self._set_sidetone_from_menu(sidetone_val),
             )
             sidetone_menu.addAction(action)
             self.sidetone_action_group.append(action)
@@ -514,7 +528,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
             if is_charging:
                 self.battery_status_text = "BATTERY_CHARGING"
-            elif self.battery_level == 100:
+            elif self.battery_level == BATTERY_LEVEL_FULL:
                 self.battery_status_text = "BATTERY_FULL"
             elif self.battery_level is not None:
                 self.battery_status_text = "BATTERY_AVAILABLE"
@@ -562,12 +576,8 @@ class SystemTrayIcon(QSystemTrayIcon):
         if current_is_connected and self.chatmix_value is not None:
             try:
                 self.chatmix_manager.update_volumes(self.chatmix_value)
-            except Exception as e:
-                logger.error(
-                    "Error during chatmix_manager.update_volumes: %s",
-                    e,
-                    exc_info=True,
-                )
+            except Exception:
+                logger.exception("Error during chatmix_manager.update_volumes:")
 
         # Update tooltip state from ConfigManager (EQ settings)
         self.active_eq_type_for_tooltip = self.config_manager.get_active_eq_type()

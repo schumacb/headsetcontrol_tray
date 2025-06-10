@@ -14,6 +14,32 @@ from . import app_config
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
+# Raw battery level mappings from headset
+RAW_BATTERY_LEVEL_0 = 0x00
+RAW_BATTERY_LEVEL_25 = 0x01
+RAW_BATTERY_LEVEL_50 = 0x02
+RAW_BATTERY_LEVEL_75 = 0x03
+RAW_BATTERY_LEVEL_100 = 0x04
+
+# Sidetone hardware values
+SIDETONE_HW_VALUE_OFF = 0x00
+SIDETONE_HW_VALUE_LOW = 0x01
+SIDETONE_HW_VALUE_MEDIUM = 0x02
+SIDETONE_HW_VALUE_HIGH = 0x03
+
+# Sidetone UI level thresholds for mapping to hardware values
+# These are exclusive upper bounds for the UI level (0-128)
+SIDETONE_UI_THRESHOLD_MAP_TO_OFF = 26
+SIDETONE_UI_THRESHOLD_MAP_TO_LOW = 51
+SIDETONE_UI_THRESHOLD_MAP_TO_MEDIUM = 76
+
+# Equalizer settings
+NUM_EQ_BANDS = 10 # Number of equalizer bands
+EQ_HW_VALUE_MIN = 0x0A   # Hardware value for -10dB
+EQ_HW_VALUE_FLAT = 0x14  # Hardware value for 0dB
+EQ_HW_VALUE_MAX = 0x1E   # Hardware value for +10dB
+EQ_PAYLOAD_TERMINATOR_OR_SLOT_ID = 0x00 # Terminator or custom slot ID for EQ payload
+
 
 class HeadsetStatusParser:
     """Parses status reports received from the headset device."""
@@ -42,6 +68,7 @@ class HeadsetStatusParser:
     def _parse_battery_info(
         self,
         response_data: bytes,
+        *,
         is_online: bool,
     ) -> dict[str, Any]:
         # (Copy from HeadsetService._parse_battery_info)
@@ -63,15 +90,15 @@ class HeadsetStatusParser:
 
         battery_percent: int | None = None
         raw_battery_level = response_data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE]
-        if raw_battery_level == 0x00:
+        if raw_battery_level == RAW_BATTERY_LEVEL_0:
             battery_percent = 0
-        elif raw_battery_level == 0x01:
+        elif raw_battery_level == RAW_BATTERY_LEVEL_25:
             battery_percent = 25
-        elif raw_battery_level == 0x02:
+        elif raw_battery_level == RAW_BATTERY_LEVEL_50:
             battery_percent = 50
-        elif raw_battery_level == 0x03:
+        elif raw_battery_level == RAW_BATTERY_LEVEL_75:
             battery_percent = 75
-        elif raw_battery_level == 0x04:
+        elif raw_battery_level == RAW_BATTERY_LEVEL_100:
             battery_percent = 100
         else:
             logger.warning(
@@ -92,7 +119,7 @@ class HeadsetStatusParser:
             "battery_charging": battery_charging,
         }
 
-    def _parse_chatmix_info(self, response_data: bytes, is_online: bool) -> int | None:
+    def _parse_chatmix_info(self, response_data: bytes, *, is_online: bool) -> int | None:
         # (Copy from HeadsetService._parse_chatmix_info)
         if not is_online:
             return None
@@ -153,8 +180,8 @@ class HeadsetStatusParser:
             return None
 
         headset_online = self._determine_headset_online_status(response_data)
-        battery_info = self._parse_battery_info(response_data, headset_online)
-        chatmix_value = self._parse_chatmix_info(response_data, headset_online)
+        battery_info = self._parse_battery_info(response_data, is_online=headset_online)
+        chatmix_value = self._parse_chatmix_info(response_data, is_online=headset_online)
 
         raw_battery_status_byte = response_data[
             app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE
@@ -184,17 +211,14 @@ class HeadsetCommandEncoder:
         # (Adapt from HeadsetService._set_sidetone_level_hid)
         # Level is 0-128 UI scale (representing Off, Low, Medium, High)
         # These typically map to 0x00, 0x01, 0x02, 0x03
-        mapped_value = 0
-        if level < 26:
-            mapped_value = (
-                0x00  # Off (0-25 on a 0-100 scale, or first quarter of 0-128)
-            )
-        elif level < 51:
-            mapped_value = 0x01  # Low (26-50)
-        elif level < 76:
-            mapped_value = 0x02  # Medium (51-75)
-        else:
-            mapped_value = 0x03  # High (76-100 or 76-128)
+        mapped_value = SIDETONE_HW_VALUE_HIGH # Default to High
+        if level < SIDETONE_UI_THRESHOLD_MAP_TO_OFF:
+            mapped_value = SIDETONE_HW_VALUE_OFF
+        elif level < SIDETONE_UI_THRESHOLD_MAP_TO_LOW:
+            mapped_value = SIDETONE_HW_VALUE_LOW
+        elif level < SIDETONE_UI_THRESHOLD_MAP_TO_MEDIUM:
+            mapped_value = SIDETONE_HW_VALUE_MEDIUM
+        # else: remains SIDETONE_HW_VALUE_HIGH
 
         command_payload = list(app_config.HID_CMD_SET_SIDETONE_PREFIX)
         command_payload.append(mapped_value)
@@ -224,9 +248,10 @@ class HeadsetCommandEncoder:
     def encode_set_eq_values(self, float_values: list[float]) -> list[int] | None:
         """Encodes the command to set custom equalizer values."""
         # (Adapt from HeadsetService._set_eq_values_hid)
-        if len(float_values) != 10:
+        if len(float_values) != NUM_EQ_BANDS:
             logger.error(
-                "encode_set_eq_values: Invalid number of EQ bands. Expected 10, got %s.",
+                "encode_set_eq_values: Invalid number of EQ bands. Expected %s, got %s.",
+                NUM_EQ_BANDS,
                 len(float_values),
             )
             return None
@@ -234,21 +259,23 @@ class HeadsetCommandEncoder:
         command_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX)
         for val in float_values:
             clamped_val = max(-10.0, min(10.0, val))  # UI values are -10 to 10 dB
-            # Hardware values are 0x0A (-10dB) to 0x1E (+10dB), centered at 0x14 (0dB)
-            byte_value = int(0x14 + clamped_val)
-            byte_value = max(0x0A, min(0x1E, byte_value))  # Clamp to hardware limits
+            # Hardware values are EQ_HW_VALUE_MIN (-10dB) to EQ_HW_VALUE_MAX (+10dB),
+            # centered at EQ_HW_VALUE_FLAT (0dB)
+            byte_value = int(EQ_HW_VALUE_FLAT + clamped_val)
+            byte_value = max(EQ_HW_VALUE_MIN, min(EQ_HW_VALUE_MAX, byte_value))
+            # Clamp to hardware limits
             command_payload.append(byte_value)
 
-        # Original code appends a 0x00 if length is 12 (prefix + 10 bands).
+        # Original code appends a 0x00 if length is (prefix_len + num_bands).
         # This 0x00 is likely an identifier for "custom EQ slot" or similar.
-        if len(command_payload) == (len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + 10):
-            command_payload.append(0x00)  # Terminator/slot ID for custom EQ
+        if len(command_payload) == (len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS):
+            command_payload.append(EQ_PAYLOAD_TERMINATOR_OR_SLOT_ID)
         else:
             logger.error(
                 ("encode_set_eq_values: Error constructing EQ payload. Length before "
                  "terminator: %s. Expected %s."),
                 len(command_payload),
-                len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + 10,
+                len(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + NUM_EQ_BANDS,
             )
             return None
 
@@ -274,7 +301,7 @@ class HeadsetCommandEncoder:
         float_values_obj = preset_data.get("values")
 
         if not isinstance(float_values_obj, list) or not all(
-            isinstance(v, (float, int)) for v in float_values_obj
+            isinstance(v, float | int) for v in float_values_obj
         ):
             logger.error(
                 ("encode_set_eq_preset_id: Preset data 'values' for ID %s "
@@ -285,10 +312,10 @@ class HeadsetCommandEncoder:
 
         float_values: list[float] = [float(v) for v in float_values_obj]
 
-        if len(float_values) != 10:
+        if len(float_values) != NUM_EQ_BANDS:
             logger.error(
                 ("encode_set_eq_preset_id: Malformed preset data for ID %s. "
-                 "Expected 10 bands, got %s."),
+                 "Expected %s bands, got %s."),
                 preset_id,
                 len(float_values),
             )
@@ -303,8 +330,10 @@ class HeadsetCommandEncoder:
         )
 
         # As per prompt: selecting a preset effectively sends its values as a "custom" EQ setting.
-        # This means it uses the same encode_set_eq_values method, which appends 0x00.
+        # This means it uses the same encode_set_eq_values method, which
+        # appends 0x00.
         # If hardware presets require a different slot ID (e.g., 0x01-0x04),
-        # then encode_set_eq_values would need modification to accept a slot_id parameter.
+        # then encode_set_eq_values would need modification to accept a
+        # slot_id parameter.
         # For now, maintaining consistency with the original described behavior.
         return self.encode_set_eq_values(float_values)

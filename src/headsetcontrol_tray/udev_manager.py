@@ -1,7 +1,7 @@
 """Manages udev rule creation and provides guidance for headset permissions."""
 
 import logging
-import os
+from pathlib import Path # Added
 import tempfile
 
 from . import app_config
@@ -29,10 +29,10 @@ class UDEVManager:
 
     def create_rules_interactive(self) -> bool:
         """Creates a temporary udev rule file and logs instructions for the user."""
-        final_rules_path_str = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
+        final_rules_path = Path("/etc/udev/rules.d/") / UDEV_RULE_FILENAME
         logger.info(
-            f"Attempting to guide user for udev rule creation for "
-            f"{final_rules_path_str}",
+            "Attempting to guide user for udev rule creation for %s",
+            str(final_rules_path),
         )
 
         self.last_udev_setup_details = None
@@ -51,13 +51,13 @@ class UDEVManager:
 
             self.last_udev_setup_details = {
                 "temp_file_path": temp_file_name,
-                "final_file_path": final_rules_path_str,
+                "final_file_path": str(final_rules_path),
                 "rule_filename": UDEV_RULE_FILENAME,
                 "rule_content": UDEV_RULE_CONTENT,
             }
             logger.info(
-                f"Successfully wrote udev rule content to temporary file: "
-                f"{temp_file_name}",
+                "Successfully wrote udev rule content to temporary file: %s",
+                temp_file_name,
             )
             logger.info(
                 "--------------------------------------------------------------------------------",
@@ -67,8 +67,9 @@ class UDEVManager:
                 "following commands:",
             )
             logger.info(
-                f'1. Copy the rule file: sudo cp "{temp_file_name}" '
-                f'"{final_rules_path_str}"',
+                '1. Copy the rule file: sudo cp "%s" "%s"',
+                temp_file_name,
+                str(final_rules_path),
             )
             logger.info(
                 "2. Reload udev rules: sudo udevadm control --reload-rules && "
@@ -76,25 +77,28 @@ class UDEVManager:
             )
             logger.info("3. Replug your SteelSeries headset if it was connected.")
             logger.info(
-                f"(The temporary file {temp_file_name} can be deleted after copying.)",
+                "(The temporary file %s can be deleted after copying.)",
+                temp_file_name,
             )
             logger.info(
                 "--------------------------------------------------------------------------------",
             )
             return True
-        except OSError as e:
-            logger.error(f"Could not write temporary udev rule file: {e}")
+        except OSError:
+            logger.exception("Could not write temporary udev rule file")
             self.last_udev_setup_details = None
             return False
-        except Exception as e_global:  # Catch any other unexpected errors
-            logger.error(
-                f"An unexpected error occurred during temporary udev rule file "
-                f"creation: {e_global}",
+        # Catching any unexpected error to prevent crash
+        except Exception:
+            logger.exception(
+                "An unexpected error occurred during temporary udev rule file creation"
             )
             self.last_udev_setup_details = None
             return False
 
     def get_last_udev_setup_details(self) -> dict[str, str] | None:
-        """Returns details of the last udev setup attempt
-if one was made in this session."""
+        """Returns details of the last udev setup attempt.
+
+        If one was made in this session.
+        """
         return self.last_udev_setup_details

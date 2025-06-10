@@ -49,7 +49,8 @@ DEFAULT_EQ_CURVES = {
 }
 
 # Specific Hardware Preset Curves for Arctis Nova 7 (derived from headsetcontrol C code)
-# These are intended to match what selecting a preset number (0-3) on the device via headsetcontrol would do.
+# These are intended to match what selecting a preset number (0-3) on the device
+# via headsetcontrol would do.
 # Note: headsetcontrol's 'focus' preset had 9 values; padded to 10 here with a final 0.
 ARCTIS_NOVA_7_HW_PRESETS = {
     0: {
@@ -117,11 +118,14 @@ HARDWARE_EQ_PRESET_NAMES = {
 # Most commands use this configuration.
 # The first byte of the output report is often 0x00. This might be:
 #   a) A specific Report ID for this interface/usage page.
-#   b) A conventional first byte if the interface uses unnumbered reports for these commands.
+#   b) A conventional first byte if the interface uses unnumbered reports for
+#      these commands.
 #   This needs to be handled correctly by the HID writing function.
-#   If it's a Report ID, python-hid's device.write() expects it as the first byte.
-#   If it's not a Report ID (i.e., unnumbered reports), it should be omitted if the library handles that,
-#   or it's part of the actual command data sent after a (potentially zero) report ID.
+#   If it's a Report ID, python-hid's device.write() expects it as the
+#   first byte.
+#   If it's not a Report ID (i.e., unnumbered reports), it should be omitted if
+#   the library handles that, or it's part of the actual command data sent after
+#   a (potentially zero) report ID.
 #   For simplicity, we'll define it as part of the command if it's fixed for many commands.
 #   HeadsetControl's C code writes these bytes directly, often starting with 0x00.
 

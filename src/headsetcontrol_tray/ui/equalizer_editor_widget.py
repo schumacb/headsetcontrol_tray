@@ -92,7 +92,7 @@ class EqualizerEditorWidget(QWidget):
             0,
             5,
             0,
-            5,
+            5, # COM812: Trailing comma
         )  # Add some top/bottom margin
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self._save_custom_curve)
@@ -149,7 +149,7 @@ class EqualizerEditorWidget(QWidget):
         self._select_initial_eq_from_config()
 
     def _populate_eq_combo(self) -> None:
-        self.eq_combo.blockSignals(True)
+        self.eq_combo.blockSignals(True)  # noqa: FBT003
         current_combo_data = (
             self.eq_combo.currentData()
         )  # Preserve selection if possible
@@ -183,7 +183,7 @@ class EqualizerEditorWidget(QWidget):
             self.eq_combo.setCurrentIndex(restored_idx)
         # If not restored, _select_initial_eq_from_config will handle setting the index
 
-        self.eq_combo.blockSignals(False)
+        self.eq_combo.blockSignals(False)  # noqa: FBT003
 
     def _select_initial_eq_from_config(self) -> None:
         active_type_from_config = self.config_manager.get_active_eq_type()
@@ -220,9 +220,9 @@ class EqualizerEditorWidget(QWidget):
                 )
 
             else:
-                self.eq_combo.blockSignals(True)
+                self.eq_combo.blockSignals(True)  # noqa: FBT003
                 self.eq_combo.setCurrentIndex(found_idx)
-                self.eq_combo.blockSignals(False)
+                self.eq_combo.blockSignals(False)  # noqa: FBT003
                 self._process_eq_selection(
                     self.eq_combo.itemData(found_idx),
                     is_initial_load=True,
@@ -232,9 +232,9 @@ class EqualizerEditorWidget(QWidget):
                 "Initial EQ target %s not found in combo. Selecting first available.",
                 target_data_to_select,
             )
-            self.eq_combo.blockSignals(True)
+            self.eq_combo.blockSignals(True)  # noqa: FBT003
             self.eq_combo.setCurrentIndex(0)
-            self.eq_combo.blockSignals(False)
+            self.eq_combo.blockSignals(False)  # noqa: FBT003
             self._process_eq_selection(self.eq_combo.itemData(0), is_initial_load=True)
         else:
             logger.error("EQ combo is empty. Cannot select initial EQ.")
@@ -258,6 +258,7 @@ class EqualizerEditorWidget(QWidget):
     def _process_eq_selection(
         self,
         eq_data: tuple[str, Any],
+        *,
         is_initial_load: bool = False,
         force_ui_update_only: bool = False,
     ) -> None:
@@ -269,10 +270,10 @@ class EqualizerEditorWidget(QWidget):
             # or force_ui_update_only is false. This helps preserve the
             # "active editing" context if refresh_view is called while sliders are dirty.
             if not (
-                force_ui_update_only
-                and self._current_custom_curve_original_name == curve_name
-                and self._sliders_have_unsaved_changes
-            ): # Wrapped condition
+                force_ui_update_only and
+                self._current_custom_curve_original_name == curve_name and
+                self._sliders_have_unsaved_changes
+            ):
                 self._current_custom_curve_original_name = curve_name
 
             values = self.config_manager.get_custom_eq_curve(curve_name)
@@ -387,7 +388,7 @@ class EqualizerEditorWidget(QWidget):
         can_delete = is_custom_mode_active and bool(
             self._current_custom_curve_original_name
             and self._current_custom_curve_original_name
-            not in app_config.DEFAULT_EQ_CURVES,
+            not in app_config.DEFAULT_EQ_CURVES, # COM812: Trailing comma
         )
         self.delete_button.setEnabled(can_delete)
 
@@ -396,7 +397,7 @@ class EqualizerEditorWidget(QWidget):
         )
 
         if is_custom_mode_active and self._current_custom_curve_original_name:
-            self.eq_combo.blockSignals(True)
+            self.eq_combo.blockSignals(True)  # noqa: FBT003
             # current_idx was unused
             # active_curve_found_in_combo was unused
             for i in range(self.eq_combo.count()):
@@ -417,7 +418,7 @@ class EqualizerEditorWidget(QWidget):
                         # active curve already. This check prevents infinite loops
                         # if currentData points to the same logical curve.
                         current_selection_data = self.eq_combo.itemData(
-                            self.eq_combo.currentIndex()
+                            self.eq_combo.currentIndex(), # COM812: Trailing comma
                         ) # Wrapped
                         if not (
                             current_selection_data
@@ -436,7 +437,7 @@ class EqualizerEditorWidget(QWidget):
             # If the current combo selection IS NOT the active custom curve,
             # reset its '*'
             current_selection_data = self.eq_combo.itemData(
-                self.eq_combo.currentIndex()
+                self.eq_combo.currentIndex(), # COM812: Trailing comma
             ) # Wrapped
             if (
                 current_selection_data
@@ -450,12 +451,12 @@ class EqualizerEditorWidget(QWidget):
                 original_text = self.eq_combo.currentText().rstrip("*")
                 self.eq_combo.setItemText(self.eq_combo.currentIndex(), original_text)
 
-            self.eq_combo.blockSignals(False)
+            self.eq_combo.blockSignals(False)  # noqa: FBT003
         elif not is_custom_mode_active:
             self._remove_all_unsaved_indicators_from_combo()
 
     def _remove_all_unsaved_indicators_from_combo(self) -> None:
-        self.eq_combo.blockSignals(True)
+        self.eq_combo.blockSignals(True)  # noqa: FBT003
         current_idx = self.eq_combo.currentIndex()  # Preserve if it's a HW preset
         for i in range(self.eq_combo.count()):
             item_data = self.eq_combo.itemData(i)
@@ -465,7 +466,7 @@ class EqualizerEditorWidget(QWidget):
                     self.eq_combo.setItemText(i, original_name)
         if current_idx != -1:
             self.eq_combo.setCurrentIndex(current_idx)
-        self.eq_combo.blockSignals(False)
+        self.eq_combo.blockSignals(False)  # noqa: FBT003
 
     def _update_slider_label(self, index: int, value: int) -> None:
         self.slider_labels[index].setText(f"{value} dB")
@@ -532,9 +533,9 @@ class EqualizerEditorWidget(QWidget):
 
     def _set_slider_visuals(self, values: list[int]) -> None:
         for i, value in enumerate(values):
-            self.sliders[i].blockSignals(True)
+            self.sliders[i].blockSignals(True)  # noqa: FBT003
             self.sliders[i].setValue(value)
-            self.sliders[i].blockSignals(False)
+            self.sliders[i].blockSignals(False)  # noqa: FBT003
             self._update_slider_label(i, value)
 
     def _get_slider_values(self) -> list[int]:
@@ -551,7 +552,8 @@ class EqualizerEditorWidget(QWidget):
             return
 
         logger.debug(
-            f"Discarding slider changes for '{self._current_custom_curve_original_name}'",
+            "Discarding slider changes for '%s'",
+            self._current_custom_curve_original_name,
         )
         self._set_slider_visuals(
             list(self._current_custom_curve_saved_values),
@@ -621,17 +623,16 @@ class EqualizerEditorWidget(QWidget):
         if not (ok and new_name.strip()):
             return
         new_name = new_name.strip()
-        if new_name in self.config_manager.get_all_custom_eq_curves():
-            if (
-                QMessageBox.question(
-                    self,
-                    "Overwrite",
-                    f"Curve '{new_name}' exists. Overwrite?",
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                )
-                == QMessageBox.StandardButton.No
-            ):
-                return
+        if (
+            new_name in self.config_manager.get_all_custom_eq_curves() and
+            QMessageBox.question(
+                self,
+                "Overwrite",
+                f"Curve '{new_name}' exists. Overwrite?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, # COM812: Trailing comma
+            ) == QMessageBox.StandardButton.No
+        ):
+            return
 
         values = self._get_slider_values()
         try:
@@ -651,7 +652,7 @@ class EqualizerEditorWidget(QWidget):
                     found_idx = i
                     break
 
-            self.eq_combo.blockSignals(True)
+            self.eq_combo.blockSignals(True)  # noqa: FBT003
             if found_idx != -1:
                 self.eq_combo.setCurrentIndex(found_idx)
             else:
@@ -660,7 +661,7 @@ class EqualizerEditorWidget(QWidget):
                     new_name,
                 )
                 self._select_initial_eq_from_config()
-            self.eq_combo.blockSignals(False)
+            self.eq_combo.blockSignals(False)  # noqa: FBT003
 
             # After setCurrentIndex, _on_eq_selected_in_combo will fire, which
             # calls _process_eq_selection. This will handle setting config and
@@ -674,7 +675,7 @@ class EqualizerEditorWidget(QWidget):
             # Manually process if the index didn't change but we need to register
             # it as the active one
             if self.eq_combo.currentIndex() == found_idx:
-                self._process_eq_selection(new_curve_data, is_initial_load=False)
+                self._process_eq_selection(new_curve_data, is_initial_load=False, force_ui_update_only=False) # Ensure all args are keywords
 
             QMessageBox.information(self, "Saved As", f"Curve '{new_name}' saved.")
 
@@ -731,9 +732,9 @@ class EqualizerEditorWidget(QWidget):
                 idx_to_select = 0
 
             if idx_to_select != -1:
-                self.eq_combo.blockSignals(True)
+                self.eq_combo.blockSignals(True)  # noqa: FBT003
                 self.eq_combo.setCurrentIndex(idx_to_select)
-                self.eq_combo.blockSignals(False)
+                self.eq_combo.blockSignals(False)  # noqa: FBT003
                 self._process_eq_selection(
                     self.eq_combo.itemData(idx_to_select),
                     is_initial_load=False,

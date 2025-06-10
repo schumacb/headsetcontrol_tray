@@ -1,6 +1,7 @@
 """Manages the discovery, connection, and sorting of HID devices."""
 
 import logging
+import contextlib # Added
 from typing import Any
 
 import hid
@@ -8,6 +9,13 @@ import hid
 from . import app_config  # Assuming app_config is in the same directory
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
+
+# Specific interface numbers for sorting preference
+STEELSERIES_INTERFACE_0 = 0
+STEELSERIES_INTERFACE_3 = 3
+# Note: app_config.HID_REPORT_INTERFACE is also used for the primary target interface.
+# app_config.ARCTIS_NOVA_7_USER_PID is used for the specific PID 0x2202.
+# app_config.HID_REPORT_USAGE_PAGE is used for 0xFFC0.
 
 
 class HIDConnectionManager:
@@ -33,8 +41,8 @@ class HIDConnectionManager:
                 "Found %s SteelSeries VID devices during enumeration.",
                 len(devices_enum),
             )
-        except Exception as e_enum:
-            logger.error("Error enumerating HID devices: %s", str(e_enum))
+        except hid.HIDException as e_enum:
+            logger.exception("Error enumerating HID devices")
             return []
 
         potential_devices = []
@@ -79,25 +87,28 @@ class HIDConnectionManager:
             # less generic. Consider if it's universally applicable or needs to be
             # part of a more flexible configuration.
             if (
-                d_info.get("product_id") == 0x2202
-                and d_info.get("interface_number") == 0
+                d_info.get("product_id") == app_config.ARCTIS_NOVA_7_USER_PID
+                and d_info.get("interface_number") == STEELSERIES_INTERFACE_0
             ):
                 logger.debug(
-                    "  SortKey: Prioritizing interface 0 for PID 0x%04x (-1)",
+                    "  SortKey: Prioritizing interface %s for PID 0x%04x (-1)",
+                    STEELSERIES_INTERFACE_0,
                     d_info.get("product_id"),
                 )
                 return -1
             if (
-                d_info.get("interface_number") == 3
+                d_info.get("interface_number") == STEELSERIES_INTERFACE_3
             ):  # Common interface for some SteelSeries headsets
                 logger.debug(
-                    "  SortKey: Prioritizing interface 3 (generic) for PID 0x%04x (0)",
+                    "  SortKey: Prioritizing interface %s (generic) for PID 0x%04x (0)",
+                    STEELSERIES_INTERFACE_3,
                     d_info.get("product_id"),
                 )
                 return 0
-            if d_info.get("usage_page") == 0xFFC0:  # Common SteelSeries usage page
+            if d_info.get("usage_page") == app_config.HID_REPORT_USAGE_PAGE:  # Common SteelSeries usage page
                 logger.debug(
-                    "  SortKey: Prioritizing usage page 0xFFC0 (generic) for PID 0x%04x (1)",
+                    "  SortKey: Prioritizing usage page 0x%04x (generic) for PID 0x%04x (1)",
+                    app_config.HID_REPORT_USAGE_PAGE,
                     d_info.get("product_id"),
                 )
                 return 1
@@ -112,7 +123,7 @@ class HIDConnectionManager:
 
         devices.sort(key=sort_key)
         logger.debug(
-            "Found %s potential devices to try, sorted by priority.", # Wrapped
+            ("Found %s potential devices to try, sorted by priority."),
             len(devices),
         )
         for i, d in enumerate(devices):
@@ -150,7 +161,8 @@ class HIDConnectionManager:
             h_temp = None
             path_str = dev_info_to_try["path"].decode("utf-8", errors="replace")
             logger.debug(
-                "  Attempting to open path: %s (Interface: %s, UsagePage: 0x%04x, PID: 0x%04x)",
+                ("  Attempting to open path: %s (Interface: %s, UsagePage: 0x%04x, "
+                 "PID: 0x%04x)"),
                 path_str,
                 dev_info_to_try.get("interface_number", "N/A"),
                 dev_info_to_try.get("usage_page", 0),
@@ -159,27 +171,25 @@ class HIDConnectionManager:
             try:
                 # Ensure path is bytes as expected by hid.Device constructor
                 h_temp = hid.Device(path=dev_info_to_try["path"])
+            except (hid.HIDException, OSError) as e_open:
+                logger.exception("    Failed to open HID device path %s", path_str)
+                # h_temp would not be assigned if hid.Device() failed, so no need to check/close it here.
+                continue
+            else: # TRY300: Success path in else block
                 self.hid_device = h_temp
                 self.selected_device_info = dev_info_to_try
                 logger.info(
-                    "Successfully opened HID device: %s on interface %s path %s", # Wrapped
+                    ("Successfully opened HID device: %s on interface %s "
+                     "path %s"),
                     dev_info_to_try.get("product_string", "N/A"),
                     dev_info_to_try.get("interface_number", -1),
                     path_str,
                 )
                 return True
-            except Exception as e_open:
-                logger.warning(
-                    "    Failed to open HID device path %s: %s",
-                    path_str,
-                    str(e_open),
-                )
-                if h_temp:
-                    try:
-                        h_temp.close()
-                    except Exception:  # pylint: disable=broad-except
-                        pass  # Ignore errors on close during error handling
-                continue
+            # Note: The 'if h_temp:' block for closing is removed here because if hid.Device() fails,
+            # h_temp is not assigned, and if it succeeds, we return True from the 'else' block.
+            # If there was a failure after h_temp assignment but before returning True,
+            # that would be a different scenario, but the current structure returns immediately on success.
 
         self.hid_device = None
         self.selected_device_info = None
@@ -222,12 +232,8 @@ class HIDConnectionManager:
             logger.debug("Closing HID device: %s", device_path)
             try:
                 self.hid_device.close()
-            except Exception as e:  # pylint: disable=broad-except
-                logger.warning(
-                    "Exception while closing HID device %s: %s",
-                    device_path,
-                    str(e),
-                )
+            except hid.HIDException as e:
+                logger.exception("Exception while closing HID device %s", device_path)
             finally:
                 self.hid_device = None
                 self.selected_device_info = None

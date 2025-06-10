@@ -19,6 +19,9 @@ logger = logging.getLogger(
     __name__,
 )  # Will be configured by your main app's logging setup
 
+CHATMIX_NORMALIZED_MIDPOINT = 0.5
+FLOAT_COMPARISON_TOLERANCE = 0.001
+
 
 class ChatMixManager:
     """Handles automatic volume adjustment of applications based on ChatMix values."""
@@ -60,30 +63,26 @@ class ChatMixManager:
                 capture_output=True,
                 text=True,
                 check=True,
-            )
+            ) # nosec B603
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            logger.error(
-                "Command '%s' failed with error: %s",
-                " ".join(command_args),
-                e.stderr.strip(),
-            )
+            logger.exception("Command '%s' failed", " ".join(command_args))
         except FileNotFoundError:
-            logger.error(
+            logger.exception(
                 "Command '%s' not found. Is PipeWire installed and in PATH?",
-                command_args[0],
+                 command_args[0] if command_args else "N/A"
             )
-        except Exception as e:
-            logger.error(
-                "An unexpected error occurred while running '%s': %s",
-                " ".join(command_args),
-                e,
+        # Catching any other unexpected error during pipewire command execution
+        except Exception:
+            logger.exception(
+                "An unexpected error occurred while running '%s'",
+                " ".join(command_args)
             )
         return None
 
     def _get_audio_streams(self) -> list[dict[str, Any]]:
-        """
-        Gets all active audio output stream nodes from PipeWire using pw-dump.
+        """Gets all active audio output stream nodes from PipeWire using pw-dump.
+
         Extracts ID, identifying properties, and current channel/volume info.
         """
         json_output = self._run_pipewire_command(["pw-dump"])
@@ -93,8 +92,8 @@ class ChatMixManager:
 
         try:
             all_objects = json.loads(json_output)
-        except json.JSONDecodeError as e:
-            logger.error("Failed to parse JSON from pw-dump: %s", e)
+        except json.JSONDecodeError:
+            logger.exception("Failed to parse JSON from pw-dump")
             return []
 
         streams = []
@@ -126,7 +125,8 @@ class ChatMixManager:
                 ]  # Default to mono 100%
                 num_channels = 1
 
-                if node_params.get("Props"):  # "Props" exists and is not empty list
+                if node_params.get("Props"):
+                    # "Props" exists and is not empty list
                     # "Props" parameter is usually an array with one object in it
                     props_param_instance = (
                         node_params["Props"][0]
@@ -155,27 +155,27 @@ class ChatMixManager:
         return streams
 
     def _calculate_volumes(self, chatmix_value: int) -> tuple[float, float]:
-        """
-        Calculates game and chat volumes based on ChatMix (0-128).
+        """Calculates game and chat volumes based on ChatMix (0-128).
+
         0   = Full Chat (Game low, Chat full)
         64  = Balanced (Both full)
         128 = Full Game (Chat low, Game full)
         """
         chatmix_norm = chatmix_value / 128.0  # Normalize to 0.0 - 1.0
 
-        # This creates a curve where at 0.5 (balanced), both are full.
-        # As it moves away from 0.5, one channel is attenuated.
-        if chatmix_norm <= 0.5:  # More towards Chat (0.0 to 0.5)
+        # This creates a curve where at CHATMIX_NORMALIZED_MIDPOINT (balanced), both are full.
+        # As it moves away from CHATMIX_NORMALIZED_MIDPOINT, one channel is attenuated.
+        if chatmix_norm <= CHATMIX_NORMALIZED_MIDPOINT:  # More towards Chat (0.0 to 0.5)
             chat_vol = self.reference_volume
             # Game volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 0.0)
             # Scale the 0.0-0.5 range to 0.0-1.0 for the factor
-            game_vol_factor = chatmix_norm * 2.0
+            game_vol_factor = chatmix_norm * 2.0 # chatmix_norm / CHATMIX_NORMALIZED_MIDPOINT
             game_vol = self.reference_volume * game_vol_factor
         else:  # More towards Game (0.5 to 1.0)
             game_vol = self.reference_volume
             # Chat volume goes from reference_volume (at chatmix 0.5) down to 0 (at chatmix 1.0)
             # Scale the 0.5-1.0 range to 1.0-0.0 for the factor
-            chat_vol_factor = (1.0 - chatmix_norm) * 2.0
+            chat_vol_factor = (1.0 - chatmix_norm) * 2.0 # (1.0 - chatmix_norm) / (1.0 - CHATMIX_NORMALIZED_MIDPOINT)
             chat_vol = self.reference_volume * chat_vol_factor
 
         # Clamp volumes (e.g., to prevent > 1.0 if reference_volume is 1.0)
@@ -210,7 +210,7 @@ class ChatMixManager:
         if (
             last_volumes is not None
             and len(last_volumes) == num_channels
-            and all(abs(last_vol - target_volume) < 0.001 for last_vol in last_volumes)
+            and all(abs(last_vol - target_volume) < FLOAT_COMPARISON_TOLERANCE for last_vol in last_volumes)
         ):  # Compare with a tolerance
             logger.debug(
                 "Volume for stream ID %s already at target %.2f. Skipping pw-cli.",
@@ -235,7 +235,7 @@ class ChatMixManager:
         logger.debug("Executing PipeWire command: %s", " ".join(cmd))
 
         try:
-            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            process = subprocess.run(cmd, capture_output=True, text=True, check=True) # nosec B603
             logger.debug(
                 "pw-cli set-param for stream %s successful. Output: %s",
                 stream_id,
@@ -245,22 +245,18 @@ class ChatMixManager:
                 target_volumes_list  # Update last set volumes
             )
         except FileNotFoundError:
-            logger.error(
-                ("pw-cli command not found. Please ensure PipeWire utilities are "
-                 "installed and in PATH."),
-            )
+            logger.exception("pw-cli command not found.")
         except subprocess.CalledProcessError as e:
-            logger.error(
-                "Error setting volume for stream %s using pw-cli (exit code %s): %s",
+            logger.exception(
+                "Error setting volume for stream %s using pw-cli (exit code %s)",
                 stream_id,
                 e.returncode,
-                e.stderr.strip(),
             )
-        except Exception as e:
-            logger.error(
-                "An unexpected error occurred while setting volume for stream %s: %s",
-                stream_id,
-                e,
+        # Catching any other unexpected error during volume setting
+        except Exception:
+            logger.exception(
+                "An unexpected error occurred while setting volume for stream %s",
+                stream_id
             )
 
     def update_volumes(self, chatmix_value: int | None) -> None:

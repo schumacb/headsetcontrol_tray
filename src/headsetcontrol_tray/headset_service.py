@@ -7,7 +7,7 @@ send commands.
 """
 
 import logging
-import os
+from pathlib import Path # Added
 from typing import Any
 
 from . import app_config
@@ -83,9 +83,9 @@ class HeadsetService:
                 # Recreate communicator if it's None or if the device object identity has changed.
                 # HIDConnectionManager is the source of truth for the current device and its info.
                 if (
-                    self.hid_communicator is None
-                    or self.hid_communicator.hid_device != active_hid_device
-                ):
+                    self.hid_communicator is None or
+                    self.hid_communicator.hid_device != active_hid_device
+                ): # Wrapped condition
                     self.hid_communicator = HIDCommunicator(
                         hid_device=active_hid_device,
                         device_info=device_info_for_comm,
@@ -94,7 +94,8 @@ class HeadsetService:
                 return True
             # Should not happen if ensure_connection() was true and returned a device
             logger.error(
-                "_ensure_hid_communicator: Connection manager reported success but no device found by get_hid_device().",
+                ("_ensure_hid_communicator: Connection manager reported success "
+                 "but no device found by get_hid_device()."),
             )
             self.hid_communicator = None  # Ensure communicator is cleared
             return False
@@ -105,12 +106,12 @@ class HeadsetService:
         self.hid_communicator = None  # Ensure communicator is cleared
 
         # If connection fails, check for udev rules and guide user if missing
-        final_rules_path = os.path.join("/etc/udev/rules.d/", STEELSERIES_UDEV_FILENAME)
-        if not os.path.exists(final_rules_path):
+        final_rules_path = Path("/etc/udev/rules.d/") / STEELSERIES_UDEV_FILENAME
+        if not final_rules_path.exists():
             logger.info(
                 "Udev rules file not found at %s. Triggering interactive udev rule "
                 "creation guide.",
-                final_rules_path,
+                str(final_rules_path), # Convert Path to string for logging
             )
             if (
                 self.udev_manager.create_rules_interactive()
@@ -121,7 +122,7 @@ class HeadsetService:
         else:
             logger.debug(
                 "Udev rules file %s exists. Skipping interactive udev guide related to connection failure.",
-                final_rules_path,
+                str(final_rules_path), # Convert Path to string for logging
             )
         return False
 
@@ -130,15 +131,16 @@ class HeadsetService:
         self.hid_connection_manager.close()  # This will set its hid_device to None
         self.hid_communicator = None  # Clear our communicator instance
         logger.debug(
-            "HeadsetService: HID connection closed via manager, local communicator cleared.",
+            "HeadsetService: HID connection closed via manager, local "
+            "communicator cleared.",
         )
 
     def _get_parsed_status_hid(self) -> dict[str, Any] | None:
         if not self._ensure_hid_communicator() or not self.hid_communicator:
             if self._last_hid_parsed_status is not None:
                 logger.info(
-                    "_get_parsed_status_hid: HID communicator not available, clearing "
-                    "last known status.",
+                    ("_get_parsed_status_hid: HID communicator not available, "
+                     "clearing last known status."),
                 )
             self._last_hid_raw_read_data = None
             self._last_hid_parsed_status = None
@@ -309,8 +311,9 @@ class HeadsetService:
             else:
                 # This covers cases where communicator exists, but headset is offline or status fails
                 logger.info(
-                    "is_device_connected: HID path may be active, but headset reported "
-                    "as offline or status query failed. Reporting as NOT connected.",
+                    ("is_device_connected: HID path may be active, but headset "
+                     "reported as offline or status query failed. Reporting as "
+                     "NOT connected."),
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online
 
@@ -357,8 +360,8 @@ class HeadsetService:
             self._last_reported_chatmix is not None
         ):  # Log if we are clearing a known value
             logger.info(
-                "get_chatmix_value: Could not retrieve valid chatmix value, "
-                "clearing last known value.",
+                ("get_chatmix_value: Could not retrieve valid chatmix value, "
+                 "clearing last known value."),
             )
         self._last_reported_chatmix = None
         return None
@@ -415,7 +418,8 @@ class HeadsetService:
             logger.info("%s: Successfully sent command.", command_name_log)
         else:
             logger.warning(
-                "%s: Failed to send command via communicator. Closing HID connection as it might be stale.",
+                ("%s: Failed to send command via communicator. Closing HID "
+                 "connection as it might be stale."),
                 command_name_log,
             )
             self.hid_connection_manager.close()  # Close via manager
