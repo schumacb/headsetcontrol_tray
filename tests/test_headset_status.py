@@ -1,19 +1,20 @@
+import os
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import sys
-import os
 
 # Ensure src is in path for imports
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
 )
 
-from headsetcontrol_tray.headset_status import (
-    HeadsetStatusParser,
-    HeadsetCommandEncoder,
-    NUM_EQ_BANDS, # Added import
-)
 from headsetcontrol_tray import app_config
+from headsetcontrol_tray.headset_status import (
+    NUM_EQ_BANDS,  # Added import
+    HeadsetCommandEncoder,
+    HeadsetStatusParser,
+)
 
 
 # Helper to create mock response data for HeadsetStatusParser
@@ -24,36 +25,36 @@ def create_status_response_data(
     chat_byte_val: int = 0,  # Raw value 0-100
 ) -> bytes:
     data = bytearray(
-        [0] * app_config.HID_INPUT_REPORT_LENGTH_STATUS
+        [0] * app_config.HID_INPUT_REPORT_LENGTH_STATUS,
     )  # Use bytearray for mutability
 
     # Ensure indices are within bounds before assignment
-    if app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE < len(data):
+    if len(data) > app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE:
         data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE] = status_byte_val
     else:
         raise IndexError(
-            f"HID_RES_STATUS_BATTERY_STATUS_BYTE index {app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} out of bounds for data length {len(data)}"
+            f"HID_RES_STATUS_BATTERY_STATUS_BYTE index {app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} out of bounds for data length {len(data)}",
         )
 
-    if app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE < len(data):
+    if len(data) > app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE:
         data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE] = level_byte_val
     else:
         raise IndexError(
-            f"HID_RES_STATUS_BATTERY_LEVEL_BYTE index {app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE} out of bounds for data length {len(data)}"
+            f"HID_RES_STATUS_BATTERY_LEVEL_BYTE index {app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE} out of bounds for data length {len(data)}",
         )
 
-    if app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE < len(data):
+    if len(data) > app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE] = game_byte_val
     else:
         raise IndexError(
-            f"HID_RES_STATUS_CHATMIX_GAME_BYTE index {app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE} out of bounds for data length {len(data)}"
+            f"HID_RES_STATUS_CHATMIX_GAME_BYTE index {app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE} out of bounds for data length {len(data)}",
         )
 
-    if app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE < len(data):
+    if len(data) > app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE] = chat_byte_val
     else:
         raise IndexError(
-            f"HID_RES_STATUS_CHATMIX_CHAT_BYTE index {app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE} out of bounds for data length {len(data)}"
+            f"HID_RES_STATUS_CHATMIX_CHAT_BYTE index {app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE} out of bounds for data length {len(data)}",
         )
 
     return bytes(data)
@@ -62,7 +63,8 @@ def create_status_response_data(
 class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
     def setUp(self):  # Signature changed
         self.logger_patcher = patch(
-            f"{HeadsetStatusParser.__module__}.logger", new_callable=MagicMock
+            f"{HeadsetStatusParser.__module__}.logger",
+            new_callable=MagicMock,
         )
         self.mock_logger = self.logger_patcher.start()
         self.addCleanup(self.logger_patcher.stop)
@@ -118,7 +120,8 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         for level_byte, expected_percent in levels_map.items():
             with self.subTest(level_byte=level_byte):
                 response_data = create_status_response_data(
-                    status_byte_val=0x02, level_byte_val=level_byte
+                    status_byte_val=0x02,
+                    level_byte_val=level_byte,
                 )
                 parsed = self.parser.parse_status_report(response_data)
                 self.assertIsNotNone(parsed)
@@ -129,14 +132,16 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_parse_status_report_unknown_battery_level(self):  # Removed mock_logger arg
         response_data = create_status_response_data(
-            status_byte_val=0x02, level_byte_val=0x05
+            status_byte_val=0x02,
+            level_byte_val=0x05,
         )  # Unknown level
         parsed = self.parser.parse_status_report(response_data)
         self.assertIsNotNone(parsed)
         if parsed:  # For Mypy
             self.assertIsNone(parsed["battery_percent"])
         self.mock_logger.warning.assert_any_call(
-            "_parse_battery_info: Unknown raw battery level: %#02x", 5
+            "_parse_battery_info: Unknown raw battery level: %#02x",
+            5,
         )
 
     def test_parse_status_report_various_chatmix_values(
@@ -180,7 +185,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
     ):  # Removed mock_logger arg
         # Test the specific helper if data is too short for HID_RES_STATUS_BATTERY_STATUS_BYTE
         short_data = bytes(
-            [0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE)
+            [0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE),
         )  # Length exactly up to, but not including, the byte
         self.assertFalse(self.parser._determine_headset_online_status(short_data))
         self.mock_logger.warning.assert_called_with(
@@ -193,7 +198,8 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     def setUp(self):  # Signature changed
         self.logger_patcher = patch(
-            f"{HeadsetCommandEncoder.__module__}.logger", new_callable=MagicMock
+            f"{HeadsetCommandEncoder.__module__}.logger",
+            new_callable=MagicMock,
         )
         self.mock_logger = self.logger_patcher.start()
         self.addCleanup(self.logger_patcher.stop)
@@ -216,7 +222,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         for ui_level, hw_byte in sidetone_map.items():
             with self.subTest(ui_level=ui_level):
                 expected_payload = list(app_config.HID_CMD_SET_SIDETONE_PREFIX) + [
-                    hw_byte
+                    hw_byte,
                 ]
                 encoded = self.encoder.encode_set_sidetone(ui_level)
                 self.assertEqual(encoded, expected_payload)
@@ -227,7 +233,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         for minutes_in, minutes_byte in timeout_map.items():
             with self.subTest(minutes_in=minutes_in):
                 expected_payload = list(app_config.HID_CMD_SET_INACTIVE_TIME_PREFIX) + [
-                    minutes_byte
+                    minutes_byte,
                 ]
                 encoded = self.encoder.encode_set_inactive_timeout(minutes_in)
                 self.assertEqual(encoded, expected_payload)
@@ -250,7 +256,9 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         encoded = self.encoder.encode_set_eq_values(eq_floats_short)
         self.assertIsNone(encoded)
         self.mock_logger.error.assert_called_with(
-            "encode_set_eq_values: Invalid number of EQ bands. Expected %s, got %s.", NUM_EQ_BANDS, 9
+            "encode_set_eq_values: Invalid number of EQ bands. Expected %s, got %s.",
+            NUM_EQ_BANDS,
+            9,
         )
 
     # For ARCTIS_NOVA_7_HW_PRESETS, we need to ensure it's structured as expected
@@ -261,7 +269,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         preset_id_to_test = 0
         if preset_id_to_test not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
             self.skipTest(
-                f"Preset ID {preset_id_to_test} not in app_config.ARCTIS_NOVA_7_HW_PRESETS for testing."
+                f"Preset ID {preset_id_to_test} not in app_config.ARCTIS_NOVA_7_HW_PRESETS for testing.",
             )
 
         preset_values = app_config.ARCTIS_NOVA_7_HW_PRESETS[preset_id_to_test]["values"]
@@ -293,7 +301,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
             0: {
                 "name": "TestPreset",
                 "values": [1.0] * 5,
-            }  # Malformed: 5 bands instead of 10
+            },  # Malformed: 5 bands instead of 10
         },
     )
     def test_encode_set_eq_preset_id_malformed_preset_data_band_count(
@@ -314,7 +322,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
             0: {
                 "name": "TestPreset",
                 "values": "not_a_list",
-            }  # Malformed: values not a list
+            },  # Malformed: values not a list
         },
     )
     def test_encode_set_eq_preset_id_malformed_preset_data_values_type(

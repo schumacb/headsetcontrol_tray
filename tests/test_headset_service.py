@@ -1,22 +1,21 @@
-import unittest
-from unittest.mock import MagicMock, patch, call, ANY
-import hid  # Keep for type hinting if hid.Device is used
 import os
+from pathlib import Path  # Added
 import sys
-from pathlib import Path # Added
+import unittest
+from unittest.mock import MagicMock, patch
+
+import hid  # Keep for type hinting if hid.Device is used
 
 # Ensure src is in path for imports
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
 )
 
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.headset_service import HeadsetService
 
 # Removed direct import of constants like STEELSERIES_VID from headset_service, will use app_config
-from headsetcontrol_tray.udev_manager import (
-    UDEV_RULE_FILENAME as STEELSERIES_UDEV_FILENAME,
-)  # Correctly import this
 
 # New imports for mocked classes (though patches target their path in headset_service.py)
 # from headsetcontrol_tray.hid_manager import HIDConnectionManager
@@ -43,13 +42,13 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
         self.mock_path_instance.__truediv__.return_value = self.mock_final_path
 
         # Control the .exists() on this mock_final_path
-        self.mock_final_path.exists = MagicMock(return_value=True) # Default to True
+        self.mock_final_path.exists = MagicMock(return_value=True)  # Default to True
 
         self.addCleanup(self.mock_path_patcher.stop)
 
         # Patch HIDConnectionManager class
         self.hid_connection_manager_patcher = patch(
-            "headsetcontrol_tray.headset_service.HIDConnectionManager"
+            "headsetcontrol_tray.headset_service.HIDConnectionManager",
         )
         mock_hid_connection_manager_class = self.hid_connection_manager_patcher.start()
         self.mock_hid_connection_manager_instance = (
@@ -59,7 +58,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # Patch HIDCommunicator class
         self.hid_communicator_patcher = patch(
-            "headsetcontrol_tray.headset_service.HIDCommunicator"
+            "headsetcontrol_tray.headset_service.HIDCommunicator",
         )
         self.MockHIDCommunicatorClass = (
             self.hid_communicator_patcher.start()
@@ -69,7 +68,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # Patch UDEVManager class
         self.udev_manager_patcher = patch(
-            "headsetcontrol_tray.headset_service.UDEVManager"
+            "headsetcontrol_tray.headset_service.UDEVManager",
         )
         mock_udev_manager_class = self.udev_manager_patcher.start()
         self.mock_udev_manager_instance = mock_udev_manager_class.return_value
@@ -77,7 +76,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # Patch HeadsetStatusParser class
         self.status_parser_patcher = patch(
-            "headsetcontrol_tray.headset_service.HeadsetStatusParser"
+            "headsetcontrol_tray.headset_service.HeadsetStatusParser",
         )
         mock_status_parser_class = self.status_parser_patcher.start()
         self.mock_status_parser_instance = mock_status_parser_class.return_value
@@ -85,7 +84,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # Patch HeadsetCommandEncoder class
         self.command_encoder_patcher = patch(
-            "headsetcontrol_tray.headset_service.HeadsetCommandEncoder"
+            "headsetcontrol_tray.headset_service.HeadsetCommandEncoder",
         )
         mock_command_encoder_class = self.command_encoder_patcher.start()
         self.mock_command_encoder_instance = mock_command_encoder_class.return_value
@@ -98,7 +97,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # --- Original default mock behaviors from user's provided code ---
         self.mock_hid_device_instance = MagicMock(
-            spec=hid.Device
+            spec=hid.Device,
         )  # Mock the hid.Device object
         self.mock_hid_device_instance.path = b"/dev/hidraw_mock"  # Example path
 
@@ -119,9 +118,9 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
     def reset_common_mocks(self):
         # Reset the .exists() mock on the final path object
-        if hasattr(self, 'mock_final_path') and hasattr(self.mock_final_path, 'exists'):
+        if hasattr(self, "mock_final_path") and hasattr(self.mock_final_path, "exists"):
             self.mock_final_path.exists.reset_mock()
-            self.mock_final_path.exists.return_value = True # Reset to default True
+            self.mock_final_path.exists.return_value = True  # Reset to default True
 
         self.mock_hid_connection_manager_instance.reset_mock()
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = (
@@ -160,7 +159,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         # Re-initialize service to test __init__ behavior with these conditions
         # Need to ensure the HIDCommunicator isn't re-created with old mocks by default __init__
         with patch(
-            "headsetcontrol_tray.headset_service.HIDCommunicator"
+            "headsetcontrol_tray.headset_service.HIDCommunicator",
         ) as local_mock_comm_class:
             local_mock_comm_class.return_value = self.mock_hid_communicator_instance
             service = HeadsetService()
@@ -182,7 +181,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         self.mock_final_path.exists.return_value = True  # UDEV rules EXIST
 
         with patch(
-            "headsetcontrol_tray.headset_service.HIDCommunicator"
+            "headsetcontrol_tray.headset_service.HIDCommunicator",
         ) as local_mock_comm_class:
             local_mock_comm_class.return_value = self.mock_hid_communicator_instance
             service = HeadsetService()
@@ -190,7 +189,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         self.mock_final_path.exists.assert_called_once()
         self.mock_udev_manager_instance.create_rules_interactive.assert_not_called()
         self.assertIsNone(
-            service.udev_setup_details
+            service.udev_setup_details,
         )  # Should be None as interactive creation wasn't called
 
     def test_get_udev_setup_details_returns_data(self):
@@ -210,7 +209,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         )
 
         with patch(
-            "headsetcontrol_tray.headset_service.HIDCommunicator"
+            "headsetcontrol_tray.headset_service.HIDCommunicator",
         ) as local_mock_comm_class:
             local_mock_comm_class.return_value = self.mock_hid_communicator_instance
             service = HeadsetService()  # Trigger the call path
@@ -238,15 +237,15 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         self.assertTrue(self.service.is_device_connected())
         self.mock_hid_connection_manager_instance.ensure_connection.assert_called()
         self.mock_status_parser_instance.parse_status_report.assert_called_with(
-            status_report_bytes
+            status_report_bytes,
         )
 
     def test_is_device_connected_manager_fails_connection(self):
         self.reset_common_mocks()
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = False
         self.mock_hid_connection_manager_instance.get_hid_device.return_value = None
-        self.mock_final_path.exists.return_value = ( # Ensure this is also set for the path in _ensure_hid_communicator
-            True # Assume udev rules exist for this test
+        self.mock_final_path.exists.return_value = (  # Ensure this is also set for the path in _ensure_hid_communicator
+            True  # Assume udev rules exist for this test
         )
         # If the service was already initialized in setUp, its _ensure_hid_communicator might have run.
         # We need to re-evaluate its state or re-initialize if we want to test this path cleanly.
@@ -254,10 +253,14 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         # because ensure_connection() was True by default there.
 
         # Re-initialize service for a clean test of this specific scenario
-        with patch("headsetcontrol_tray.headset_service.HIDCommunicator") as local_mock_comm_class:
+        with patch(
+            "headsetcontrol_tray.headset_service.HIDCommunicator",
+        ) as local_mock_comm_class:
             local_mock_comm_class.return_value = self.mock_hid_communicator_instance
             service = HeadsetService()
-            self.assertFalse(service.is_device_connected()) # Now test with this new instance
+            self.assertFalse(
+                service.is_device_connected(),
+            )  # Now test with this new instance
 
         # The assertions below should target the mocks as they were called by 'service.is_device_connected()'
 
@@ -270,7 +273,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
     def test_is_device_connected_parser_returns_offline(self):
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": False
+            "headset_online": False,
         }
         self.assertFalse(self.service.is_device_connected())
 
@@ -286,7 +289,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
     def test_get_battery_level_offline(self):
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": False
+            "headset_online": False,
         }
         self.assertIsNone(self.service.get_battery_level())
 
@@ -324,7 +327,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
         self.mock_hid_connection_manager_instance.close.assert_called_once()
         self.assertIsNone(
-            self.service.hid_communicator
+            self.service.hid_communicator,
         )  # Communicator should be cleared
 
     def test_read_failure_in_get_status(self):
@@ -355,10 +358,11 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
 
         self.assertTrue(result)
         self.mock_command_encoder_instance.encode_set_sidetone.assert_called_once_with(
-            50
+            50,
         )
         self.mock_hid_communicator_instance.write_report.assert_called_once_with(
-            report_id=0, data=encoded_payload
+            report_id=0,
+            data=encoded_payload,
         )
 
     def test_set_sidetone_level_encoder_returns_none(self):
@@ -393,10 +397,11 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.mock_hid_communicator_instance.write_report.return_value = True
         self.assertTrue(self.service.set_inactive_timeout(30))
         self.mock_command_encoder_instance.encode_set_inactive_timeout.assert_called_once_with(
-            30
+            30,
         )
         self.mock_hid_communicator_instance.write_report.assert_called_once_with(
-            report_id=0, data=payload
+            report_id=0,
+            data=payload,
         )
 
     def test_set_eq_values_success(self):
@@ -406,10 +411,11 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.mock_hid_communicator_instance.write_report.return_value = True
         self.assertTrue(self.service.set_eq_values(values))
         self.mock_command_encoder_instance.encode_set_eq_values.assert_called_once_with(
-            values
+            values,
         )
         self.mock_hid_communicator_instance.write_report.assert_called_once_with(
-            report_id=0, data=payload
+            report_id=0,
+            data=payload,
         )
 
     def test_set_eq_preset_id_success(self):
@@ -421,10 +427,11 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.mock_hid_communicator_instance.write_report.return_value = True
         self.assertTrue(self.service.set_eq_preset_id(preset_id))
         self.mock_command_encoder_instance.encode_set_eq_preset_id.assert_called_once_with(
-            preset_id
+            preset_id,
         )
         self.mock_hid_communicator_instance.write_report.assert_called_once_with(
-            report_id=0, data=payload
+            report_id=0,
+            data=payload,
         )
 
     def test_close_method(self):

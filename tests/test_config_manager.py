@@ -172,7 +172,8 @@ class TestConfigManager(unittest.TestCase):
 
         mock_json_dump.assert_not_called()
         mock_logger.exception.assert_called_once_with(
-            "Error saving file %s", mock_file_path
+            "Error saving file %s",
+            mock_file_path,
         )
 
     @mock.patch("json.dump", side_effect=OSError("Permission denied"))
@@ -196,7 +197,8 @@ class TestConfigManager(unittest.TestCase):
             cm._save_json_file(mock_file_path, data_to_save)
 
         mock_logger.exception.assert_called_once_with(
-            "Error saving file %s", mock_file_path
+            "Error saving file %s",
+            mock_file_path,
         )
 
     def test_get_setting(self):

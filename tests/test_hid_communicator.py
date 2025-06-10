@@ -1,23 +1,25 @@
-import unittest
-from unittest.mock import MagicMock, patch, call, ANY
-import hid
-import sys
 import os
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
+
+import hid
 
 # Ensure src is in path for imports
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
 )
 
 from headsetcontrol_tray.hid_communicator import HIDCommunicator
-from headsetcontrol_tray import app_config  # For logger name
 
 
 # Removed class decorator
 class TestHIDCommunicator(unittest.TestCase):
     def setUp(self):  # Signature changed
         self.logger_patcher = patch(
-            f"{HIDCommunicator.__module__}.logger", new_callable=MagicMock
+            f"{HIDCommunicator.__module__}.logger",
+            new_callable=MagicMock,
         )
         self.mock_logger = self.logger_patcher.start()
         self.addCleanup(self.logger_patcher.stop)
@@ -42,7 +44,7 @@ class TestHIDCommunicator(unittest.TestCase):
             # Provide a dummy device_info for this specific error test
             HIDCommunicator(None, device_info={"path": b"", "product_string": ""})
         self.mock_logger.error.assert_called_with(
-            "HIDCommunicator initialized with a None hid_device. This is unexpected."
+            "HIDCommunicator initialized with a None hid_device. This is unexpected.",
         )
 
     def test_write_report_success_with_report_id(self):  # Removed mock_logger arg
@@ -93,14 +95,14 @@ class TestHIDCommunicator(unittest.TestCase):
     def test_read_report_success(self):  # Removed mock_logger arg
         expected_bytes = b"\x01\x02\x03"
         self.mock_hid_device.read.return_value = bytearray(
-            expected_bytes
+            expected_bytes,
         )  # hid.Device.read often returns bytearray
 
         result = self.communicator.read_report(report_length=3)  # Removed timeout_ms
 
         self.assertEqual(result, expected_bytes)
         self.mock_hid_device.read.assert_called_once_with(
-            3
+            3,
         )  # Removed timeout_ms from assertion
         self.mock_logger.debug.assert_any_call(
             "HID read successful from %s (%s): %s",

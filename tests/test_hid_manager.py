@@ -1,22 +1,28 @@
-import unittest
-from unittest import mock # Added
-from unittest.mock import MagicMock, patch, call, ANY
-import hid
-import sys
 import os
+import sys
+import unittest
+from unittest import mock  # Added
+from unittest.mock import MagicMock, patch
+
+import hid
 
 # Ensure src is in path for imports
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
 )
 
-from headsetcontrol_tray.hid_manager import HIDConnectionManager
 from headsetcontrol_tray import app_config
+from headsetcontrol_tray.hid_manager import HIDConnectionManager
 
 
 # Default mock device info structure
 def create_mock_device_info(
-    pid, interface_number=-1, usage_page=0, usage=0, path_suffix="1"
+    pid,
+    interface_number=-1,
+    usage_page=0,
+    usage=0,
+    path_suffix="1",
 ):
     return {
         "vendor_id": app_config.STEELSERIES_VID,
@@ -24,9 +30,7 @@ def create_mock_device_info(
         "interface_number": interface_number,
         "usage_page": usage_page,
         "usage": usage,
-        "path": f"path_vid_{app_config.STEELSERIES_VID:04x}_pid_{pid:04x}_{path_suffix}".encode(
-            "utf-8"
-        ),
+        "path": f"path_vid_{app_config.STEELSERIES_VID:04x}_pid_{pid:04x}_{path_suffix}".encode(),
         "product_string": f"MockDevice PID {pid:04x}",
     }
 
@@ -44,7 +48,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         mock_hid_enumerate.return_value = [
             create_mock_device_info(mock_dev1_pid),
             create_mock_device_info(
-                mock_dev_other_vid_pid
+                mock_dev_other_vid_pid,
             ),  # Belongs to SteelSeries VID, but not target PID
             {
                 "vendor_id": 0x1234,
@@ -61,7 +65,9 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")
     def test_find_potential_hid_devices_enumeration_error(
-        self, mock_logger, mock_hid_enumerate
+        self,
+        mock_logger,
+        mock_hid_enumerate,
     ):
         mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
         devices = self.manager._find_potential_hid_devices()
@@ -71,7 +77,9 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")
     def test_find_potential_hid_devices_no_matches(
-        self, mock_logger, mock_hid_enumerate
+        self,
+        mock_logger,
+        mock_hid_enumerate,
     ):
         mock_hid_enumerate.return_value = [
             create_mock_device_info(0x9999),  # Wrong PID
@@ -93,14 +101,14 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         # Backup TARGET_PIDS before each test in this class if necessary, or use setUpClass
         if TestHIDConnectionManagerSorting._original_target_pids is None:
             TestHIDConnectionManagerSorting._original_target_pids = list(
-                app_config.TARGET_PIDS
+                app_config.TARGET_PIDS,
             )
 
     def tearDown(self):
         # Restore TARGET_PIDS after each test if it was backed up and potentially modified
         if TestHIDConnectionManagerSorting._original_target_pids is not None:
             app_config.TARGET_PIDS = list(
-                TestHIDConnectionManagerSorting._original_target_pids
+                TestHIDConnectionManagerSorting._original_target_pids,
             )
             # Reset for next test, so setUpClass logic isn't strictly needed if we reset here
             # Or, manage this in setUpClass & tearDownClass. For simplicity here, this works per test.
@@ -131,15 +139,21 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         )
         # Interface 3 (priority: 0)
         dev_c = create_mock_device_info(
-            app_config.TARGET_PIDS[0], interface_number=3, path_suffix="dev_c"
+            app_config.TARGET_PIDS[0],
+            interface_number=3,
+            path_suffix="dev_c",
         )
         # Usage page 0xFFC0 (priority: 1)
         dev_d = create_mock_device_info(
-            app_config.TARGET_PIDS[0], usage_page=0xFFC0, path_suffix="dev_d"
+            app_config.TARGET_PIDS[0],
+            usage_page=0xFFC0,
+            path_suffix="dev_d",
         )
         # Default (priority: 2)
         dev_e = create_mock_device_info(
-            app_config.TARGET_PIDS[0], interface_number=1, path_suffix="dev_e"
+            app_config.TARGET_PIDS[0],
+            interface_number=1,
+            path_suffix="dev_e",
         )
 
         devices_unsorted = [dev_e, dev_c, dev_a, dev_d, dev_b]
@@ -147,7 +161,8 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
 
         sorted_devices = self.manager._sort_hid_devices(devices_unsorted)
         self.assertEqual(
-            [d["path"] for d in sorted_devices], [e["path"] for e in expected_order]
+            [d["path"] for d in sorted_devices],
+            [e["path"] for e in expected_order],
         )
 
         # No explicit cleanup here needed due to tearDown,
@@ -166,23 +181,27 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
 
 
 @patch(
-    "headsetcontrol_tray.hid_manager.hid.Device"
+    "headsetcontrol_tray.hid_manager.hid.Device",
 )  # Mock the hid.Device class constructor
 @patch.object(
-    HIDConnectionManager, "_find_potential_hid_devices"
+    HIDConnectionManager,
+    "_find_potential_hid_devices",
 )  # Mock the method within the class
 class TestHIDConnectionManagerConnection(unittest.TestCase):
     def setUp(self):
         self.manager = HIDConnectionManager()
 
     def test_connect_device_success(
-        self, mock_find_devices, mock_hid_device_constructor
+        self,
+        mock_find_devices,
+        mock_hid_device_constructor,
     ):
         mock_device_info = create_mock_device_info(
-            app_config.TARGET_PIDS[0], interface_number=app_config.HID_REPORT_INTERFACE
+            app_config.TARGET_PIDS[0],
+            interface_number=app_config.HID_REPORT_INTERFACE,
         )
         mock_find_devices.return_value = [
-            mock_device_info
+            mock_device_info,
         ]  # Already sorted by virtue of being only one
 
         mock_hid_instance = MagicMock(spec=hid.Device)
@@ -196,11 +215,13 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         self.assertEqual(self.manager.selected_device_info, mock_device_info)
         mock_find_devices.assert_called_once()
         mock_hid_device_constructor.assert_called_once_with(
-            path=mock_device_info["path"]
+            path=mock_device_info["path"],
         )
 
     def test_connect_device_no_devices_found(
-        self, mock_find_devices, mock_hid_device_constructor
+        self,
+        mock_find_devices,
+        mock_hid_device_constructor,
     ):
         mock_find_devices.return_value = []
 
@@ -212,29 +233,39 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
     @patch("headsetcontrol_tray.hid_manager.logger")
     def test_connect_device_open_fails_for_all(
-        self, mock_logger, mock_find_devices, mock_hid_device_constructor
+        self,
+        mock_logger,
+        mock_find_devices,
+        mock_hid_device_constructor,
     ):
         mock_dev_info1 = create_mock_device_info(
-            app_config.TARGET_PIDS[0], path_suffix="fail1"
+            app_config.TARGET_PIDS[0],
+            path_suffix="fail1",
         )
         mock_dev_info2 = create_mock_device_info(
-            app_config.TARGET_PIDS[0], path_suffix="fail2"
+            app_config.TARGET_PIDS[0],
+            path_suffix="fail2",
         )
         mock_find_devices.return_value = [
             mock_dev_info1,
             mock_dev_info2,
         ]  # Assume already sorted
 
-        mock_hid_device_constructor.side_effect = hid.HIDException("Failed to open HID device")
+        mock_hid_device_constructor.side_effect = hid.HIDException(
+            "Failed to open HID device",
+        )
 
         result = self.manager._connect_device()
 
         self.assertFalse(result)
         self.assertIsNone(self.manager.hid_device)
         self.assertEqual(
-            mock_hid_device_constructor.call_count, 2
+            mock_hid_device_constructor.call_count,
+            2,
         )  # Tried both devices
-        mock_logger.exception.assert_any_call("    Failed to open HID device path %s", mock.ANY)
+        mock_logger.exception.assert_any_call(
+            "    Failed to open HID device path %s", mock.ANY,
+        )
 
     @patch.object(HIDConnectionManager, "_connect_device")
     def test_ensure_connection_already_connected(
