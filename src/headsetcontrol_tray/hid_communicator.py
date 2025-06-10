@@ -27,6 +27,7 @@ class HIDCommunicator:
         logger.debug(f"HIDCommunicator initialized for device: {self.device_product_str} ({self.device_path_str})")
 
     def write_report(self, report_id: int, data: List[int]) -> bool:
+        """Writes an HID report to the headset device."""
         # (Adapt logic from HeadsetService._write_hid_report)
         # This method now assumes self.hid_device is valid and open.
         # The responsibility of ensuring the device is connected and stays connected
@@ -64,6 +65,7 @@ class HIDCommunicator:
             return False
 
     def read_report(self, report_length: int) -> Optional[bytes]: # Removed timeout_ms parameter
+        """Reads an HID report from the headset device."""
         # (Adapt logic from HeadsetService._get_parsed_status_hid for reading)
         # This method now assumes self.hid_device is valid and open.
 

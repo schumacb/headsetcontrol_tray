@@ -224,6 +224,7 @@ class ChatMixManager:
             )
 
     def update_volumes(self, chatmix_value: int | None) -> None:
+        """Updates system audio stream volumes based on the headset's chatmix value."""
         if chatmix_value is None:
             logger.debug("ChatMix value is None, skipping volume update.")
             return

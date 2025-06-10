@@ -85,6 +85,7 @@ class HeadsetStatusParser:
         return max(0, min(128, chatmix_value))
 
     def parse_status_report(self, response_data: bytes) -> Optional[Dict[str, Any]]:
+        """Parses the raw HID status report data from the headset."""
         # (Adapt logic from HeadsetService._get_parsed_status_hid that handles parsing)
         if not response_data or len(response_data) < app_config.HID_INPUT_REPORT_LENGTH_STATUS:
             logger.warning(f"parse_status_report: Insufficient data. Expected at least {app_config.HID_INPUT_REPORT_LENGTH_STATUS} bytes, got {len(response_data) if response_data else 0}.")
@@ -111,6 +112,7 @@ class HeadsetCommandEncoder:
         logger.debug("HeadsetCommandEncoder initialized.")
 
     def encode_set_sidetone(self, level: int) -> List[int]:
+        """Encodes the command to set the sidetone level."""
         # (Adapt from HeadsetService._set_sidetone_level_hid)
         # Level is 0-128 UI scale (representing Off, Low, Medium, High)
         # These typically map to 0x00, 0x01, 0x02, 0x03
@@ -126,6 +128,7 @@ class HeadsetCommandEncoder:
         return command_payload
 
     def encode_set_inactive_timeout(self, minutes: int) -> List[int]:
+        """Encodes the command to set the inactive timeout."""
         # (Adapt from HeadsetService._set_inactive_timeout_hid)
         # minutes is 0-90
         clamped_minutes = max(0, min(90, minutes)) # Hardware supports 0-90 minutes
@@ -135,6 +138,7 @@ class HeadsetCommandEncoder:
         return command_payload
 
     def encode_set_eq_values(self, float_values: List[float]) -> Optional[List[int]]:
+        """Encodes the command to set custom equalizer values."""
         # (Adapt from HeadsetService._set_eq_values_hid)
         if len(float_values) != 10:
             logger.error(f"encode_set_eq_values: Invalid number of EQ bands. Expected 10, got {len(float_values)}.")
@@ -162,6 +166,7 @@ class HeadsetCommandEncoder:
         return command_payload
 
     def encode_set_eq_preset_id(self, preset_id: int) -> Optional[List[int]]:
+        """Encodes the command to set a hardware equalizer preset by its ID."""
         # (Adapt from HeadsetService._set_eq_preset_hid)
         if preset_id not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
             logger.error(f"encode_set_eq_preset_id: Invalid preset ID: {preset_id}. Not in ARCTIS_NOVA_7_HW_PRESETS.")

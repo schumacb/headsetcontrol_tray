@@ -77,6 +77,7 @@ class HeadsetService:
             return False
 
     def close(self) -> None:
+        """Closes the HID connection and clears the communicator."""
         self.hid_connection_manager.close() # This will set its hid_device to None
         self.hid_communicator = None # Clear our communicator instance
         logger.debug("HeadsetService: HID connection closed via manager, local communicator cleared.")
@@ -154,6 +155,7 @@ class HeadsetService:
         return parsed_status
 
     def is_device_connected(self) -> bool:
+        """Checks if the headset is connected and functionally online."""
         # This method should quickly check connectivity.
         # It first ensures the communicator is attempted.
         # Then, it relies on _get_parsed_status_hid to determine functional online status.
@@ -182,6 +184,7 @@ class HeadsetService:
         return is_functionally_online
 
     def get_battery_level(self) -> Optional[int]:
+        """Retrieves the current battery level percentage from the headset."""
         status = self._get_parsed_status_hid()
         if (
             status
@@ -200,6 +203,7 @@ class HeadsetService:
         return None
 
     def get_chatmix_value(self) -> Optional[int]:
+        """Retrieves the current ChatMix value (0-128) from the headset."""
         status = self._get_parsed_status_hid()
         if (
             status
@@ -217,6 +221,7 @@ class HeadsetService:
         return None
 
     def is_charging(self) -> Optional[bool]:
+        """Checks if the headset is currently charging."""
         status = self._get_parsed_status_hid()
         if (
             status
@@ -252,17 +257,20 @@ class HeadsetService:
         return success
 
     def set_sidetone_level(self, level: int) -> bool:
+        """Sets the sidetone level on the headset."""
         # UI scale 0-128, encoder handles mapping to HW values
         clamped_level = max(0, min(128, level))
         payload = self.command_encoder.encode_set_sidetone(clamped_level)
         return self._generic_set_command(f"Set Sidetone (UI level {clamped_level})", payload, report_id=0)
 
     def set_inactive_timeout(self, minutes: int) -> bool:
+        """Sets the inactive timeout (in minutes) on the headset."""
         clamped_minutes = max(0, min(90, minutes)) # Encoder also clamps, but good practice here too
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(f"Set Inactive Timeout ({clamped_minutes}min)", payload, report_id=0)
 
     def set_eq_values(self, values: List[float]) -> bool:
+        """Sets custom equalizer values on the headset."""
         # values are typically -10.0 to 10.0 dB for 10 bands
         payload = self.command_encoder.encode_set_eq_values(values)
         # report_id=0 is used as HID_CMD_SET_EQ_BANDS_PREFIX likely starts with 0x00 or similar,
@@ -271,10 +279,12 @@ class HeadsetService:
         return self._generic_set_command(f"Set EQ Values ({values})", payload, report_id=0)
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
+        """Sets a hardware equalizer preset on the headset by its ID."""
         # preset_id is an integer key from app_config.ARCTIS_NOVA_7_HW_PRESETS
         payload = self.command_encoder.encode_set_eq_preset_id(preset_id)
         return self._generic_set_command(f"Set EQ Preset ID ({preset_id})", payload, report_id=0)
 
     def get_udev_setup_details(self) -> Optional[Dict[str, Any]]:
+        """Returns details about udev setup if guided during the current session."""
         # This returns details if udev setup was guided *during this session*
         return self.udev_setup_details

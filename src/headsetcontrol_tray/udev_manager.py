@@ -23,6 +23,7 @@ class UDEVManager:
         logger.debug("UDEVManager initialized.")
 
     def create_rules_interactive(self) -> bool:
+        """Creates a temporary udev rule file and logs instructions for the user."""
         final_rules_path_str = os.path.join("/etc/udev/rules.d/", UDEV_RULE_FILENAME)
         logger.info(f"Attempting to guide user for udev rule creation for {final_rules_path_str}")
 
@@ -59,4 +60,5 @@ class UDEVManager:
             return False
 
     def get_last_udev_setup_details(self) -> Optional[Dict[str, str]]:
+        """Returns details of the last udev setup attempt if one was made in this session."""
         return self.last_udev_setup_details

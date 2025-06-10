@@ -48,20 +48,25 @@ class ConfigManager:
 
     # General Settings
     def get_setting(self, key: str, default: Any = None) -> Any:
+        """Retrieves a setting value by key."""
         return self._settings.get(key, default)
 
     def set_setting(self, key: str, value: Any) -> None:
+        """Sets a setting value by key and saves all settings."""
         self._settings[key] = value
         self._save_json_file(app_config.CONFIG_FILE, self._settings)
 
     # EQ Curves
     def get_all_custom_eq_curves(self) -> dict[str, list[int]]:
+        """Returns a copy of all custom EQ curves."""
         return self._custom_eq_curves.copy()
 
     def get_custom_eq_curve(self, name: str) -> list[int] | None:
+        """Retrieves a specific custom EQ curve by name."""
         return self._custom_eq_curves.get(name)
 
     def save_custom_eq_curve(self, name: str, values: list[int]) -> None:
+        """Saves or updates a custom EQ curve and persists to file."""
         if not (
             isinstance(values, list)
             and len(values) == 10
@@ -72,6 +77,7 @@ class ConfigManager:
         self._save_json_file(app_config.CUSTOM_EQ_CURVES_FILE, self._custom_eq_curves)
 
     def delete_custom_eq_curve(self, name: str) -> None:
+        """Deletes a custom EQ curve and updates the config file."""
         if name in self._custom_eq_curves:
             del self._custom_eq_curves[name]
             self._save_json_file(
@@ -87,25 +93,32 @@ class ConfigManager:
 
     # Specific settings shortcuts
     def get_last_sidetone_level(self) -> int:
+        """Gets the last saved sidetone level."""
         return self.get_setting("sidetone_level", app_config.DEFAULT_SIDETONE_LEVEL)
 
     def set_last_sidetone_level(self, level: int) -> None:
+        """Sets and saves the last sidetone level."""
         self.set_setting("sidetone_level", level)
 
     def get_last_inactive_timeout(self) -> int:
+        """Gets the last saved inactive timeout in minutes."""
         return self.get_setting("inactive_timeout", app_config.DEFAULT_INACTIVE_TIMEOUT)
 
     def set_last_inactive_timeout(self, minutes: int) -> None:
+        """Sets and saves the last inactive timeout in minutes."""
         self.set_setting("inactive_timeout", minutes)
 
     def get_last_active_eq_preset_id(self) -> int:
+        """Gets the ID of the last active hardware EQ preset."""
         return self.get_setting("eq_preset_id", app_config.DEFAULT_EQ_PRESET_ID)
 
     def set_last_active_eq_preset_id(self, preset_id: int) -> None:
+        """Sets the last active hardware EQ preset ID and marks EQ type as hardware."""
         self.set_setting("eq_preset_id", preset_id)
         self.set_setting("active_eq_type", "hardware")
 
     def get_last_custom_eq_curve_name(self) -> str:
+        """Gets the name of the last active custom EQ curve."""
         # Ensure the stored curve name still exists, otherwise fallback to default
         name = self.get_setting(
             "last_custom_eq_curve_name",
@@ -123,8 +136,10 @@ class ConfigManager:
         return name
 
     def set_last_custom_eq_curve_name(self, name: str) -> None:
+        """Sets the last active custom EQ curve name and marks EQ type as custom."""
         self.set_setting("last_custom_eq_curve_name", name)
         self.set_setting("active_eq_type", "custom")
 
     def get_active_eq_type(self) -> str:  # "hardware" or "custom"
+        """Gets the active EQ type ('hardware' or 'custom')."""
         return self.get_setting("active_eq_type", "custom")  # Default to custom EQs

@@ -249,9 +249,11 @@ Without these rules, the application might not be able to detect or control your
             )
 
     def run(self) -> int:
+        """Starts the Qt application event loop."""
         return self.qt_app.exec()
 
     def quit_application(self) -> None:
+        """Closes headset resources and quits the Qt application."""
         logger.info("Application quitting.")
         self.headset_service.close()  # Clean up HID connection
         self.qt_app.quit()

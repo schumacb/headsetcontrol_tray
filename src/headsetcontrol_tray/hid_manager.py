@@ -118,6 +118,7 @@ class HIDConnectionManager:
         return False
 
     def ensure_connection(self) -> bool:
+        """Ensures that a connection to a suitable HID device is active."""
         # (Adapt HeadsetService._ensure_hid_connection)
         if not self.hid_device:
             logger.debug("ensure_connection: No HID device, attempting to connect.")
@@ -127,14 +128,17 @@ class HIDConnectionManager:
         return True
 
     def get_hid_device(self) -> Optional[hid.Device]:
+        """Returns the active hid.Device object if connected, otherwise None."""
         if self.ensure_connection():
             return self.hid_device
         return None
 
     def get_selected_device_info(self) -> Optional[Dict[str, Any]]:
+        """Returns the device info dictionary of the selected HID device."""
         return self.selected_device_info
 
     def close(self) -> None:
+        """Closes the connection to the HID device."""
         # (Adapt HeadsetService.close)
         if self.hid_device:
             device_path = "unknown path"
