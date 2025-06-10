@@ -214,7 +214,7 @@ class SettingsDialog(QDialog):
             return f"ChatMix: Full Game ({percentage}%)"
         return f"ChatMix: Custom Mix ({percentage}%)"
 
-    def refresh_chatmix_display(self):
+    def refresh_chatmix_display(self) -> None:
         chatmix_val = self.headset_service.get_chatmix_value()
         tooltip_str = self.get_chatmix_tooltip_string(chatmix_val)
         self.chatmix_slider_bar.setToolTip(tooltip_str)
@@ -262,7 +262,7 @@ class SettingsDialog(QDialog):
             )
             self._load_initial_settings()
 
-    def showEvent(self, event: QShowEvent):
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self._load_initial_settings()
         self.equalizer_widget.refresh_view()

@@ -541,7 +541,7 @@ class SystemTrayIcon(QSystemTrayIcon):
                 )
 
     @Slot()
-    def refresh_status(self):
+    def refresh_status(self) -> None:
         logger.debug(
             f"SystemTray: Refreshing status (Interval: {self.refresh_timer.interval()}ms)...",
         )
@@ -838,7 +838,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         elif reason == QSystemTrayIcon.ActivationReason.Context:
             self.context_menu.popup(QCursor.pos())
 
-    def set_initial_headset_settings(self):
+    def set_initial_headset_settings(self) -> None:
         logger.info("Attempting to apply initial headset settings.")
         if not self.headset_service.is_device_connected():
             logger.warning("Cannot apply initial settings, device not connected.")

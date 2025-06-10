@@ -248,10 +248,10 @@ Without these rules, the application might not be able to detect or control your
                 "User closed or cancelled the udev rules dialog, or did not choose automatic install.",
             )
 
-    def run(self):
+    def run(self) -> int:
         return self.qt_app.exec()
 
-    def quit_application(self):
+    def quit_application(self) -> None:
         logger.info("Application quitting.")
         self.headset_service.close()  # Clean up HID connection
         self.qt_app.quit()

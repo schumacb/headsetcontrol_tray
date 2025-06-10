@@ -223,7 +223,7 @@ class ChatMixManager:
                 f"An unexpected error occurred while setting volume for stream {stream_id}: {e}",
             )
 
-    def update_volumes(self, chatmix_value: int | None):
+    def update_volumes(self, chatmix_value: int | None) -> None:
         if chatmix_value is None:
             logger.debug("ChatMix value is None, skipping volume update.")
             return
