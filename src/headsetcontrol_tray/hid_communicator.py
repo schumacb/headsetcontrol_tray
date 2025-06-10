@@ -1,17 +1,15 @@
 import logging
-from typing import Any  # Added Dict, Any
-
 import hid
+from typing import List, Optional, Dict, Any # Added Dict, Any
 
-from . import app_config  # Assuming app_config is in the same directory
-
+from . import app_config # Assuming app_config is in the same directory
 # Import HIDConnectionManager to type hint the constructor, but it's not strictly needed for runtime in this class if device is passed in
 # from .hid_manager import HIDConnectionManager # Or forward reference if that causes issues
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 class HIDCommunicator:
-    def __init__(self, hid_device: hid.Device, device_info: dict[str, Any]):
+    def __init__(self, hid_device: hid.Device, device_info: Dict[str, Any]):
         if hid_device is None:
             # This case should ideally be prevented by the caller (e.g. HeadsetService ensuring connection first)
             logger.error("HIDCommunicator initialized with a None hid_device. This is unexpected.")
@@ -21,14 +19,14 @@ class HIDCommunicator:
         # Extract and store info for logging
         # Path is bytes in device_info, product_string is str
         _path_bytes = device_info.get("path")
-        self.device_path_str: str = _path_bytes.decode("utf-8", "replace") if isinstance(_path_bytes, bytes) else "Unknown Path"
+        self.device_path_str: str = _path_bytes.decode('utf-8', 'replace') if isinstance(_path_bytes, bytes) else "Unknown Path"
         # Ensure product_string is treated as potentially None and provide a default
         _product_str_temp = device_info.get("product_string")
         self.device_product_str: str = _product_str_temp if isinstance(_product_str_temp, str) else "Unknown Product"
 
         logger.debug(f"HIDCommunicator initialized for device: {self.device_product_str} ({self.device_path_str})")
 
-    def write_report(self, report_id: int, data: list[int]) -> bool:
+    def write_report(self, report_id: int, data: List[int]) -> bool:
         """Writes an HID report to the headset device."""
         # (Adapt logic from HeadsetService._write_hid_report)
         # This method now assumes self.hid_device is valid and open.
@@ -66,7 +64,7 @@ class HIDCommunicator:
             # Similar to bytes_written <= 0, signal failure.
             return False
 
-    def read_report(self, report_length: int) -> bytes | None: # Removed timeout_ms parameter
+    def read_report(self, report_length: int) -> Optional[bytes]: # Removed timeout_ms parameter
         """Reads an HID report from the headset device."""
         # (Adapt logic from HeadsetService._get_parsed_status_hid for reading)
         # This method now assumes self.hid_device is valid and open.
@@ -82,8 +80,8 @@ class HIDCommunicator:
                 logger.warning(f"No data received from HID read on {self.device_product_str} ({self.device_path_str}) (length {report_length}).") # Updated log
                 return None
             if len(response_data) < report_length:
-                logger.warning(f"Incomplete HID read on {self.device_product_str} ({self.device_path_str}). Expected {report_length} bytes, " # Log unchanged here but context is
-                                f"got {len(response_data)}: {bytes(response_data).hex()}")
+                logger.warning((f"Incomplete HID read on {self.device_product_str} ({self.device_path_str}). Expected {report_length} bytes, " # Log unchanged here but context is
+                                f"got {len(response_data)}: {bytes(response_data).hex()}"))
                 # Depending on requirements, could return None or the partial data.
                 # For status reports, partial data is likely unusable.
                 return None

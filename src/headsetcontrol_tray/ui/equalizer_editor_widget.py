@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
@@ -38,7 +38,7 @@ class EqualizerEditorWidget(QWidget):
         self,
         config_manager: cfg_mgr.ConfigManager,
         headset_service: hs_svc.HeadsetService,
-        parent: QWidget | None = None,
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.config_manager = config_manager
@@ -62,7 +62,7 @@ class EqualizerEditorWidget(QWidget):
         self._init_ui()
         self.refresh_view()
 
-    def _init_ui(self):
+    def _init_ui(self) -> None:
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(10)
 
@@ -135,7 +135,7 @@ class EqualizerEditorWidget(QWidget):
         # and the UI (sliders/buttons) reflects that.
         self._select_initial_eq_from_config()
 
-    def _populate_eq_combo(self):
+    def _populate_eq_combo(self) -> None:
         self.eq_combo.blockSignals(True)
         current_combo_data = (
             self.eq_combo.currentData()
@@ -172,7 +172,7 @@ class EqualizerEditorWidget(QWidget):
 
         self.eq_combo.blockSignals(False)
 
-    def _select_initial_eq_from_config(self):
+    def _select_initial_eq_from_config(self) -> None:
         active_type_from_config = self.config_manager.get_active_eq_type()
         target_data_to_select: tuple[str, Any] | None = None
 
@@ -225,7 +225,7 @@ class EqualizerEditorWidget(QWidget):
             logger.error("EQ combo is empty. Cannot select initial EQ.")
             self._update_ui_for_active_eq(None, None)
 
-    def _on_eq_selected_in_combo(self, index: int):
+    def _on_eq_selected_in_combo(self, index: int) -> None:
         if index == -1:
             return
         selected_data = self.eq_combo.itemData(index)
@@ -243,7 +243,7 @@ class EqualizerEditorWidget(QWidget):
         eq_data: tuple[str, Any],
         is_initial_load: bool = False,
         force_ui_update_only: bool = False,
-    ):
+    ) -> None:
         eq_type, eq_identifier = eq_data
 
         if eq_type == EQ_TYPE_CUSTOM:
@@ -345,7 +345,7 @@ class EqualizerEditorWidget(QWidget):
         self,
         active_eq_type: str | None,
         _active_identifier: Any | None,
-    ):
+    ) -> None:
         is_custom_mode_active = active_eq_type == EQ_TYPE_CUSTOM
 
         for slider in self.sliders:
@@ -430,7 +430,7 @@ class EqualizerEditorWidget(QWidget):
         elif not is_custom_mode_active:
             self._remove_all_unsaved_indicators_from_combo()
 
-    def _remove_all_unsaved_indicators_from_combo(self):
+    def _remove_all_unsaved_indicators_from_combo(self) -> None:
         self.eq_combo.blockSignals(True)
         current_idx = self.eq_combo.currentIndex()  # Preserve if it's a HW preset
         for i in range(self.eq_combo.count()):
@@ -443,10 +443,10 @@ class EqualizerEditorWidget(QWidget):
             self.eq_combo.setCurrentIndex(current_idx)
         self.eq_combo.blockSignals(False)
 
-    def _update_slider_label(self, index: int, value: int):
+    def _update_slider_label(self, index: int, value: int) -> None:
         self.slider_labels[index].setText(f"{value} dB")
 
-    def _on_slider_value_changed(self, value: int):
+    def _on_slider_value_changed(self, value: int) -> None:
         active_data = self.eq_combo.currentData()
         if not active_data or active_data[0] != EQ_TYPE_CUSTOM:
             return
@@ -469,7 +469,7 @@ class EqualizerEditorWidget(QWidget):
 
     def _apply_sliders_to_headset_and_check_changes(
         self,
-    ):  # Renamed for clarity, only applies, doesn't re-check changes flag here
+    ) -> None:  # Renamed for clarity, only applies, doesn't re-check changes flag here
         active_data = self.eq_combo.currentData()
         if not active_data or active_data[0] != EQ_TYPE_CUSTOM:
             return
@@ -504,7 +504,7 @@ class EqualizerEditorWidget(QWidget):
         # were already handled by _on_slider_value_changed.
         # This function's main job is now just the headset application.
 
-    def _set_slider_visuals(self, values: list[int]):
+    def _set_slider_visuals(self, values: list[int]) -> None:
         for i, value in enumerate(values):
             self.sliders[i].blockSignals(True)
             self.sliders[i].setValue(value)
@@ -514,7 +514,7 @@ class EqualizerEditorWidget(QWidget):
     def _get_slider_values(self) -> list[int]:
         return [s.value() for s in self.sliders]
 
-    def _discard_slider_changes(self):
+    def _discard_slider_changes(self) -> None:
         active_data = self.eq_combo.currentData()
         if not (
             active_data
@@ -554,7 +554,7 @@ class EqualizerEditorWidget(QWidget):
             self._current_custom_curve_original_name,
         )
 
-    def _save_custom_curve(self):
+    def _save_custom_curve(self) -> None:
         active_data = self.eq_combo.currentData()
         if not (
             active_data
@@ -582,7 +582,7 @@ class EqualizerEditorWidget(QWidget):
         # Update UI: remove '*', disable save button etc.
         self._update_ui_for_active_eq(EQ_TYPE_CUSTOM, name_to_save)
 
-    def _save_custom_curve_as(self):
+    def _save_custom_curve_as(self) -> None:
         new_name, ok = QInputDialog.getText(
             self,
             "Save Curve As",
@@ -645,7 +645,7 @@ class EqualizerEditorWidget(QWidget):
         except ValueError as e:
             QMessageBox.critical(self, "Save Error", str(e))
 
-    def _delete_custom_curve(self):
+    def _delete_custom_curve(self) -> None:
         active_data = self.eq_combo.currentData()
         if not (
             active_data

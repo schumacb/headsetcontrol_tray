@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+from typing import Dict, Optional, List
 
 from . import app_config
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 # Format VID and PIDs as 4-digit lowercase hex strings
 VID_HEX = f"{app_config.STEELSERIES_VID:04x}"
-RULE_LINES: list[str] = [
+RULE_LINES: List[str] = [
     f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"'
     for pid in app_config.TARGET_PIDS
 ]
@@ -18,7 +19,7 @@ UDEV_RULE_FILENAME: str = "99-steelseries-headsets.rules"
 
 class UDEVManager:
     def __init__(self):
-        self.last_udev_setup_details: dict[str, str] | None = None
+        self.last_udev_setup_details: Optional[Dict[str, str]] = None
         logger.debug("UDEVManager initialized.")
 
     def create_rules_interactive(self) -> bool:
@@ -38,7 +39,7 @@ class UDEVManager:
                 "temp_file_path": temp_file_name,
                 "final_file_path": final_rules_path_str,
                 "rule_filename": UDEV_RULE_FILENAME,
-                "rule_content": UDEV_RULE_CONTENT,
+                "rule_content": UDEV_RULE_CONTENT
             }
             logger.info(f"Successfully wrote udev rule content to temporary file: {temp_file_name}")
             logger.info("--------------------------------------------------------------------------------")
@@ -58,6 +59,6 @@ class UDEVManager:
             self.last_udev_setup_details = None
             return False
 
-    def get_last_udev_setup_details(self) -> dict[str, str] | None:
+    def get_last_udev_setup_details(self) -> Optional[Dict[str, str]]:
         """Returns details of the last udev setup attempt if one was made in this session."""
         return self.last_udev_setup_details

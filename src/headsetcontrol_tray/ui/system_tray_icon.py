@@ -1,6 +1,5 @@
-from collections.abc import Callable  # Added Any
 import logging
-from typing import Any
+from typing import Any, Callable, Optional # Added Any
 
 from PySide6.QtCore import QRect, Qt, QTimer, Slot
 from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPen
@@ -37,7 +36,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         headset_service: hs_svc.HeadsetService,
         config_manager: cfg_mgr.ConfigManager,
         application_quit_fn: Callable[[], None],
-        parent: QWidget | None = None,
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         logger.debug("SystemTrayIcon initializing.")
@@ -372,7 +371,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             return f"Game ({percentage}%)"
         return f"{chatmix_val} ({percentage}%)"
 
-    def _update_tooltip_and_icon(self):
+    def _update_tooltip_and_icon(self) -> None:
         tooltip_parts = []
 
         if self.is_tray_view_connected:
@@ -417,7 +416,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         if self.toolTip() != final_tooltip:
             self.setToolTip(final_tooltip)
 
-    def _populate_context_menu(self):
+    def _populate_context_menu(self) -> None:
         logger.debug("Populating context menu.")
         self.context_menu.clear()
         self.sidetone_action_group.clear()
@@ -512,7 +511,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         exit_action.triggered.connect(self.application_quit_fn)
         self.context_menu.addAction(exit_action)
 
-    def _update_menu_checks(self):
+    def _update_menu_checks(self) -> None:
         logger.debug("Updating menu checks based on ConfigManager.")
         current_sidetone = self.config_manager.get_last_sidetone_level()
         for action in self.sidetone_action_group:
@@ -698,7 +697,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         logger.debug("SystemTray: Refresh status complete.")
 
-    def _set_sidetone_from_menu(self, level: int):
+    def _set_sidetone_from_menu(self, level: int) -> None:
         logger.info(f"Setting sidetone to {level} via menu.")
         if self.headset_service.set_sidetone_level(
             level,
@@ -720,7 +719,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             )
             self._update_menu_checks()
 
-    def _set_inactive_timeout(self, minutes: int):
+    def _set_inactive_timeout(self, minutes: int) -> None:
         logger.info(f"Setting inactive timeout to {minutes} minutes via menu.")
         if self.headset_service.set_inactive_timeout(
             minutes,
@@ -742,7 +741,7 @@ class SystemTrayIcon(QSystemTrayIcon):
             )
             self._update_menu_checks()
 
-    def _apply_eq_from_menu(self, eq_data: tuple[str, Any]):  # Changed any to Any
+    def _apply_eq_from_menu(self, eq_data: tuple[str, Any]) -> None:  # Changed any to Any
         eq_type, identifier = eq_data
         logger.info(f"Applying EQ from menu: Type={eq_type}, ID/Name='{identifier}'")
 
@@ -805,7 +804,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         self.refresh_status()
 
-    def _open_settings_dialog(self):
+    def _open_settings_dialog(self) -> None:
         logger.debug("Open Settings dialog action triggered.")
         if self.settings_dialog is None or not self.settings_dialog.isVisible():
             self.settings_dialog = SettingsDialog(
@@ -824,17 +823,17 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.settings_dialog.raise_()
 
     @Slot(str)
-    def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str):
+    def _handle_settings_dialog_eq_applied(self, eq_identifier_signal_str: str) -> None:
         logger.info(
             f"SystemTray received eq_applied signal from SettingsDialog: '{eq_identifier_signal_str}'",
         )
         self.refresh_status()
 
-    def _on_settings_dialog_closed(self, result: int):
+    def _on_settings_dialog_closed(self, result: int) -> None:
         logger.debug(f"Settings dialog closed with result: {result}")
         self.refresh_status()
 
-    def _on_activated(self, reason: QSystemTrayIcon.ActivationReason):
+    def _on_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self._open_settings_dialog()
         elif reason == QSystemTrayIcon.ActivationReason.Context:

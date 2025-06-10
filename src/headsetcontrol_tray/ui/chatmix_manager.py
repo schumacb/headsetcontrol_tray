@@ -172,7 +172,7 @@ class ChatMixManager:
         stream_id: str,
         num_channels: int,
         target_volume: float,
-    ):
+    ) -> None:
         # Ensure target_volume is clamped between 0.0 and 1.0
         target_volume = max(0.0, min(1.0, target_volume))
 

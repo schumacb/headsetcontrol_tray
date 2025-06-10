@@ -1,19 +1,18 @@
 import logging
-from typing import Any
-
 import hid
+from typing import Any, List, Optional, Dict
 
-from . import app_config  # Assuming app_config is in the same directory
+from . import app_config # Assuming app_config is in the same directory
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 class HIDConnectionManager:
     def __init__(self):
-        self.hid_device: hid.Device | None = None
-        self.selected_device_info: dict[str, Any] | None = None
+        self.hid_device: Optional[hid.Device] = None
+        self.selected_device_info: Optional[Dict[str, Any]] = None
         logger.debug("HIDConnectionManager initialized.")
 
-    def _find_potential_hid_devices(self) -> list[dict[str, Any]]:
+    def _find_potential_hid_devices(self) -> List[Dict[str, Any]]:
         # (Copy and adapt logic from HeadsetService._find_potential_hid_devices)
         # Ensure STEELSERIES_VID and TARGET_PIDS are accessed via app_config
         logger.debug(f"Enumerating HID devices for VID 0x{app_config.STEELSERIES_VID:04x}, Target PIDs: {app_config.TARGET_PIDS}")
@@ -35,10 +34,10 @@ class HIDConnectionManager:
                 potential_devices.append(dev_info)
         return potential_devices
 
-    def _sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _sort_hid_devices(self, devices: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         # (Copy and adapt logic from HeadsetService._sort_hid_devices)
         # Ensure constants like HID_REPORT_INTERFACE are accessed via app_config
-        def sort_key(d_info: dict[str, Any]):
+        def sort_key(d_info: Dict[str, Any]) -> int:
             if d_info["vendor_id"] == app_config.STEELSERIES_VID and \
                d_info["product_id"] in app_config.TARGET_PIDS and \
                d_info.get("interface_number") == app_config.HID_REPORT_INTERFACE and \
@@ -57,9 +56,9 @@ class HIDConnectionManager:
             if d_info.get("usage_page") == 0xFFC0: # Common SteelSeries usage page
                 logger.debug(f"  SortKey: Prioritizing usage page 0xFFC0 (generic) for PID 0x{d_info.get('product_id'):04x} (1)")
                 return 1
-            logger.debug(f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, "
+            logger.debug((f"  SortKey: Default priority 2 for PID 0x{d_info.get('product_id'):04x}, "
                           f"Interface {d_info.get('interface_number', 'N/A')}, "
-                          f"UsagePage 0x{d_info.get('usage_page',0):04x}")
+                          f"UsagePage 0x{d_info.get('usage_page',0):04x}"))
             return 2 # Lowest priority
 
         devices.sort(key=sort_key)
@@ -90,7 +89,7 @@ class HIDConnectionManager:
 
         for dev_info_to_try in sorted_devices:
             h_temp = None
-            path_str = dev_info_to_try["path"].decode("utf-8", errors="replace")
+            path_str = dev_info_to_try['path'].decode('utf-8', errors='replace')
             logger.debug(f"  Attempting to open path: {path_str} "
                          f"(Interface: {dev_info_to_try.get('interface_number', 'N/A')}, "
                          f"UsagePage: 0x{dev_info_to_try.get('usage_page', 0):04x}, "
@@ -100,12 +99,12 @@ class HIDConnectionManager:
                 h_temp = hid.Device(path=dev_info_to_try["path"])
                 self.hid_device = h_temp
                 self.selected_device_info = dev_info_to_try
-                logger.info(f"Successfully opened HID device: {dev_info_to_try.get('product_string', 'N/A')} "
+                logger.info((f"Successfully opened HID device: {dev_info_to_try.get('product_string', 'N/A')} "
                              f"on interface {dev_info_to_try.get('interface_number', -1)} "
-                             f"path {path_str}")
+                             f"path {path_str}"))
                 return True
             except Exception as e_open:
-                logger.warning(f"    Failed to open HID device path {path_str}: {e_open}")
+                logger.warning((f"    Failed to open HID device path {path_str}: {e_open}"))
                 if h_temp:
                     try:
                         h_temp.close()
@@ -128,13 +127,13 @@ class HIDConnectionManager:
         # For now, assume if hid_device object exists, it's connected.
         return True
 
-    def get_hid_device(self) -> hid.Device | None:
+    def get_hid_device(self) -> Optional[hid.Device]:
         """Returns the active hid.Device object if connected, otherwise None."""
         if self.ensure_connection():
             return self.hid_device
         return None
 
-    def get_selected_device_info(self) -> dict[str, Any] | None:
+    def get_selected_device_info(self) -> Optional[Dict[str, Any]]:
         """Returns the device info dictionary of the selected HID device."""
         return self.selected_device_info
 
@@ -144,7 +143,7 @@ class HIDConnectionManager:
         if self.hid_device:
             device_path = "unknown path"
             if self.selected_device_info and isinstance(self.selected_device_info.get("path"), bytes):
-                device_path = self.selected_device_info["path"].decode("utf-8", errors="replace")
+                device_path = self.selected_device_info["path"].decode('utf-8', errors='replace')
             logger.debug(f"Closing HID device: {device_path}")
             try:
                 self.hid_device.close()

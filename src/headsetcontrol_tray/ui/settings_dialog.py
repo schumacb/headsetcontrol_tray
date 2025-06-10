@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QShowEvent
@@ -37,7 +38,7 @@ class SettingsDialog(QDialog):
         self,
         config_manager: cfg_mgr.ConfigManager,
         headset_service: hs_svc.HeadsetService,
-        parent: QWidget | None = None,
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.config_manager = config_manager
@@ -183,7 +184,7 @@ class SettingsDialog(QDialog):
         self.setLayout(main_layout)
         self._load_initial_settings()
 
-    def _load_initial_settings(self):
+    def _load_initial_settings(self) -> None:
         current_sidetone = self.config_manager.get_last_sidetone_level()
         self.sidetone_slider.setValue(current_sidetone)
         self.sidetone_value_label.setText(str(current_sidetone))
@@ -231,10 +232,10 @@ class SettingsDialog(QDialog):
             )  # Default visual to balanced if no value
             self.chatmix_slider_bar.setEnabled(False)
 
-    def _on_sidetone_slider_value_changed(self, value: int):
+    def _on_sidetone_slider_value_changed(self, value: int) -> None:
         self.sidetone_value_label.setText(str(value))
 
-    def _apply_sidetone_setting(self):
+    def _apply_sidetone_setting(self) -> None:
         level = self.sidetone_slider.value()
         logger.info(f"SettingsDialog: Sidetone slider released at {level}")
         if self.headset_service.set_sidetone_level(level):
@@ -250,7 +251,7 @@ class SettingsDialog(QDialog):
             self.sidetone_slider.setValue(current_sidetone)
             self.sidetone_value_label.setText(str(current_sidetone))
 
-    def _on_inactive_timeout_changed(self, minutes_id: int):
+    def _on_inactive_timeout_changed(self, minutes_id: int) -> None:
         logger.info(f"SettingsDialog: Inactive timeout changed to ID {minutes_id}")
         if self.headset_service.set_inactive_timeout(minutes_id):
             self.config_manager.set_last_inactive_timeout(minutes_id)
@@ -269,7 +270,7 @@ class SettingsDialog(QDialog):
         self._load_initial_settings()
         self.equalizer_widget.refresh_view()
 
-    def _save_chat_app_identifiers(self):
+    def _save_chat_app_identifiers(self) -> None:
         current_text = self.chat_apps_line_edit.text().strip()
         new_identifiers = [
             ident.strip() for ident in current_text.split(",") if ident.strip()
