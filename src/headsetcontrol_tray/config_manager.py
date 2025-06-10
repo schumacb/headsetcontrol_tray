@@ -1,5 +1,4 @@
 """Manages loading and saving of application settings and EQ curves."""
-
 import json
 import logging
 from pathlib import Path
@@ -35,7 +34,7 @@ class ConfigManager:
                     return json.load(f)
             except json.JSONDecodeError:
                 logger.warning(
-                    "Could not decode JSON from %s. Using empty config.", file_path,
+                    "Could not decode JSON from %s. Using empty config.", file_path
                 )
                 return {}
         return {}

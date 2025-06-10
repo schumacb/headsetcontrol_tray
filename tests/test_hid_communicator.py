@@ -46,7 +46,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         self.assertTrue(result)
         self.mock_hid_device.write.assert_called_once_with(b'\x01\x02\x03')
-        self.mock_logger.debug.assert_any_call("Bytes written: 3")
+        self.mock_logger.debug.assert_any_call("Bytes written: %s", 3)
 
 
     def test_write_report_success_no_report_id(self): # Removed mock_logger arg
@@ -63,7 +63,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
         self.assertFalse(result)
-        self.mock_logger.warning.assert_called_with(f"HID write returned 0. This might indicate an issue with the device {self.communicator.device_product_str} ({self.communicator.device_path_str}).")
+        self.mock_logger.warning.assert_called_with("HID write returned %s. This might indicate an issue with the device %s (%s).", 0, self.communicator.device_product_str, self.communicator.device_path_str)
 
     def test_write_report_hid_write_raises_exception(self): # Removed mock_logger arg
         self.mock_hid_device.write.side_effect = Exception("HID Write Error")
@@ -71,7 +71,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
         self.assertFalse(result)
-        self.mock_logger.error.assert_called_with(f"HID write error on device {self.communicator.device_product_str} ({self.communicator.device_path_str}): HID Write Error")
+        self.mock_logger.error.assert_called_with("HID write error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, "HID Write Error")
 
     def test_read_report_success(self): # Removed mock_logger arg
         expected_bytes = b'\x01\x02\x03'
@@ -81,7 +81,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         self.assertEqual(result, expected_bytes)
         self.mock_hid_device.read.assert_called_once_with(3) # Removed timeout_ms from assertion
-        self.mock_logger.debug.assert_any_call(f"HID read successful from {self.communicator.device_product_str} ({self.communicator.device_path_str}): {expected_bytes.hex()}")
+        self.mock_logger.debug.assert_any_call("HID read successful from %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, expected_bytes.hex())
 
     def test_read_report_no_data_returns_none(self): # Removed mock_logger arg
         self.mock_hid_device.read.return_value = bytearray(b'') # Empty bytearray
@@ -89,7 +89,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
-        self.mock_logger.warning.assert_called_with(f"No data received from HID read on {self.communicator.device_product_str} ({self.communicator.device_path_str}) (length 3).") # timeout part removed from log
+        self.mock_logger.warning.assert_called_with("No data received from HID read on %s (%s) (length %s).", self.communicator.device_product_str, self.communicator.device_path_str, 3) # timeout part removed from log
 
     def test_read_report_incomplete_data_returns_none(self): # Removed mock_logger arg
         incomplete_bytes = b'\x01\x02'
@@ -98,7 +98,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
-        self.mock_logger.warning.assert_called_with(f"Incomplete HID read on {self.communicator.device_product_str} ({self.communicator.device_path_str}). Expected 3 bytes, got 2: {incomplete_bytes.hex()}")
+        self.mock_logger.warning.assert_called_with("Incomplete HID read on %s (%s). Expected %s bytes, got %s: %s", self.communicator.device_product_str, self.communicator.device_path_str, 3, len(incomplete_bytes), incomplete_bytes.hex())
 
     def test_read_report_hid_read_raises_exception(self): # Removed mock_logger arg
         self.mock_hid_device.read.side_effect = Exception("HID Read Error")
@@ -106,7 +106,7 @@ class TestHIDCommunicator(unittest.TestCase):
         result = self.communicator.read_report(report_length=3) # timeout_ms removed
 
         self.assertIsNone(result)
-        self.mock_logger.error.assert_called_with(f"HID read error on device {self.communicator.device_product_str} ({self.communicator.device_path_str}): HID Read Error")
+        self.mock_logger.error.assert_called_with("HID read error on device %s (%s): %s", self.communicator.device_product_str, self.communicator.device_path_str, "HID Read Error")
 
 # Removed test_read_report_default_timeout and test_read_report_none_timeout_uses_default
 # as timeout_ms parameter is no longer part of read_report method.

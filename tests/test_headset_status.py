@@ -98,7 +98,7 @@ class TestHeadsetStatusParser(unittest.TestCase): # Removed class decorator
         self.assertIsNotNone(parsed)
         if parsed: # For Mypy
             self.assertIsNone(parsed["battery_percent"])
-        self.mock_logger.warning.assert_any_call("_parse_battery_info: Unknown raw battery level: 0x5")
+        self.mock_logger.warning.assert_any_call("_parse_battery_info: Unknown raw battery level: %#02x", 5)
 
 
     def test_parse_status_report_various_chatmix_values(self): # Removed mock_logger arg
@@ -121,14 +121,15 @@ class TestHeadsetStatusParser(unittest.TestCase): # Removed class decorator
         parsed = self.parser.parse_status_report(short_data)
         self.assertIsNone(parsed)
         self.mock_logger.warning.assert_called_with(
-            f"parse_status_report: Insufficient data. Expected at least {app_config.HID_INPUT_REPORT_LENGTH_STATUS} bytes, got {len(short_data)}."
+            "parse_status_report: Insufficient data. Expected at least %s bytes, got %s.",
+            app_config.HID_INPUT_REPORT_LENGTH_STATUS, len(short_data)
         )
 
     def test_determine_headset_online_status_short_data(self): # Removed mock_logger arg
         # Test the specific helper if data is too short for HID_RES_STATUS_BATTERY_STATUS_BYTE
         short_data = bytes([0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE)) # Length exactly up to, but not including, the byte
         self.assertFalse(self.parser._determine_headset_online_status(short_data))
-        self.mock_logger.warning.assert_called_with(f"_determine_headset_online_status: Response data too short. Expected > {app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} bytes, got {len(short_data)}")
+        self.mock_logger.warning.assert_called_with("_determine_headset_online_status: Response data too short. Expected > %s bytes, got %s", app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE, len(short_data))
 
 
 class TestHeadsetCommandEncoder(unittest.TestCase): # Removed class decorator
@@ -173,7 +174,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase): # Removed class decorator
         eq_floats_short = [0.0] * 9
         encoded = self.encoder.encode_set_eq_values(eq_floats_short)
         self.assertIsNone(encoded)
-        self.mock_logger.error.assert_called_with("encode_set_eq_values: Invalid number of EQ bands. Expected 10, got 9.")
+        self.mock_logger.error.assert_called_with("encode_set_eq_values: Invalid number of EQ bands. Expected 10, got %s.", 9)
 
     # For ARCTIS_NOVA_7_HW_PRESETS, we need to ensure it's structured as expected
     # or mock it if its content is complex or external.
@@ -199,7 +200,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase): # Removed class decorator
         invalid_id = 99
         encoded = self.encoder.encode_set_eq_preset_id(invalid_id)
         self.assertIsNone(encoded)
-        self.mock_logger.error.assert_called_with(f"encode_set_eq_preset_id: Invalid preset ID: {invalid_id}. Not in ARCTIS_NOVA_7_HW_PRESETS.")
+        self.mock_logger.error.assert_called_with("encode_set_eq_preset_id: Invalid preset ID: %s. Not in ARCTIS_NOVA_7_HW_PRESETS.", invalid_id)
 
     @patch.dict(app_config.ARCTIS_NOVA_7_HW_PRESETS, {
         0: {"name": "TestPreset", "values": [1.0]*5} # Malformed: 5 bands instead of 10
@@ -207,7 +208,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase): # Removed class decorator
     def test_encode_set_eq_preset_id_malformed_preset_data_band_count(self): # Removed mock_logger arg
         encoded = self.encoder.encode_set_eq_preset_id(0)
         self.assertIsNone(encoded)
-        self.mock_logger.error.assert_any_call("encode_set_eq_preset_id: Malformed preset data for ID 0. Expected 10 bands, got 5.")
+        self.mock_logger.error.assert_any_call("encode_set_eq_preset_id: Malformed preset data for ID %s. Expected 10 bands, got %s.", 0, 5)
 
     @patch.dict(app_config.ARCTIS_NOVA_7_HW_PRESETS, {
         0: {"name": "TestPreset", "values": "not_a_list"} # Malformed: values not a list
@@ -215,7 +216,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase): # Removed class decorator
     def test_encode_set_eq_preset_id_malformed_preset_data_values_type(self): # Removed mock_logger arg
         encoded = self.encoder.encode_set_eq_preset_id(0)
         self.assertIsNone(encoded)
-        self.mock_logger.error.assert_any_call("encode_set_eq_preset_id: Preset data 'values' for ID 0 is not a list of numbers.")
+        self.mock_logger.error.assert_any_call("encode_set_eq_preset_id: Preset data 'values' for ID %s is not a list of numbers.", 0)
 
 
 if __name__ == "__main__":

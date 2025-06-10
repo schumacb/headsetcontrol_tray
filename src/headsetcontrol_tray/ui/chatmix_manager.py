@@ -1,5 +1,4 @@
 """Manages PipeWire stream volumes for ChatMix functionality."""
-
 # chatmix_manager.py
 import json
 import logging
@@ -21,7 +20,6 @@ logger = logging.getLogger(
 
 class ChatMixManager:
     """Handles automatic volume adjustment of applications based on ChatMix values."""
-
     def __init__(self, config_manager: ConfigManager) -> None:  # cfg_mgr.ConfigManager
         """
         Initializes the ChatMixManager.
@@ -43,14 +41,13 @@ class ChatMixManager:
         self.reference_volume = 1.0
         self._last_set_stream_volumes: dict[str, list[float]] = {}  # New attribute
         logger.info(
-            "ChatMixManager initialized. Chat app identifiers: %s",
-            self.chat_app_identifiers_config,
+            "ChatMixManager initialized. Chat app identifiers: %s", self.chat_app_identifiers_config
         )
 
     def _run_pipewire_command(self, command_args: list[str]) -> str | None:
         """Runs a PipeWire command (like pw-dump or pw-cli) and returns its stdout."""
         try:
-            logger.debug("Executing PipeWire command: %s", " ".join(command_args))
+            logger.debug("Executing PipeWire command: %s", ' '.join(command_args))
             result = subprocess.run(
                 command_args,
                 capture_output=True,
@@ -60,20 +57,15 @@ class ChatMixManager:
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             logger.error(
-                "Command '%s' failed with error: %s",
-                " ".join(command_args),
-                e.stderr.strip(),
+                "Command '%s' failed with error: %s", ' '.join(command_args), e.stderr.strip()
             )
         except FileNotFoundError:
             logger.error(
-                "Command '%s' not found. Is PipeWire installed and in PATH?",
-                command_args[0],
+                "Command '%s' not found. Is PipeWire installed and in PATH?", command_args[0]
             )
         except Exception as e:
             logger.error(
-                "An unexpected error occurred while running '%s': %s",
-                " ".join(command_args),
-                e,
+                "An unexpected error occurred while running '%s': %s", ' '.join(command_args), e
             )
         return None
 
@@ -107,8 +99,7 @@ class ChatMixManager:
                 stream_id = obj.get("id")
                 if stream_id is None:
                     logger.warning(
-                        "Found Stream/Output/Audio node without an ID: %s",
-                        props.get("node.name", "N/A"),
+                        "Found Stream/Output/Audio node without an ID: %s", props.get('node.name', 'N/A')
                     )
                     continue
 
@@ -181,10 +172,7 @@ class ChatMixManager:
 
         logger.debug(
             "ChatMix Raw: %s, Norm: %.2f -> ChatTargetVol: %.2f, GameTargetVol: %.2f",
-            chatmix_value,
-            chatmix_norm,
-            chat_vol,
-            game_vol,
+            chatmix_value, chatmix_norm, chat_vol, game_vol
         )
         return chat_vol, game_vol
 
@@ -208,9 +196,7 @@ class ChatMixManager:
             and all(abs(last_vol - target_volume) < 0.001 for last_vol in last_volumes)
         ):  # Compare with a tolerance
             logger.debug(
-                "Volume for stream ID %s already at target %.2f. Skipping pw-cli.",
-                stream_id,
-                target_volume,
+                "Volume for stream ID %s already at target %.2f. Skipping pw-cli.", stream_id, target_volume
             )
             return
 
@@ -219,22 +205,17 @@ class ChatMixManager:
 
         logger.debug(
             "Setting volume for stream ID %s (%s channels) to %.2f with payload: %s",
-            stream_id,
-            num_channels,
-            target_volume,
-            payload_json,
+            stream_id, num_channels, target_volume, payload_json
         )
 
         # Construct the command
         cmd = ["pw-cli", "set-param", str(stream_id), "Props", payload_json]
-        logger.debug("Executing PipeWire command: %s", " ".join(cmd))
+        logger.debug("Executing PipeWire command: %s", ' '.join(cmd))
 
         try:
             process = subprocess.run(cmd, capture_output=True, text=True, check=True)
             logger.debug(
-                "pw-cli set-param for stream %s successful. Output: %s",
-                stream_id,
-                process.stdout.strip(),
+                "pw-cli set-param for stream %s successful. Output: %s", stream_id, process.stdout.strip()
             )
             self._last_set_stream_volumes[stream_id] = (
                 target_volumes_list  # Update last set volumes
@@ -245,16 +226,11 @@ class ChatMixManager:
             )
         except subprocess.CalledProcessError as e:
             logger.error(
-                "Error setting volume for stream %s using pw-cli (exit code %s): %s",
-                stream_id,
-                e.returncode,
-                e.stderr.strip(),
+                "Error setting volume for stream %s using pw-cli (exit code %s): %s", stream_id, e.returncode, e.stderr.strip()
             )
         except Exception as e:
             logger.error(
-                "An unexpected error occurred while setting volume for stream %s: %s",
-                stream_id,
-                e,
+                "An unexpected error occurred while setting volume for stream %s: %s", stream_id, e
             )
 
     def update_volumes(self, chatmix_value: int | None) -> None:
@@ -301,10 +277,7 @@ class ChatMixManager:
 
             logger.debug(
                 "Processing stream: ID=%s, AppName='%s', Binary='%s', Type=%s, TargetVol=%.2f",
-                stream_id,
-                props.get("application.name", ""),
-                props.get("application.process.binary", ""),
-                stream_type,
-                current_target_volume,
+                stream_id, props.get('application.name', ''),
+                props.get('application.process.binary', ''), stream_type, current_target_volume
             )
             self._set_stream_volume(stream_id, num_channels, current_target_volume)
