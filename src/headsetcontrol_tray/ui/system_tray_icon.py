@@ -1,5 +1,6 @@
+from collections.abc import Callable  # Added Any
 import logging
-from typing import Any, Callable, Optional # Added Any
+from typing import Any
 
 from PySide6.QtCore import QRect, Qt, QTimer, Slot
 from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPen
@@ -36,7 +37,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         headset_service: hs_svc.HeadsetService,
         config_manager: cfg_mgr.ConfigManager,
         application_quit_fn: Callable[[], None],
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
         logger.debug("SystemTrayIcon initializing.")

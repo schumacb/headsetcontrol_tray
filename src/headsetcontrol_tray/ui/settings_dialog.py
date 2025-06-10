@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QShowEvent
@@ -38,7 +37,7 @@ class SettingsDialog(QDialog):
         self,
         config_manager: cfg_mgr.ConfigManager,
         headset_service: hs_svc.HeadsetService,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
         self.config_manager = config_manager
