@@ -92,7 +92,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
 
-        def set_clicked_button_to_close_equivalent(*_, **_):
+        def set_clicked_button_to_close_equivalent(*_args, **_kwargs):
             found_close_button = None
             for b_info in added_buttons_initial:
                 if (
