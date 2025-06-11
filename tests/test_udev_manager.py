@@ -20,6 +20,7 @@ from headsetcontrol_tray.udev_manager import (
 
 class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     def setUp(self) -> None:  # Signature changed
+        """Set up test environment for UDEVManager tests."""
         self.logger_patcher = patch(
             f"{UDEVManager.__module__}.logger",
             new_callable=MagicMock,
@@ -35,6 +36,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self,
         mock_named_temp_file: MagicMock,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
+        """Test successful interactive creation of udev rules."""
         mock_temp_file_context = MagicMock()
         # mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules" # This line was identified as unused by Vulture previously, but it IS used.
         # The Vulture output might be for a different version or a misinterpretation.
@@ -121,6 +123,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self,
         mock_named_temp_file: MagicMock,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
+        """Test interactive rule creation handles OSError on temp file write."""
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.write.side_effect = OSError("Disk full")
 
@@ -142,6 +145,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self,
         mock_named_temp_file: MagicMock,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
+        """Test interactive rule creation handles unexpected errors during temp file ops."""
         # Simulate an error other than OSError during the tempfile operation
         mock_named_temp_file.side_effect = Exception("Unexpected tempfile system error")
 
@@ -157,6 +161,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     def test_get_last_udev_setup_details_initially_none(
         self,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
+        """Test get_last_udev_setup_details returns None initially."""
         self.assertIsNone(self.manager.get_last_udev_setup_details())
 
     @patch(
@@ -166,6 +171,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self,
         _mock_temp_file_unused: MagicMock,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
+        """Test get_last_udev_setup_details returns previously set details."""
         dummy_details = {
             "temp_file_path": "/tmp/dummy",
             "final_file_path": "/etc/dummy.rules",
