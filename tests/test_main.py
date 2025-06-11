@@ -76,37 +76,20 @@ def test_main_block_execution_revised(
 # It's good practice to also test if verboselogs.install() is called.
 # This is a bit more involved as it happens at import time.
 # We can check if it's installed by checking logging levels or by mocking verboselogs itself.
-@mock.patch("verboselogs.install")
-def test_verboselogs_install_called_on_import(mock_verboselogs_install: mock.MagicMock) -> None:
-    """Test that verboselogs.install() is called when __main__ is imported."""
-    # To ensure this test is isolated and actually tests the import-time behavior,
-    # we need to reload the module. This is generally tricky and can have side effects.
-    # A more robust way would be to structure the application so that such global setup
-    # is more explicitly controllable or testable.
-    # For now, we assume that by the time any test in this file runs, __main__ was imported,
-    # and thus verboselogs.install() should have been called once.
-    # To make this more deterministic, we could use importlib.reload if necessary,
-    # but that adds complexity.
+@mock.patch("headsetcontrol_tray.__main__.SteelSeriesTrayApp") # Mock app to prevent actual run
+@mock.patch("headsetcontrol_tray.__main__.sys.exit")      # Mock sys.exit
+@mock.patch("headsetcontrol_tray.__main__.signal.signal") # Mock signal handling
+@mock.patch("verboselogs.install") # Mock the target function
+def test_verboselogs_install_called_during_main(
+    mock_verboselogs_install: mock.MagicMock,
+    _mock_signal: mock.MagicMock, # Underscore if not used directly
+    _mock_sys_exit: mock.MagicMock, # Underscore if not used directly
+    _MockSteelSeriesTrayApp: mock.MagicMock # Underscore if not used directly
+) -> None:
+    """Test that verboselogs.install() is called when hct_main.main() is executed."""
+    # Call the main function from the imported module.
+    # SteelSeriesTrayApp and sys.exit are mocked to prevent the app from fully running or exiting.
+    hct_main.main()
 
-    # For simplicity, this test will rely on the fact that __main__ is imported
-    # when pytest collects tests from this file. If verboselogs.install() was
-    # decorated with @mock.patch at the top of the file BEFORE the import of hct_main,
-    # it would work. Let's try to force an import or re-import here.
-
-    # The import 'from headsetcontrol_tray import __main__ as hct_main' already happened.
-    # To test the install on import, we'd need to structure the test differently,
-    # perhaps by un-importing and re-importing, or ensuring the patch is active *before*
-    # the first import of the module under test.
-
-    # A simpler approach for this specific case:
-    # If the `verboselogs.install()` is indeed at the top level of `__main__.py`,
-    # it would have been called when `hct_main` was first imported by Python for this test suite.
-    # We can assert it was called.
-    # This relies on the import order and test discovery of pytest.
-
-    # Re-importing hct_main to ensure the patched verboselogs.install is called
-    import importlib
-
-    importlib.reload(hct_main)
-
-    mock_verboselogs_install.assert_called()
+    # Assert that verboselogs.install() was called.
+    mock_verboselogs_install.assert_called_once()

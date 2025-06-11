@@ -4,37 +4,36 @@ This document outlines rules and guidelines for an LLM agent (like Jules) when w
 
 ## 1. Project-Specific Configuration & Setup
 
-*   **Dependency Management:**
-    *   Command to install/sync dependencies: `uv pip sync (or uv pip sync --all-extras if extras are used)`
-    *   Key dependency files: `pyproject.toml, uv.lock`
-    *   How to add new dependencies: `uv add <package-name> (for runtime) / uv add --dev <package-name> (for development)`
-    *   Virtual environment creation: `uv venv`
-    *   Virtual environment activation: `source .venv/bin/activate (Linux/macOS) or .venv\Scripts\activate (Windows)`
-*   **Linting & Static Analysis:**
-    *   Command to run linters: `ruff check . --fix` (for identifying and auto-fixing lint issues)
-    *   Command to run formatter: `ruff format .` (for applying code style formatting, similar to Black)
-    *   Command to run static type checker: `uv run mypy .` (preferred method) or `mypy .` (if `uv` is not used for task execution)
-    *   Configuration files: `pyproject.toml (for ruff linting, formatting, and isort), mypy.ini (for mypy)`
-*   **Code Complexity Analysis:**
-    *   Tool: Radon
-    *   Purpose: Measures code complexity (e.g., Cyclomatic Complexity, Halstead metrics, Maintainability Index). Helps identify overly complex code that might be hard to maintain or test.
-    *   Command to run: `radon cc . -a -s` (for Cyclomatic Complexity with average and summary)
-    *   Command for all metrics: `radon mi . -s` (for Maintainability Index) or `radon raw . -s` (for raw metrics).
-    *   Configuration: Radon can be configured using a `pyproject.toml` file under `[tool.radon]`, but basic command-line usage is often sufficient.
-*   **Dead Code Detection:**
-    *   Tool: Vulture
-    *   Purpose: Finds unused code (dead code) in Python programs. Helps clean up the codebase by identifying functions, variables, classes, etc., that are defined but not used.
-    *   Command to run: `vulture .` (scans the current directory)
-    *   Configuration: Vulture can be configured by whitelisting false positives in a `.vulture_whitelist.py` file or through `pyproject.toml` under `[tool.vulture]`.
-*   **Testing:**
-    *   Command to run all tests: `uv run pytest` (preferred method) or `pytest` (if `uv` is not used for task execution)
-    *   Command to run specific tests: `uv run pytest headsetcontrol_tray/tests/test_app.py::TestClassName::test_method_name` (or using `pytest` directly)
-    *   Testing framework used: `pytest`
-    *   Are there specific test coverage requirements or tools? `pytest-cov (after installing with uv add --dev pytest-cov)`
-*   **Running the Project (if applicable):**
-    *   Command to run the main application/service: `python -m headsetcontrol_tray (or using uv: uv run python -m headsetcontrol_tray)`
-*   **Project Style Guide (if distinct from general PEP8):**
-    *   Link to or summary of project-specific style nuances: `Primarily PEP 8, enforced by Ruff/Black. Specific nuances TBD.`
+This project uses `uv` for project and virtual environment management, and a set of scripts to help with development tasks.
+
+### Environment Setup
+
+To set up your local development environment, run the provided setup script:
+
+```bash
+bash scripts/setup_dev_env.sh
+```
+This script will:
+1.  Check if `uv` is installed and install it if necessary.
+2.  Create a Python virtual environment in `.venv/`.
+3.  Activate the virtual environment (for the script's execution; you'll need to activate it in your shell separately).
+4.  Install all necessary Python dependencies (including development dependencies) using `uv pip install -e ".[dev]"`.
+5.  Attempt to install required system packages (like `python3.10-dev`, `xvfb`, `x11-utils`, `libhidapi-dev`) using `sudo apt-get`. If `sudo` is not available or fails, it will list the packages for manual installation.
+
+After the script completes, activate the virtual environment in your current shell session:
+
+```bash
+source .venv/bin/activate
+```
+
+### Running the Quality Script
+
+Once your environment is set up and the virtual environment is activated, you can run the quality script to perform checks like linting, type checking, and running tests:
+
+```bash
+bash scripts/quality.sh
+```
+This script is configured to run tests in a headless environment if a display server (like X11) is not detected, so it can be used in various local and CI environments.
 
 ---
 

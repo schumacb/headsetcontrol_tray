@@ -1,25 +1,23 @@
 """Tests for the main application logic (SteelSeriesTrayApp)."""
 
-import os
+from pathlib import Path
 import sys
 import unittest
-from unittest.mock import MagicMock, Mock, patch  # Removed Any from here
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 # Ensure the application modules can be imported
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
+    str((Path(__file__).parent.parent / "src").resolve()),
 )
 
-from PySide6.QtWidgets import QApplication, QMessageBox
-import pytest  # Added for @pytest.mark.usefixtures
-
+from headsetcontrol_tray.app import SteelSeriesTrayApp
 # Modules to be tested or mocked
-try:
-    from headsetcontrol_tray.app import SteelSeriesTrayApp
-except ImportError as e:
-    print(f"ImportError in test_app.py: {e}")
-    raise
+# try/except for ImportError is removed as the sys.path modification should handle it.
+# If SteelSeriesTrayApp cannot be imported, it's a fundamental test setup issue.
 
 
 @pytest.mark.usefixtures("qapp")
@@ -72,7 +70,8 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         added_buttons_initial = []
 
         def side_effect_add_button_initial(
-            text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None,
+            text_or_button: str | QMessageBox.StandardButton,
+            role: QMessageBox.ButtonRole | None = None,
         ):
             button = MagicMock(spec=QMessageBox.StandardButton)
             added_buttons_initial.append(
