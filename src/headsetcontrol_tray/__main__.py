@@ -9,7 +9,9 @@ import verboselogs
 # This MUST be done before other application modules (that use logging) are imported.
 verboselogs.install()
 
-from headsetcontrol_tray.app import SteelSeriesTrayApp  # noqa: E402 # verboselogs.install must be called before this import
+from headsetcontrol_tray.app import (
+    SteelSeriesTrayApp,  # verboselogs.install must be called before this import
+)
 
 
 def main() -> None:

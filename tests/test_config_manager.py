@@ -1,10 +1,12 @@
 """Tests for the ConfigManager class."""
+
 import json
 import logging
 from pathlib import Path
 import unittest
 from unittest import mock
-import pytest # Added import
+
+import pytest  # Added import
 
 # Assuming app_config and ConfigManager are in src/headsetcontrol_tray
 from headsetcontrol_tray import app_config
@@ -17,6 +19,7 @@ logging.disable(logging.CRITICAL)
 
 class TestConfigManager(unittest.TestCase):
     """Test suite for configuration management functionalities."""
+
     def setUp(self) -> None:
         """Set up test environment before each test."""
         self.mock_config_dir = mock.MagicMock(spec=Path)
@@ -54,7 +57,9 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_load_json_file")
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_init_paths_created_and_loaded(self, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock) -> None:
+    def test_init_paths_created_and_loaded(
+        self, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock,
+    ) -> None:
         """Test that config paths are created and files loaded on init."""
         mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [1] * 10}]
         cm = ConfigManager()
@@ -106,9 +111,11 @@ class TestConfigManager(unittest.TestCase):
         mock_json_load.assert_called_once()
         assert loaded_data == expected_data
 
-    @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0)) # Restored
-    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock  # noqa: PT019
-                                         ) -> None: # Restored parameter
+    @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))  # Restored
+    def test_load_json_file_decode_error(
+        self,
+        _mock_json_load_raises: mock.MagicMock,  # noqa: PT019
+    ) -> None:  # Restored parameter
         """Test handling of JSONDecodeError when loading a file."""
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
@@ -190,7 +197,7 @@ class TestConfigManager(unittest.TestCase):
             mock_file_path,
         )
 
-    @mock.patch("json.dump", side_effect=OSError("Permission denied")) # Restored
+    @mock.patch("json.dump", side_effect=OSError("Permission denied"))  # Restored
     def test_save_json_file_os_error_on_dump(
         self,
         _mock_json_dump_raises_oserror: mock.MagicMock,  # noqa: PT019 # Restored
@@ -268,7 +275,7 @@ class TestConfigManager(unittest.TestCase):
             cm.save_custom_eq_curve("NoValues", [])
 
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock) -> None: # Already had -> None
+    def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock) -> None:  # Already had -> None
         """Test successfully saving a valid custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
@@ -286,7 +293,7 @@ class TestConfigManager(unittest.TestCase):
         # That's typically handled by UI logic after successful save.
 
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_delete_custom_eq_curve(self, mock_save_json: mock.MagicMock) -> None: # Already had -> None
+    def test_delete_custom_eq_curve(self, mock_save_json: mock.MagicMock) -> None:  # Already had -> None
         """Test deleting a custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
@@ -455,75 +462,105 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting(
-                "auto_mute_mic_enabled",
-                self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
-            ) is False
+            assert (
+                cm.get_setting(
+                    "auto_mute_mic_enabled",
+                    self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
+                )
+                is False
+            )
             cm._settings = {"auto_mute_mic_enabled": True}
-            assert cm.get_setting(
-                "auto_mute_mic_enabled",
-                self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
-            ) is True
+            assert (
+                cm.get_setting(
+                    "auto_mute_mic_enabled",
+                    self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
+                )
+                is True
+            )
 
     def test_get_setting_for_run_on_startup_enabled(self) -> None:
         """Test get_setting for 'run_on_startup_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting(
-                "run_on_startup_enabled",
-                self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
-            ) is True
+            assert (
+                cm.get_setting(
+                    "run_on_startup_enabled",
+                    self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
+                )
+                is True
+            )
             cm._settings = {"run_on_startup_enabled": False}
-            assert cm.get_setting(
-                "run_on_startup_enabled",
-                self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
-            ) is False
+            assert (
+                cm.get_setting(
+                    "run_on_startup_enabled",
+                    self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
+                )
+                is False
+            )
 
     def test_get_setting_for_minimize_to_tray_enabled(self) -> None:
         """Test get_setting for 'minimize_to_tray_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting(
-                "minimize_to_tray_enabled",
-                self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
-            ) is True
+            assert (
+                cm.get_setting(
+                    "minimize_to_tray_enabled",
+                    self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
+                )
+                is True
+            )
             cm._settings = {"minimize_to_tray_enabled": False}
-            assert cm.get_setting(
-                "minimize_to_tray_enabled",
-                self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
-            ) is False
+            assert (
+                cm.get_setting(
+                    "minimize_to_tray_enabled",
+                    self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
+                )
+                is False
+            )
 
     def test_get_setting_for_check_for_updates_enabled(self) -> None:
         """Test get_setting for 'check_for_updates_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting(
-                "check_for_updates_enabled",
-                self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
-            ) is True
+            assert (
+                cm.get_setting(
+                    "check_for_updates_enabled",
+                    self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
+                )
+                is True
+            )
             cm._settings = {"check_for_updates_enabled": False}
-            assert cm.get_setting(
-                "check_for_updates_enabled",
-                self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
-            ) is False
+            assert (
+                cm.get_setting(
+                    "check_for_updates_enabled",
+                    self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
+                )
+                is False
+            )
 
     def test_get_setting_for_include_prereleases_enabled(self) -> None:
         """Test get_setting for 'include_prereleases_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting(
-                "include_prereleases_enabled",
-                self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
-            ) is False
+            assert (
+                cm.get_setting(
+                    "include_prereleases_enabled",
+                    self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
+                )
+                is False
+            )
             cm._settings = {"include_prereleases_enabled": True}
-            assert cm.get_setting(
-                "include_prereleases_enabled",
-                self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
-            ) is True
+            assert (
+                cm.get_setting(
+                    "include_prereleases_enabled",
+                    self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
+                )
+                is True
+            )
 
     def test_get_setting_for_last_selected_device_serial(
         self,

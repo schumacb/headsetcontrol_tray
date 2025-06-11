@@ -1,4 +1,5 @@
 """Tests for HeadsetStatusParser and HeadsetCommandEncoder."""
+
 import os
 import sys
 import unittest
@@ -64,6 +65,7 @@ def create_status_response_data(
 
 class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
     """Tests for the HeadsetStatusParser class."""
+
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HeadsetStatusParser tests."""
         self.logger_patcher = patch(
@@ -208,6 +210,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
 class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     """Tests for the HeadsetCommandEncoder class."""
+
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HeadsetCommandEncoder tests."""
         self.logger_patcher = patch(
@@ -260,9 +263,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         # byte_value = int(0x14 + clamped_val)
         eq_floats = [-10.0, -5.0, 0.0, 5.0, 10.0, -10.0, -5.0, 0.0, 5.0, 10.0]
         expected_hw_bytes = [0x0A, 0x0F, 0x14, 0x19, 0x1E, 0x0A, 0x0F, 0x14, 0x19, 0x1E]
-        expected_payload = (
-            list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + expected_hw_bytes + [0x00]
-        )  # Terminator
+        expected_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + expected_hw_bytes + [0x00]  # Terminator
 
         encoded = self.encoder.encode_set_eq_values(eq_floats)
         assert encoded == expected_payload

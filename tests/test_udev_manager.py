@@ -1,9 +1,9 @@
 """Tests for the UDEVManager class."""
+
 import os
 import sys
 import unittest
 from unittest.mock import MagicMock, call, patch
-import pytest # Added import
 
 # Ensure src is in path for imports
 sys.path.insert(
@@ -22,6 +22,7 @@ from headsetcontrol_tray.udev_manager import (
 
 class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     """Tests UDEV rule management functionalities."""
+
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for UDEVManager tests."""
         self.logger_patcher = patch(
@@ -60,13 +61,11 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         # This line IS USED to set up `expected_details`.
         # Therefore, I will not change this line.
         # I will proceed to check the next method mentioned.
-        mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules" # Keeping as it's used.
+        mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules"  # Keeping as it's used.
         mock_temp_file_context.write = MagicMock()
 
         # Configure the context manager behavior for NamedTemporaryFile
-        mock_named_temp_file.return_value.__enter__.return_value = (
-            mock_temp_file_context
-        )
+        mock_named_temp_file.return_value.__enter__.return_value = mock_temp_file_context
 
         result = self.manager.create_rules_interactive()
 
@@ -95,8 +94,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         # Verify key log messages using call objects
         expected_action_required_log = call(
-            "ACTION REQUIRED: To complete headset setup, please run the "
-            "following commands:",
+            "ACTION REQUIRED: To complete headset setup, please run the following commands:",
         )
         assert expected_action_required_log in self.mock_logger.info.call_args_list
 
@@ -108,8 +106,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert expected_cp_log in self.mock_logger.info.call_args_list
 
         expected_reload_log = call(
-            "2. Reload udev rules: sudo udevadm control --reload-rules && "
-            "sudo udevadm trigger",
+            "2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger",
         )
         assert expected_reload_log in self.mock_logger.info.call_args_list
 
@@ -127,9 +124,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.write.side_effect = OSError("Disk full")
 
-        mock_named_temp_file.return_value.__enter__.return_value = (
-            mock_temp_file_context
-        )
+        mock_named_temp_file.return_value.__enter__.return_value = mock_temp_file_context
 
         result = self.manager.create_rules_interactive()
 
@@ -164,7 +159,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         """Test get_last_udev_setup_details returns None initially."""
         assert self.manager.get_last_udev_setup_details() is None
 
-    @patch("tempfile.NamedTemporaryFile") # Restored
+    @patch("tempfile.NamedTemporaryFile")  # Restored
     def test_get_last_udev_setup_details_returns_set_details(
         self,
         _mock_temp_file_unused: MagicMock,  # noqa: PT019 # Restored

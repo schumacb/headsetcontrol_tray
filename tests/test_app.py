@@ -1,7 +1,7 @@
 """Tests for the main application logic (SteelSeriesTrayApp)."""
+
 import os
 import sys
-from typing import Any  # Added typing.Any
 import unittest
 from unittest.mock import MagicMock, Mock, patch  # Removed Any from here
 
@@ -12,7 +12,6 @@ sys.path.insert(
 )
 
 from PySide6.QtWidgets import QApplication, QMessageBox
-from unittest.mock import MagicMock, Mock # This line was already effectively present but re-adding for completeness if original was different
 import pytest  # Added for @pytest.mark.usefixtures
 
 # Modules to be tested or mocked
@@ -23,11 +22,10 @@ except ImportError as e:
     raise
 
 
-
-
 @pytest.mark.usefixtures("qapp")
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     """Tests UDEV dialog interactions in the SteelSeriesTrayApp."""
+
     # qapp_for_class is no longer needed as qapp fixture handles instance per test.
     # setUpClass is no longer needed as qapp fixture handles setup per test.
     # tearDownClass is no longer needed as qapp fixture handles teardown per test.
@@ -36,9 +34,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         """Set up test environment before each test."""
         # qapp fixture ensures QApplication.instance() is available here.
         self.qapp_instance = QApplication.instance()
-        assert self.qapp_instance is not None, (
-            "qapp fixture did not provide a QApplication instance for setUp."
-        )
+        assert self.qapp_instance is not None, "qapp fixture did not provide a QApplication instance for setUp."
 
         # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
         self.qapplication_patch = patch(
@@ -55,12 +51,12 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
     def test_initial_dialog_shown_when_details_present(
         self,
         _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
-        MockHeadsetService: MagicMock, # Corrected order
-        MockQMessageBoxClass: MagicMock, # Corrected order
+        MockHeadsetService: MagicMock,  # Corrected order
+        MockQMessageBoxClass: MagicMock,  # Corrected order
     ) -> None:
         """Test that the initial udev help dialog is shown if udev details are present."""
         mock_service_instance = MockHeadsetService.return_value
@@ -75,7 +71,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         # close_button_mock was unused
         added_buttons_initial = []
 
-        def side_effect_add_button_initial(text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None):
+        def side_effect_add_button_initial(
+            text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None,
+        ):
             button = MagicMock(spec=QMessageBox.StandardButton)
             added_buttons_initial.append(
                 {"button": button, "role": role, "text_or_enum": text_or_button},
@@ -87,9 +85,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         def set_clicked_button_to_close_equivalent(*_args, **_kwargs):
             found_close_button = None
             for b_info in added_buttons_initial:
-                if (
-                    b_info.get("text_or_enum") == QMessageBox.StandardButton.Close
-                ):  # Corrected Enum
+                if b_info.get("text_or_enum") == QMessageBox.StandardButton.Close:  # Corrected Enum
                     found_close_button = b_info["button"]
                     break
             if not found_close_button:
@@ -110,21 +106,19 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
         )
 
-        informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[
-            0
-        ][0]
+        informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
         assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
         assert self.sample_details["temp_file_path"] in informative_text_call_args
         assert "Show Manual Instructions Only" not in informative_text_call_args
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
     def test_initial_dialog_not_shown_when_details_absent(
         self,
         _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
-        MockHeadsetService: MagicMock, # Corrected order
-        MockQMessageBoxClass: MagicMock, # Corrected order
+        MockHeadsetService: MagicMock,  # Corrected order
+        MockQMessageBoxClass: MagicMock,  # Corrected order
     ) -> None:
         """Test that the initial udev help dialog is not shown if udev details are absent."""
         mock_service_instance = MockHeadsetService.return_value

@@ -1,11 +1,12 @@
 """Tests for the HIDCommunicator class."""
+
 import os
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import pytest # Added import
 
 import hid
+import pytest  # Added import
 
 # Ensure src is in path for imports
 sys.path.insert(
@@ -20,6 +21,7 @@ from headsetcontrol_tray.hid_communicator import HIDCommunicator
 # Removed class decorator
 class TestHIDCommunicator(unittest.TestCase):
     """Tests HID communication functionalities."""
+
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HIDCommunicator tests."""
         self.logger_patcher = patch(
@@ -55,9 +57,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
     def test_write_report_success_with_report_id(self) -> None:  # Removed mock_logger arg
         """Test successful HID write operation with a report ID."""
-        self.mock_hid_device.write.return_value = (
-            3  # Expected length of b'\x01\x02\x03'
-        )
+        self.mock_hid_device.write.return_value = 3  # Expected length of b'\x01\x02\x03'
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 

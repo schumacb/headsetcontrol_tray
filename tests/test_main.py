@@ -1,4 +1,5 @@
 """Tests for the __main__ module entry point of the application."""
+
 import runpy
 import signal
 from unittest import mock
@@ -14,7 +15,9 @@ from headsetcontrol_tray import __main__ as hct_main
 @mock.patch("headsetcontrol_tray.__main__.SteelSeriesTrayApp")
 @mock.patch("headsetcontrol_tray.__main__.sys.exit")
 @mock.patch("headsetcontrol_tray.__main__.signal.signal")
-def test_main_function_calls(mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, MockSteelSeriesTrayApp: mock.MagicMock) -> None:
+def test_main_function_calls(
+    mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, MockSteelSeriesTrayApp: mock.MagicMock,
+) -> None:
     """Test that main() function initializes and runs the app, and sets signal handler."""
     mock_app_instance = MockSteelSeriesTrayApp.return_value
     mock_app_instance.run.return_value = 0
