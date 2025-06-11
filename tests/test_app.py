@@ -58,9 +58,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
     def test_initial_dialog_shown_when_details_present(
         self,
-        MockHeadsetService: MagicMock,
-        MockQMessageBoxClass: MagicMock,
-        _MockSystemTrayIcon: MagicMock, # Restored
+        _MockSystemTrayIcon: MagicMock, # Corrected order
+        MockHeadsetService: MagicMock, # Corrected order
+        MockQMessageBoxClass: MagicMock, # Corrected order
     ) -> None:
         """Test that the initial udev help dialog is shown if udev details are present."""
         mock_service_instance = MockHeadsetService.return_value
@@ -122,9 +122,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
     def test_initial_dialog_not_shown_when_details_absent(
         self,
-        MockHeadsetService: MagicMock,
-        MockQMessageBoxClass: MagicMock,
-        _MockSystemTrayIcon: MagicMock, # Restored
+        _MockSystemTrayIcon: MagicMock, # Corrected order
+        MockHeadsetService: MagicMock, # Corrected order
+        MockQMessageBoxClass: MagicMock, # Corrected order
     ) -> None:
         """Test that the initial udev help dialog is not shown if udev details are absent."""
         mock_service_instance = MockHeadsetService.return_value
