@@ -111,12 +111,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[
             0
         ][0]
-        self.assertIn(
-            "To resolve this, you can use the 'Install Automatically' button",
-            informative_text_call_args,
-        )
-        self.assertIn(self.sample_details["temp_file_path"], informative_text_call_args)
-        self.assertNotIn("Show Manual Instructions Only", informative_text_call_args)
+        assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
+        assert self.sample_details["temp_file_path"] in informative_text_call_args
+        assert "Show Manual Instructions Only" not in informative_text_call_args
 
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
     @patch("headsetcontrol_tray.app.QMessageBox")

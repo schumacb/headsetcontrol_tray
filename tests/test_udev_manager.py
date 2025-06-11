@@ -69,7 +69,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         result = self.manager.create_rules_interactive()
 
-        self.assertTrue(result)
+        assert result
         mock_named_temp_file.assert_called_once_with(
             mode="w",
             delete=False,
@@ -84,7 +84,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             "rule_filename": UDEV_RULE_FILENAME,
             "rule_content": UDEV_RULE_CONTENT,
         }
-        self.assertEqual(self.manager.last_udev_setup_details, expected_details)
+        assert self.manager.last_udev_setup_details == expected_details
 
         # Check for specific log messages
         self.mock_logger.info.assert_any_call(
@@ -97,28 +97,25 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             "ACTION REQUIRED: To complete headset setup, please run the "
             "following commands:",
         )
-        self.assertIn(
-            expected_action_required_log,
-            self.mock_logger.info.call_args_list,
-        )
+        assert expected_action_required_log in self.mock_logger.info.call_args_list
 
         expected_cp_log = call(
             '1. Copy the rule file: sudo cp "%s" "%s"',
             expected_details["temp_file_path"],
             expected_details["final_file_path"],
         )
-        self.assertIn(expected_cp_log, self.mock_logger.info.call_args_list)
+        assert expected_cp_log in self.mock_logger.info.call_args_list
 
         expected_reload_log = call(
             "2. Reload udev rules: sudo udevadm control --reload-rules && "
             "sudo udevadm trigger",
         )
-        self.assertIn(expected_reload_log, self.mock_logger.info.call_args_list)
+        assert expected_reload_log in self.mock_logger.info.call_args_list
 
         expected_replug_log = call(
             "3. Replug your SteelSeries headset if it was connected.",
         )
-        self.assertIn(expected_replug_log, self.mock_logger.info.call_args_list)
+        assert expected_replug_log in self.mock_logger.info.call_args_list
 
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_os_error_on_write(
@@ -135,8 +132,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         result = self.manager.create_rules_interactive()
 
-        self.assertFalse(result)
-        self.assertIsNone(self.manager.last_udev_setup_details)
+        assert not result
+        assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
             "Could not write temporary udev rule file",  # The original code logs the exception object as part of the message if using %s, e
@@ -153,8 +150,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
 
         result = self.manager.create_rules_interactive()
 
-        self.assertFalse(result)
-        self.assertIsNone(self.manager.last_udev_setup_details)
+        assert not result
+        assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
             "An unexpected error occurred during temporary udev rule file creation",
@@ -164,7 +161,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
         """Test get_last_udev_setup_details returns None initially."""
-        self.assertIsNone(self.manager.get_last_udev_setup_details())
+        assert self.manager.get_last_udev_setup_details() is None
 
     @patch(
         "tempfile.NamedTemporaryFile",
@@ -182,7 +179,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         self.manager.last_udev_setup_details = dummy_details
 
         retrieved_details = self.manager.get_last_udev_setup_details()
-        self.assertEqual(retrieved_details, dummy_details)
+        assert retrieved_details == dummy_details
 
 
 if __name__ == "__main__":

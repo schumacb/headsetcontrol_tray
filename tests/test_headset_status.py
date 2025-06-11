@@ -96,7 +96,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
             "raw_battery_status_byte": 0x01,
         }
         parsed = self.parser.parse_status_report(response_data)
-        self.assertEqual(parsed, expected_status)
+        assert parsed == expected_status
 
     def test_parse_status_report_offline(self) -> None:  # Removed mock_logger arg
         """Test parsing a status report when the headset is offline."""
@@ -116,7 +116,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
             "raw_battery_status_byte": 0x00,
         }
         parsed = self.parser.parse_status_report(response_data)
-        self.assertEqual(parsed, expected_status)
+        assert parsed == expected_status
 
     def test_parse_status_report_various_battery_levels(
         self,
@@ -131,11 +131,11 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
                     level_byte_val=level_byte,
                 )
                 parsed = self.parser.parse_status_report(response_data)
-                self.assertIsNotNone(parsed)
+                assert parsed is not None
                 if parsed:  # For Mypy, though assertIsNotNone should guarantee
-                    self.assertEqual(parsed["battery_percent"], expected_percent)
-                    self.assertFalse(parsed["battery_charging"])  # Status 0x02
-                    self.assertTrue(parsed["headset_online"])
+                    assert parsed["battery_percent"] == expected_percent
+                    assert not parsed["battery_charging"]  # Status 0x02
+                    assert parsed["headset_online"]
 
     def test_parse_status_report_unknown_battery_level(self) -> None:  # Removed mock_logger arg
         """Test parsing a status report with an unknown battery level byte."""
@@ -144,9 +144,9 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
             level_byte_val=0x05,
         )  # Unknown level
         parsed = self.parser.parse_status_report(response_data)
-        self.assertIsNotNone(parsed)
+        assert parsed is not None
         if parsed:  # For Mypy
-            self.assertIsNone(parsed["battery_percent"])
+            assert parsed["battery_percent"] is None
         self.mock_logger.warning.assert_any_call(
             "_parse_battery_info: Unknown raw battery level: %#02x",
             5,
@@ -175,15 +175,15 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
                     chat_byte_val=chat,
                 )
                 parsed = self.parser.parse_status_report(response_data)
-                self.assertIsNotNone(parsed)
+                assert parsed is not None
                 if parsed:  # For Mypy
-                    self.assertEqual(parsed["chatmix"], expected_mix)
+                    assert parsed["chatmix"] == expected_mix
 
     def test_parse_status_report_insufficient_data(self) -> None:  # Removed mock_logger arg
         """Test parsing a status report with insufficient data."""
         short_data = b"\x00\x01"  # Too short for full parsing
         parsed = self.parser.parse_status_report(short_data)
-        self.assertIsNone(parsed)
+        assert parsed is None
         self.mock_logger.warning.assert_called_with(
             "parse_status_report: Insufficient data. Expected at least %s bytes, got %s.",
             app_config.HID_INPUT_REPORT_LENGTH_STATUS,
@@ -198,7 +198,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         short_data = bytes(
             [0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE),
         )  # Length exactly up to, but not including, the byte
-        self.assertFalse(self.parser._determine_headset_online_status(short_data))
+        assert not self.parser._determine_headset_online_status(short_data)
         self.mock_logger.warning.assert_called_with(
             "_determine_headset_online_status: Response data too short. Expected > %s bytes, got %s",
             app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE,
@@ -239,7 +239,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
                     hw_byte,
                 ]
                 encoded = self.encoder.encode_set_sidetone(ui_level)
-                self.assertEqual(encoded, expected_payload)
+                assert encoded == expected_payload
 
     def test_encode_set_inactive_timeout(self) -> None:  # Removed mock_logger arg
         """Test encoding of set inactive timeout command for various minute values."""
@@ -251,7 +251,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
                     minutes_byte,
                 ]
                 encoded = self.encoder.encode_set_inactive_timeout(minutes_in)
-                self.assertEqual(encoded, expected_payload)
+                assert encoded == expected_payload
 
     def test_encode_set_eq_values_valid(self) -> None:  # Removed mock_logger arg
         """Test encoding of set EQ values command with valid float inputs."""
@@ -265,13 +265,13 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         )  # Terminator
 
         encoded = self.encoder.encode_set_eq_values(eq_floats)
-        self.assertEqual(encoded, expected_payload)
+        assert encoded == expected_payload
 
     def test_encode_set_eq_values_invalid_band_count(self) -> None:  # Removed mock_logger arg
         """Test encode_set_eq_values returns None for invalid band count."""
         eq_floats_short = [0.0] * 9
         encoded = self.encoder.encode_set_eq_values(eq_floats_short)
-        self.assertIsNone(encoded)
+        assert encoded is None
         self.mock_logger.error.assert_called_with(
             "encode_set_eq_values: Invalid number of EQ bands. Expected %s, got %s.",
             NUM_EQ_BANDS,
@@ -308,7 +308,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         """Test encode_set_eq_preset_id returns None for an invalid preset ID."""
         invalid_id = 99
         encoded = self.encoder.encode_set_eq_preset_id(invalid_id)
-        self.assertIsNone(encoded)
+        assert encoded is None
         self.mock_logger.error.assert_called_with(
             "encode_set_eq_preset_id: Invalid preset ID: %s. Not in ARCTIS_NOVA_7_HW_PRESETS.",
             invalid_id,
@@ -328,7 +328,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     ) -> None:  # Removed mock_logger arg
         """Test encode_set_eq_preset_id with malformed preset data (band count)."""
         encoded = self.encoder.encode_set_eq_preset_id(0)
-        self.assertIsNone(encoded)
+        assert encoded is None
         self.mock_logger.error.assert_any_call(
             "encode_set_eq_preset_id: Malformed preset data for ID %s. Expected %s bands, got %s.",
             0,
@@ -350,7 +350,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     ) -> None:  # Removed mock_logger arg
         """Test encode_set_eq_preset_id with malformed preset data (values type)."""
         encoded = self.encoder.encode_set_eq_preset_id(0)
-        self.assertIsNone(encoded)
+        assert encoded is None
         self.mock_logger.error.assert_any_call(
             "encode_set_eq_preset_id: Preset data 'values' for ID %s is not a list of numbers.",
             0,

@@ -64,8 +64,8 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         ]
 
         devices = self.manager._find_potential_hid_devices()
-        self.assertEqual(len(devices), 1)
-        self.assertEqual(devices[0]["product_id"], mock_dev1_pid)
+        assert len(devices) == 1
+        assert devices[0]["product_id"] == mock_dev1_pid
         mock_hid_enumerate.assert_called_once_with(app_config.STEELSERIES_VID, 0)
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
@@ -78,7 +78,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         """Test find_potential_hid_devices handles hid.enumerate errors."""
         mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
         devices = self.manager._find_potential_hid_devices()
-        self.assertEqual(len(devices), 0)
+        assert len(devices) == 0
         mock_logger.exception.assert_called_with("Error enumerating HID devices")
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
@@ -98,7 +98,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
             },  # Different VID
         ]
         devices = self.manager._find_potential_hid_devices()
-        self.assertEqual(len(devices), 0)
+        assert len(devices) == 0
 
 
 class TestHIDConnectionManagerSorting(unittest.TestCase):
@@ -172,10 +172,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         expected_order = [dev_a, dev_b, dev_c, dev_d, dev_e]  # Based on sort keys
 
         sorted_devices = self.manager._sort_hid_devices(devices_unsorted)
-        self.assertEqual(
-            [d["path"] for d in sorted_devices],
-            [e["path"] for e in expected_order],
-        )
+        assert [d["path"] for d in sorted_devices] == [e["path"] for e in expected_order]
 
         # No explicit cleanup here needed due to tearDown,
         # but ensure test logic that modifies app_config.TARGET_PIDS is careful.
@@ -224,10 +221,10 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         result = self.manager._connect_device()
 
-        self.assertTrue(result)
-        self.assertIsNotNone(self.manager.hid_device)
-        self.assertEqual(self.manager.hid_device, mock_hid_instance)
-        self.assertEqual(self.manager.selected_device_info, mock_device_info)
+        assert result
+        assert self.manager.hid_device is not None
+        assert self.manager.hid_device == mock_hid_instance
+        assert self.manager.selected_device_info == mock_device_info
         mock_find_devices.assert_called_once()
         mock_hid_device_constructor.assert_called_once_with(
             path=mock_device_info["path"],
@@ -243,8 +240,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         result = self.manager._connect_device()
 
-        self.assertFalse(result)
-        self.assertIsNone(self.manager.hid_device)
+        assert not result
+        assert self.manager.hid_device is None
         mock_hid_device_constructor.assert_not_called()
 
     @patch("headsetcontrol_tray.hid_manager.logger")
@@ -274,12 +271,9 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         result = self.manager._connect_device()
 
-        self.assertFalse(result)
-        self.assertIsNone(self.manager.hid_device)
-        self.assertEqual(
-            mock_hid_device_constructor.call_count,
-            2,
-        )  # Tried both devices
+        assert not result
+        assert self.manager.hid_device is None
+        assert mock_hid_device_constructor.call_count == 2  # Tried both devices
         mock_logger.exception.assert_any_call(
             "    Failed to open HID device path %s",
             mock.ANY,
@@ -297,7 +291,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         result = self.manager.ensure_connection()
 
-        self.assertTrue(result)
+        assert result
         mock_internal_connect_device.assert_not_called()
 
     @patch.object(HIDConnectionManager, "_connect_device")
@@ -315,7 +309,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         result = self.manager.ensure_connection()
 
-        self.assertTrue(result)
+        assert result
         mock_internal_connect_device.assert_called_once()
 
 
@@ -335,8 +329,8 @@ class TestHIDConnectionManagerClose(unittest.TestCase):
         self.manager.close()
 
         mock_hid_dev.close.assert_called_once()
-        self.assertIsNone(self.manager.hid_device)
-        self.assertIsNone(self.manager.selected_device_info)
+        assert self.manager.hid_device is None
+        assert self.manager.selected_device_info is None
 
     def test_close_no_device(self) -> None:
         """Test close operation when no HID device is connected."""
@@ -345,7 +339,7 @@ class TestHIDConnectionManagerClose(unittest.TestCase):
 
         # Should not raise any error
         self.manager.close()
-        self.assertIsNone(self.manager.hid_device)
+        assert self.manager.hid_device is None
 
 
 if __name__ == "__main__":
