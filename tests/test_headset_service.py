@@ -11,7 +11,7 @@ import hid  # Keep for type hinting if hid.Device is used
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
+    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
 )
 
 from headsetcontrol_tray import app_config
@@ -24,6 +24,10 @@ from headsetcontrol_tray.headset_service import HeadsetService
 # from headsetcontrol_tray.hid_communicator import HIDCommunicator
 # from headsetcontrol_tray.udev_manager import UDEVManager
 # from headsetcontrol_tray.headset_status import HeadsetStatusParser, HeadsetCommandEncoder
+
+# Constants for magic numbers used in test comparisons
+EXPECTED_BATTERY_LEVEL_HIGH = 75
+EXPECTED_CHATMIX_VALUE_MID = 32
 
 
 # Common mock setup for HeadsetService dependencies
@@ -273,12 +277,12 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         """Test successful retrieval of battery level."""
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": True,
-            "battery_percent": 75,
+            "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH,
             "battery_charging": False,
-            "chatmix": 64,
+            "chatmix": 64, # Not directly asserted, part of mock setup
             "raw_battery_status_byte": 0x02,
         }
-        assert self.service.get_battery_level() == 75
+        assert self.service.get_battery_level() == EXPECTED_BATTERY_LEVEL_HIGH
 
     def test_get_battery_level_offline(self) -> None:
         """Test get_battery_level returns None when headset is offline."""
@@ -296,12 +300,12 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         """Test successful retrieval of chatmix value."""
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": True,
-            "battery_percent": 75,
+            "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH, # Not directly asserted here, part of mock setup
             "battery_charging": False,
-            "chatmix": 32,
+            "chatmix": EXPECTED_CHATMIX_VALUE_MID,
             "raw_battery_status_byte": 0x02,
         }
-        assert self.service.get_chatmix_value() == 32
+        assert self.service.get_chatmix_value() == EXPECTED_CHATMIX_VALUE_MID
 
     def test_is_charging_success(self) -> None:
         """Test successful retrieval of charging status."""
@@ -333,8 +337,8 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         result = self.service._get_parsed_status_hid()
 
         assert result is None
-        assert self.service._last_hid_raw_read_data is None  # Should be cleared
-        assert self.service._last_hid_parsed_status is None
+        assert self.service.get_last_hid_report_data() is None  # Changed to public getter
+        assert self.service.get_last_parsed_status() is None  # Changed to public getter
 
 
 class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):

@@ -16,6 +16,13 @@ from headsetcontrol_tray.exceptions import ConfigError
 # Disable logging for tests to keep output clean, unless specifically testing logging
 logging.disable(logging.CRITICAL)
 
+# Constants for magic numbers used in tests
+EXPECTED_LOAD_JSON_CALL_COUNT_INIT = 2
+TEST_SIDETONE_LEVEL_VALID = 50
+TEST_EQ_PRESET_ID_VALID = 2
+# While 75 and 3 are used in set_x methods, they are not directly in comparisons here.
+# If they were, constants like TEST_SIDETONE_LEVEL_TO_SET = 75 would be added.
+
 
 class TestConfigManager(unittest.TestCase):
     """Test suite for configuration management functionalities."""
@@ -64,11 +71,11 @@ class TestConfigManager(unittest.TestCase):
         mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [1] * 10}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
-        assert mock_load_json.call_count == 2
+        assert mock_load_json.call_count == EXPECTED_LOAD_JSON_CALL_COUNT_INIT
         mock_load_json.assert_any_call(self.mock_config_file)
         mock_load_json.assert_any_call(self.mock_eq_curves_file)
-        assert cm._settings == {"some_setting": "value"}
-        assert cm._custom_eq_curves == {"MyCurve": [1] * 10}
+        assert cm.get_setting("some_setting") == "value" # Changed
+        assert cm.get_all_custom_eq_curves() == {"MyCurve": [1] * 10} # Changed
         mock_save_json.assert_not_called()
 
     @mock.patch.object(ConfigManager, "_load_json_file")
@@ -82,11 +89,11 @@ class TestConfigManager(unittest.TestCase):
         mock_load_json.side_effect = [{"some_setting": "value"}, {}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
-        assert mock_load_json.call_count == 2
-        assert cm._custom_eq_curves == app_config.DEFAULT_EQ_CURVES
+        assert mock_load_json.call_count == 2 # This 2 is fine, it's comparing to a local var/previous state, not a magic constant
+        assert cm.get_all_custom_eq_curves() == app_config.DEFAULT_EQ_CURVES # Changed
         mock_save_json.assert_called_once_with(
             self.mock_eq_curves_file,
-            app_config.DEFAULT_EQ_CURVES,
+            app_config.DEFAULT_EQ_CURVES, # This refers to the expected data, not internal state access
         )
 
     @mock.patch("json.load")
@@ -241,8 +248,8 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
         cm.set_setting("test_key", "test_value")
-        assert cm._settings["test_key"] == "test_value"
-        mock_save_json.assert_called_once_with(self.mock_config_file, cm._settings)
+        assert cm.get_setting("test_key") == "test_value" # Changed
+        mock_save_json.assert_called_once_with(self.mock_config_file, {"test_key": "test_value"}) # Changed
 
     def test_get_all_custom_eq_curves(self) -> None:
         """Test retrieving all custom EQ curves."""
@@ -284,10 +291,11 @@ class TestConfigManager(unittest.TestCase):
         new_curve_name = "NewCurve"
         new_curve_values = [1] * 10
         cm.save_custom_eq_curve(new_curve_name, new_curve_values)
-        assert new_curve_name in cm._custom_eq_curves
+        assert cm.get_custom_eq_curve(new_curve_name) is not None # Changed
+        expected_curves_after_save = {"ExistingCurve": [0] * 10, new_curve_name: new_curve_values}
         mock_save_json.assert_called_with(
             self.mock_eq_curves_file,
-            cm._custom_eq_curves,
+            expected_curves_after_save, # Changed
         )
         # Note: save_custom_eq_curve itself doesn't call set_last_custom_eq_curve_name.
         # That's typically handled by UI logic after successful save.
@@ -308,22 +316,29 @@ class TestConfigManager(unittest.TestCase):
             }
 
         cm.delete_custom_eq_curve("ToDelete")
-        assert "ToDelete" not in cm._custom_eq_curves
-        mock_save_json.assert_any_call(self.mock_eq_curves_file, cm._custom_eq_curves)
+        assert cm.get_custom_eq_curve("ToDelete") is None # Changed
+        expected_curves_after_delete1 = {"ToKeep": [1] * 10, app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}
+        mock_save_json.assert_any_call(self.mock_eq_curves_file, expected_curves_after_delete1) # Changed
         assert cm.get_setting("last_custom_eq_curve_name") == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
 
         mock_save_json.reset_mock()
-        cm._settings = {"last_custom_eq_curve_name": "OtherCurve"}
+        # State of _custom_eq_curves is now expected_curves_after_delete1
+        # cm._settings was already updated by the previous delete if the curve was active.
+        # For this part of the test, we assume the last_custom_eq_curve_name is "OtherCurve"
+        # (which is fine as it's not "ToKeep", so deleting "ToKeep" won't change it to default).
+        cm._settings = {"last_custom_eq_curve_name": "OtherCurve"} # Reset for this specific scenario
+
         cm.delete_custom_eq_curve("ToKeep")  # Deleting a non-active, non-default curve
-        assert "ToKeep" not in cm._custom_eq_curves
+        assert cm.get_custom_eq_curve("ToKeep") is None # Changed
         assert cm.get_setting("last_custom_eq_curve_name") == "OtherCurve"
 
         # Assertions for scenario 2, after reset_mock:
         # _save_json_file should have been called exactly once (for eq_curves_file)
         # and not for config_file if the deleted curve was not active.
+        expected_curves_after_delete2 = {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}
         mock_save_json.assert_called_once_with(
             self.mock_eq_curves_file,
-            cm._custom_eq_curves,
+            expected_curves_after_delete2, # Changed
         )
 
     # Test specific setting shortcuts by checking their interaction with get_setting/set_setting
@@ -337,14 +352,14 @@ class TestConfigManager(unittest.TestCase):
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
             ):
-                mock_get.return_value = 50
-                assert cm.get_last_sidetone_level() == 50
+                mock_get.return_value = TEST_SIDETONE_LEVEL_VALID
+                assert cm.get_last_sidetone_level() == TEST_SIDETONE_LEVEL_VALID
                 mock_get.assert_called_once_with(
                     "sidetone_level",
                     app_config.DEFAULT_SIDETONE_LEVEL,
                 )
-                cm.set_last_sidetone_level(75)
-                mock_set.assert_called_once_with("sidetone_level", 75)
+                cm.set_last_sidetone_level(75) # This 75 is an argument, not a comparison target for PLR2004 here
+                mock_set.assert_called_once_with("sidetone_level", 75) # Same for this 75
 
     def test_eq_preset_id_shortcuts(self) -> None:
         """Test getter/setter shortcuts for EQ preset ID."""
@@ -356,15 +371,15 @@ class TestConfigManager(unittest.TestCase):
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
             ):
-                mock_get.return_value = 2
-                assert cm.get_last_active_eq_preset_id() == 2
+                mock_get.return_value = TEST_EQ_PRESET_ID_VALID
+                assert cm.get_last_active_eq_preset_id() == TEST_EQ_PRESET_ID_VALID
                 mock_get.assert_called_once_with(
                     "eq_preset_id",
                     app_config.DEFAULT_EQ_PRESET_ID,
                 )
-                cm.set_last_active_eq_preset_id(3)
+                cm.set_last_active_eq_preset_id(3) # This 3 is an argument
                 # set_last_active_eq_preset_id calls set_setting twice
-                mock_set.assert_any_call("eq_preset_id", 3)
+                mock_set.assert_any_call("eq_preset_id", 3) # Same for this 3
                 mock_set.assert_any_call("active_eq_type", "hardware")
 
     def test_active_eq_type_shortcuts(self) -> None:
@@ -373,10 +388,7 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
-            with (
-                mock.patch.object(cm, "get_setting") as mock_get,
-                mock.patch.object(cm, "set_setting") as mock_set,
-            ):
+            with mock.patch.object(cm, "get_setting") as mock_get: # Removed mock_set
                 mock_get.return_value = "Preset"
                 assert cm.get_active_eq_type() == "Preset"
                 mock_get.assert_called_once_with(

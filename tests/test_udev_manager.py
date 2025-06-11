@@ -3,12 +3,13 @@
 import os
 import sys
 import unittest
+from pathlib import Path # Added Path
 from unittest.mock import MagicMock, call, patch
 
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
+    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
 )
 
 # NUM_EQ_BANDS is not used here, but if other constants from headset_status were needed,

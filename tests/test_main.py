@@ -16,15 +16,15 @@ from headsetcontrol_tray import __main__ as hct_main
 @mock.patch("headsetcontrol_tray.__main__.sys.exit")
 @mock.patch("headsetcontrol_tray.__main__.signal.signal")
 def test_main_function_calls(
-    mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, MockSteelSeriesTrayApp: mock.MagicMock,
+    mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, mock_steel_series_tray_app: mock.MagicMock,
 ) -> None:
     """Test that main() function initializes and runs the app, and sets signal handler."""
-    mock_app_instance = MockSteelSeriesTrayApp.return_value
+    mock_app_instance = mock_steel_series_tray_app.return_value
     mock_app_instance.run.return_value = 0
 
     hct_main.main()
 
-    MockSteelSeriesTrayApp.assert_called_once_with()
+    mock_steel_series_tray_app.assert_called_once_with()
     mock_app_instance.run.assert_called_once_with()
     mock_sys_exit.assert_called_once_with(0)
     mock_signal.assert_called_once_with(signal.SIGINT, signal.SIG_DFL)
@@ -53,7 +53,7 @@ def test_main_block_execution(mock_main_function: mock.MagicMock) -> None:
 def test_main_block_execution_revised(
     mock_signal: mock.MagicMock,
     mock_sys_exit: mock.MagicMock,
-    MockSteelSeriesTrayApp: mock.MagicMock,
+    mock_steel_series_tray_app: mock.MagicMock,
 ) -> None:
     """Test that the if __name__ == "__main__": block calls main() which then tries to run the app."""
     # We want to ensure the real main() is entered if __name__ == '__main__'.
@@ -61,14 +61,14 @@ def test_main_block_execution_revised(
     # which are all mocked here.
 
     # Mock the app instance's run method to avoid it doing anything, and to check it was called.
-    mock_app_instance = MockSteelSeriesTrayApp.return_value
+    mock_app_instance = mock_steel_series_tray_app.return_value
     mock_app_instance.run.return_value = 0  # main uses this as exit code
 
     runpy.run_module("headsetcontrol_tray", run_name="__main__", alter_sys=True)
 
     # Assertions:
     mock_signal.assert_called_once_with(signal.SIGINT, signal.SIG_DFL)  # From main()
-    MockSteelSeriesTrayApp.assert_called_once_with()  # From main()
+    mock_steel_series_tray_app.assert_called_once_with()  # From main()
     mock_app_instance.run.assert_called_once_with()  # From main()
     mock_sys_exit.assert_called_once_with(0)  # From main()
 

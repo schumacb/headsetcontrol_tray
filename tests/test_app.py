@@ -4,12 +4,17 @@ import os
 import sys
 import tempfile
 import unittest
+from pathlib import Path # Added Path
+import logging # Added logging
+from typing import Any # Added Any
 from unittest.mock import MagicMock, Mock, patch  # Removed Any from here
+
+logger = logging.getLogger(__name__) # Added logger instance
 
 # Ensure the application modules can be imported
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")),
+    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
 )
 
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -19,7 +24,7 @@ import pytest  # Added for @pytest.mark.usefixtures
 try:
     from headsetcontrol_tray.app import SteelSeriesTrayApp
 except ImportError as e:
-    print(f"ImportError in test_app.py: {e}")
+    logger.error(f"ImportError in test_app.py: {e}") # Replaced print with logger.error
     raise
 
 
@@ -44,9 +49,10 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         )
         self.qapplication_patch.start()
 
-        self.temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".txt")
-        temp_file_path = self.temp_file.name
-        self.temp_file.close()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file_obj:
+            self.temp_file = temp_file_obj # Still assign to self for teardown
+            temp_file_path = temp_file_obj.name
+        # temp_file_obj is now closed. self.temp_file.name can be used for cleanup.
 
         self.sample_details = {
             "temp_file_path": temp_file_path,
@@ -59,26 +65,26 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
     def test_initial_dialog_shown_when_details_present(
         self,
-        _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
-        MockHeadsetService: MagicMock,  # Corrected order
-        MockQMessageBoxClass: MagicMock,  # Corrected order
+        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
+        mock_headset_service: MagicMock,  # Corrected order, renamed
+        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
     ) -> None:
         """Test that the initial udev help dialog is shown if udev details are present."""
-        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance = mock_headset_service.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
         mock_service_instance.udev_setup_details = self.sample_details
         # is_device_connected would likely be false if udev_setup_details is populated due to connection failure
         mock_service_instance.is_device_connected = Mock(return_value=False)
         mock_service_instance.close = Mock()
 
-        mock_dialog_instance = MockQMessageBoxClass.return_value
+        mock_dialog_instance = mock_qmessage_box_class.return_value
 
         # close_button_mock was unused
         added_buttons_initial = []
 
         def side_effect_add_button_initial(
             text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None,
-        ):
+        ) -> MagicMock: # Added return type
             button = MagicMock(spec=QMessageBox.StandardButton)
             added_buttons_initial.append(
                 {"button": button, "role": role, "text_or_enum": text_or_button},
@@ -87,7 +93,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
 
-        def set_clicked_button_to_close_equivalent(*_args, **_kwargs):
+        def set_clicked_button_to_close_equivalent(*_args: Any, **_kwargs: Any) -> None: # Added arg and return types
             found_close_button = None
             for b_info in added_buttons_initial:
                 if b_info.get("text_or_enum") == QMessageBox.StandardButton.Close:  # Corrected Enum
@@ -101,7 +107,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         SteelSeriesTrayApp()  # Constructor called for side effects
 
-        MockQMessageBoxClass.assert_called_once()
+        mock_qmessage_box_class.assert_called_once()
         mock_dialog_instance.exec.assert_called_once()
         mock_dialog_instance.setWindowTitle.assert_called_with(
             "Headset Permissions Setup Required",
@@ -121,12 +127,12 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
     def test_initial_dialog_not_shown_when_details_absent(
         self,
-        _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
-        MockHeadsetService: MagicMock,  # Corrected order
-        MockQMessageBoxClass: MagicMock,  # Corrected order
+        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
+        mock_headset_service: MagicMock,  # Corrected order, renamed
+        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
     ) -> None:
         """Test that the initial udev help dialog is not shown if udev details are absent."""
-        mock_service_instance = MockHeadsetService.return_value
+        mock_service_instance = mock_headset_service.return_value
         mock_service_instance.udev_setup_details = None
         mock_service_instance.is_device_connected = Mock(
             return_value=True,
@@ -134,7 +140,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_service_instance.close = Mock()
 
         SteelSeriesTrayApp()  # Constructor called for side effects
-        MockQMessageBoxClass.assert_not_called()
+        mock_qmessage_box_class.assert_not_called()
 
     # tearDown is no longer strictly needed to stop the QApplication patch,
     # but can be kept for other cleanup if necessary.
@@ -145,7 +151,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
         # if hasattr(self, 'tray_app') and self.tray_app:
         if hasattr(self, "temp_file") and self.temp_file:
-            os.remove(self.temp_file.name)
+            Path(self.temp_file.name).unlink(missing_ok=True) # Replaced with pathlib and added missing_ok=True
 
         # pass # Removed duplicate pass, only one tearDown needed.
 
