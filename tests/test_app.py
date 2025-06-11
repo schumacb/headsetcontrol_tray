@@ -2,6 +2,7 @@
 
 import os
 import sys
+import tempfile
 import unittest
 from unittest.mock import MagicMock, Mock, patch  # Removed Any from here
 
@@ -34,7 +35,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         """Set up test environment before each test."""
         # qapp fixture ensures QApplication.instance() is available here.
         self.qapp_instance = QApplication.instance()
-        assert self.qapp_instance is not None, "qapp fixture did not provide a QApplication instance for setUp."
+        self.assertIsNotNone(self.qapp_instance, "qapp fixture did not provide a QApplication instance for setUp.")
 
         # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
         self.qapplication_patch = patch(
@@ -43,8 +44,12 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         )
         self.qapplication_patch.start()
 
+        self.temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".txt")
+        temp_file_path = self.temp_file.name
+        self.temp_file.close()
+
         self.sample_details = {
-            "temp_file_path": "/tmp/test_rules_sample.txt",
+            "temp_file_path": temp_file_path,
             "final_file_path": "/etc/udev/rules.d/99-sample.rules",
             "rule_filename": "99-sample.rules",
         }
@@ -107,9 +112,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         )
 
         informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
-        assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
-        assert self.sample_details["temp_file_path"] in informative_text_call_args
-        assert "Show Manual Instructions Only" not in informative_text_call_args
+        self.assertIn("To resolve this, you can use the 'Install Automatically' button", informative_text_call_args)
+        self.assertIn(self.sample_details["temp_file_path"], informative_text_call_args)
+        self.assertNotIn("Show Manual Instructions Only", informative_text_call_args)
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
@@ -139,6 +144,8 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
         # if hasattr(self, 'tray_app') and self.tray_app:
+        if hasattr(self, "temp_file") and self.temp_file:
+            os.remove(self.temp_file.name)
 
         # pass # Removed duplicate pass, only one tearDown needed.
 

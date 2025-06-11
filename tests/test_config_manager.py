@@ -64,11 +64,11 @@ class TestConfigManager(unittest.TestCase):
         mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [1] * 10}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
-        assert mock_load_json.call_count == 2
+        self.assertEqual(mock_load_json.call_count, 2)
         mock_load_json.assert_any_call(self.mock_config_file)
         mock_load_json.assert_any_call(self.mock_eq_curves_file)
-        assert cm._settings == {"some_setting": "value"}
-        assert cm._custom_eq_curves == {"MyCurve": [1] * 10}
+        self.assertEqual(cm._settings, {"some_setting": "value"})
+        self.assertEqual(cm._custom_eq_curves, {"MyCurve": [1] * 10})
         mock_save_json.assert_not_called()
 
     @mock.patch.object(ConfigManager, "_load_json_file")
@@ -82,8 +82,8 @@ class TestConfigManager(unittest.TestCase):
         mock_load_json.side_effect = [{"some_setting": "value"}, {}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
-        assert mock_load_json.call_count == 2
-        assert cm._custom_eq_curves == app_config.DEFAULT_EQ_CURVES
+        self.assertEqual(mock_load_json.call_count, 2)
+        self.assertEqual(cm._custom_eq_curves, app_config.DEFAULT_EQ_CURVES)
         mock_save_json.assert_called_once_with(
             self.mock_eq_curves_file,
             app_config.DEFAULT_EQ_CURVES,
@@ -109,7 +109,7 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.exists.assert_called_once()
         mock_file_path.open.assert_called_once_with()
         mock_json_load.assert_called_once()
-        assert loaded_data == expected_data
+        self.assertEqual(loaded_data, expected_data)
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))  # Restored
     def test_load_json_file_decode_error(
@@ -135,7 +135,7 @@ class TestConfigManager(unittest.TestCase):
             "Failed to load JSON file %s. Using empty config.",
             mock_file_path,
         )
-        assert loaded_data == {}
+        self.assertEqual(loaded_data, {})
 
     def test_load_json_file_does_not_exist(self) -> None:
         """Test loading a non-existent JSON file returns empty dict."""
@@ -146,7 +146,7 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
             loaded_data = cm._load_json_file(mock_file_path)
-        assert loaded_data == {}
+        self.assertEqual(loaded_data, {})
 
     @mock.patch("json.dump")
     def test_save_json_file_success(self, mock_json_dump: mock.MagicMock) -> None:
@@ -229,9 +229,9 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager()
             cm._settings = {"existing_key": "existing_value"}
             cm._custom_eq_curves = {}
-        assert cm.get_setting("existing_key") == "existing_value"
-        assert cm.get_setting("non_existing_key") is None
-        assert cm.get_setting("non_existing_key_with_default", "default_val") == "default_val"
+        self.assertEqual(cm.get_setting("existing_key"), "existing_value")
+        self.assertIsNone(cm.get_setting("non_existing_key"))
+        self.assertEqual(cm.get_setting("non_existing_key_with_default", "default_val"), "default_val")
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_set_setting(self, mock_save_json: mock.MagicMock) -> None:
@@ -241,7 +241,7 @@ class TestConfigManager(unittest.TestCase):
             cm._settings = {}
             cm._custom_eq_curves = {}
         cm.set_setting("test_key", "test_value")
-        assert cm._settings["test_key"] == "test_value"
+        self.assertEqual(cm._settings["test_key"], "test_value")
         mock_save_json.assert_called_once_with(self.mock_config_file, cm._settings)
 
     def test_get_all_custom_eq_curves(self) -> None:
@@ -249,15 +249,15 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"Curve1": [0] * 10, "Curve2": [1] * 10}
-        assert cm.get_all_custom_eq_curves() == {"Curve1": [0] * 10, "Curve2": [1] * 10}
+        self.assertEqual(cm.get_all_custom_eq_curves(), {"Curve1": [0] * 10, "Curve2": [1] * 10})
 
     def test_get_custom_eq_curve(self) -> None:
         """Test retrieving a specific custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"MyCurve": [1] * 10}
-        assert cm.get_custom_eq_curve("MyCurve") == [1] * 10
-        assert cm.get_custom_eq_curve("NonExistentCurve") is None
+        self.assertEqual(cm.get_custom_eq_curve("MyCurve"), [1] * 10)
+        self.assertIsNone(cm.get_custom_eq_curve("NonExistentCurve"))
 
     def test_save_custom_eq_curve_validation(self) -> None:
         """Test validation when saving custom EQ curves."""
@@ -284,7 +284,7 @@ class TestConfigManager(unittest.TestCase):
         new_curve_name = "NewCurve"
         new_curve_values = [1] * 10
         cm.save_custom_eq_curve(new_curve_name, new_curve_values)
-        assert new_curve_name in cm._custom_eq_curves
+        self.assertIn(new_curve_name, cm._custom_eq_curves)
         mock_save_json.assert_called_with(
             self.mock_eq_curves_file,
             cm._custom_eq_curves,
@@ -308,15 +308,15 @@ class TestConfigManager(unittest.TestCase):
             }
 
         cm.delete_custom_eq_curve("ToDelete")
-        assert "ToDelete" not in cm._custom_eq_curves
+        self.assertNotIn("ToDelete", cm._custom_eq_curves)
         mock_save_json.assert_any_call(self.mock_eq_curves_file, cm._custom_eq_curves)
-        assert cm.get_setting("last_custom_eq_curve_name") == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+        self.assertEqual(cm.get_setting("last_custom_eq_curve_name"), app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME)
 
         mock_save_json.reset_mock()
         cm._settings = {"last_custom_eq_curve_name": "OtherCurve"}
         cm.delete_custom_eq_curve("ToKeep")  # Deleting a non-active, non-default curve
-        assert "ToKeep" not in cm._custom_eq_curves
-        assert cm.get_setting("last_custom_eq_curve_name") == "OtherCurve"
+        self.assertNotIn("ToKeep", cm._custom_eq_curves)
+        self.assertEqual(cm.get_setting("last_custom_eq_curve_name"), "OtherCurve")
 
         # Assertions for scenario 2, after reset_mock:
         # _save_json_file should have been called exactly once (for eq_curves_file)
@@ -338,7 +338,7 @@ class TestConfigManager(unittest.TestCase):
                 mock.patch.object(cm, "set_setting") as mock_set,
             ):
                 mock_get.return_value = 50
-                assert cm.get_last_sidetone_level() == 50
+                self.assertEqual(cm.get_last_sidetone_level(), 50)
                 mock_get.assert_called_once_with(
                     "sidetone_level",
                     app_config.DEFAULT_SIDETONE_LEVEL,
@@ -357,7 +357,7 @@ class TestConfigManager(unittest.TestCase):
                 mock.patch.object(cm, "set_setting") as mock_set,
             ):
                 mock_get.return_value = 2
-                assert cm.get_last_active_eq_preset_id() == 2
+                self.assertEqual(cm.get_last_active_eq_preset_id(), 2)
                 mock_get.assert_called_once_with(
                     "eq_preset_id",
                     app_config.DEFAULT_EQ_PRESET_ID,
@@ -378,7 +378,7 @@ class TestConfigManager(unittest.TestCase):
                 mock.patch.object(cm, "set_setting") as mock_set,
             ):
                 mock_get.return_value = "Preset"
-                assert cm.get_active_eq_type() == "Preset"
+                self.assertEqual(cm.get_active_eq_type(), "Preset")
                 mock_get.assert_called_once_with(
                     "active_eq_type",
                     self.CM_DEFAULT_ACTIVE_EQ_TYPE,
@@ -398,39 +398,39 @@ class TestConfigManager(unittest.TestCase):
                 "MyFavCurve": [1] * 10,
                 app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10,
             }
-            assert cm.get_last_custom_eq_curve_name() == "MyFavCurve"
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), "MyFavCurve")
 
             cm._settings = {"last_custom_eq_curve_name": "NonExistent"}
             cm._custom_eq_curves = {
                 app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10,
                 "AnotherCurve": [2] * 10,
             }
-            assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME)
 
             cm._settings = {"last_custom_eq_curve_name": "NonExistent"}
             cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}
             # Ensure DEFAULT_CUSTOM_EQ_CURVE_NAME is not in this set for the test
             if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:
                 del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]
-            assert cm.get_last_custom_eq_curve_name() == "FirstCurve"
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), "FirstCurve")
 
             cm._settings = {"last_custom_eq_curve_name": "NonExistentCurveOnly"}
             cm._custom_eq_curves = {}  # No curves at all
-            assert cm.get_last_custom_eq_curve_name() == "NonExistentCurveOnly"
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), "NonExistentCurveOnly")
 
             cm._settings = {}  # No setting for last_custom_eq_curve_name
             cm._custom_eq_curves = {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}
-            assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME)
 
             cm._settings = {}
             cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}
             if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:
                 del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]
-            assert cm.get_last_custom_eq_curve_name() == "FirstCurve"
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), "FirstCurve")
 
             cm._settings = {}
             cm._custom_eq_curves = {}
-            assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+            self.assertEqual(cm.get_last_custom_eq_curve_name(), app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME)
 
     def test_set_last_custom_eq_curve_name(self) -> None:
         """Test setting the last custom EQ curve name."""
@@ -453,29 +453,27 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) is True
+            self.assertTrue(cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED))
             cm._settings = {"chatmix_enabled": False}
-            assert cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) is False
+            self.assertFalse(cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED))
 
     def test_get_setting_for_auto_mute_mic_enabled(self) -> None:
         """Test get_setting for 'auto_mute_mic_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert (
+            self.assertFalse(
                 cm.get_setting(
                     "auto_mute_mic_enabled",
                     self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
                 )
-                is False
             )
             cm._settings = {"auto_mute_mic_enabled": True}
-            assert (
+            self.assertTrue(
                 cm.get_setting(
                     "auto_mute_mic_enabled",
                     self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED,
                 )
-                is True
             )
 
     def test_get_setting_for_run_on_startup_enabled(self) -> None:
@@ -483,20 +481,18 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert (
+            self.assertTrue(
                 cm.get_setting(
                     "run_on_startup_enabled",
                     self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
                 )
-                is True
             )
             cm._settings = {"run_on_startup_enabled": False}
-            assert (
+            self.assertFalse(
                 cm.get_setting(
                     "run_on_startup_enabled",
                     self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED,
                 )
-                is False
             )
 
     def test_get_setting_for_minimize_to_tray_enabled(self) -> None:
@@ -504,20 +500,18 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert (
+            self.assertTrue(
                 cm.get_setting(
                     "minimize_to_tray_enabled",
                     self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
                 )
-                is True
             )
             cm._settings = {"minimize_to_tray_enabled": False}
-            assert (
+            self.assertFalse(
                 cm.get_setting(
                     "minimize_to_tray_enabled",
                     self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED,
                 )
-                is False
             )
 
     def test_get_setting_for_check_for_updates_enabled(self) -> None:
@@ -525,20 +519,18 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert (
+            self.assertTrue(
                 cm.get_setting(
                     "check_for_updates_enabled",
                     self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
                 )
-                is True
             )
             cm._settings = {"check_for_updates_enabled": False}
-            assert (
+            self.assertFalse(
                 cm.get_setting(
                     "check_for_updates_enabled",
                     self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED,
                 )
-                is False
             )
 
     def test_get_setting_for_include_prereleases_enabled(self) -> None:
@@ -546,20 +538,18 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert (
+            self.assertFalse(
                 cm.get_setting(
                     "include_prereleases_enabled",
                     self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
                 )
-                is False
             )
             cm._settings = {"include_prereleases_enabled": True}
-            assert (
+            self.assertTrue(
                 cm.get_setting(
                     "include_prereleases_enabled",
                     self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED,
                 )
-                is True
             )
 
     def test_get_setting_for_last_selected_device_serial(
@@ -569,18 +559,18 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting("last_selected_device_serial", None) is None
+            self.assertIsNone(cm.get_setting("last_selected_device_serial", None))
             cm._settings = {"last_selected_device_serial": "SERIAL123"}
-            assert cm.get_setting("last_selected_device_serial", None) == "SERIAL123"
+            self.assertEqual(cm.get_setting("last_selected_device_serial", None), "SERIAL123")
 
     def test_get_setting_for_dark_mode(self) -> None:  # Covers get_dark_mode
         """Test get_setting for 'dark_mode'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._settings = {}
-            assert cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE) == "auto"
+            self.assertEqual(cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE), "auto")
             cm._settings = {"dark_mode": "dark"}
-            assert cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE) == "dark"
+            self.assertEqual(cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE), "dark")
 
 
 if __name__ == "__main__":
