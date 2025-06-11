@@ -182,11 +182,12 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         # No explicit cleanup here needed due to tearDown,
         # but ensure test logic that modifies app_config.TARGET_PIDS is careful.
         if (
-            pid_2202 not in TestHIDConnectionManagerSorting._original_target_pids  # type: ignore[attr-defined]
+            TestHIDConnectionManagerSorting._original_target_pids is not None
+            and pid_2202 not in TestHIDConnectionManagerSorting._original_target_pids
             and pid_2202 in app_config.TARGET_PIDS
         ):
             # This condition means pid_2202 was added for the test, wasn't in original,
-            # and is still in app_config.TARGET_PIDS (tearDown will handle it).
+            # is not None, and is still in app_config.TARGET_PIDS (tearDown will handle it).
             pass
 
 

@@ -20,7 +20,7 @@ from headsetcontrol_tray.headset_status import (
 )
 
 
-class TestDataCreationError(IndexError):
+class _TestDataCreationError(IndexError):  # Renamed class
     """Custom exception for errors during test data creation."""
     pass
 
@@ -46,7 +46,7 @@ def create_status_response_data(
             f"{app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} "
             f"out of bounds for data length {len(data)}"
         )
-        raise TestDataCreationError(msg)
+        raise _TestDataCreationError(msg)  # Updated usage
 
     if len(data) > app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE:
         data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE] = level_byte_val
@@ -56,7 +56,7 @@ def create_status_response_data(
             f"{app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE} "
             f"out of bounds for data length {len(data)}"
         )
-        raise TestDataCreationError(msg)
+        raise _TestDataCreationError(msg)  # Updated usage
 
     if len(data) > app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE] = game_byte_val
@@ -66,7 +66,7 @@ def create_status_response_data(
             f"{app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE} "
             f"out of bounds for data length {len(data)}"
         )
-        raise TestDataCreationError(msg)
+        raise _TestDataCreationError(msg)  # Updated usage
 
     if len(data) > app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE] = chat_byte_val
@@ -76,7 +76,7 @@ def create_status_response_data(
             f"{app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE} "
             f"out of bounds for data length {len(data)}"
         )
-        raise TestDataCreationError(msg)
+        raise _TestDataCreationError(msg)  # Updated usage
 
     return bytes(data)
 
