@@ -29,6 +29,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     # tearDownClass is no longer needed as qapp fixture handles teardown per test.
 
     def setUp(self) -> None:
+        """Set up test environment before each test."""
         # qapp fixture ensures QApplication.instance() is available here.
         self.qapp_instance = QApplication.instance()
         assert self.qapp_instance is not None, (
@@ -57,6 +58,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         MockQMessageBoxClass: MagicMock,
         _MockSystemTrayIcon: MagicMock,
     ) -> None:
+        """Test that the initial udev help dialog is shown if udev details are present."""
         mock_service_instance = MockHeadsetService.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
         mock_service_instance.udev_setup_details = self.sample_details
@@ -123,6 +125,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         MockQMessageBoxClass: MagicMock,
         _MockSystemTrayIcon: MagicMock,
     ) -> None:
+        """Test that the initial udev help dialog is not shown if udev details are absent."""
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = None
         mock_service_instance.is_device_connected = Mock(
@@ -136,6 +139,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     # tearDown is no longer strictly needed to stop the QApplication patch,
     # but can be kept for other cleanup if necessary.
     def tearDown(self) -> None:
+        """Clean up test environment after each test."""
         self.qapplication_patch.stop()
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:
