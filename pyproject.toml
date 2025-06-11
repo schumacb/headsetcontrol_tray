@@ -100,6 +100,9 @@ convention = "google"
 force-sort-within-sections = true
 known-first-party = ["headsetcontrol_tray", "tests"]
 
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["headsetcontrol_tray*"]

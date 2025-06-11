@@ -61,7 +61,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
-        self.assertTrue(result)
+        assert result
         self.mock_hid_device.write.assert_called_once_with(b"\x01\x02\x03")
         self.mock_logger.debug.assert_any_call("Bytes written: %s", 3)
 
@@ -71,7 +71,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.write_report(report_id=0, data=[0x01, 0x02])
 
-        self.assertTrue(result)
+        assert result
         self.mock_hid_device.write.assert_called_once_with(b"\x01\x02")
 
     def test_write_report_hid_write_returns_zero_bytes(self) -> None:  # Removed mock_logger arg
@@ -80,7 +80,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
-        self.assertFalse(result)
+        assert not result
         self.mock_logger.warning.assert_called_with(
             "HID write returned %s. This might indicate an issue with the device %s (%s).",
             0,
@@ -94,7 +94,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
 
-        self.assertFalse(result)
+        assert not result
         # The logger call in the application code is now logger.exception
         self.mock_logger.exception.assert_called_with(
             "HID write error on device %s (%s)",
@@ -111,7 +111,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.read_report(report_length=3)  # Removed timeout_ms
 
-        self.assertEqual(result, expected_bytes)
+        assert result == expected_bytes
         self.mock_hid_device.read.assert_called_once_with(
             3,
         )  # Removed timeout_ms from assertion
@@ -128,7 +128,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed
 
-        self.assertIsNone(result)
+        assert result is None
         self.mock_logger.warning.assert_called_with(
             "No data received from HID read on %s (%s) (length %s).",
             self.communicator.device_product_str,
@@ -143,7 +143,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed
 
-        self.assertIsNone(result)
+        assert result is None
         self.mock_logger.warning.assert_called_with(
             "Incomplete HID read on %s (%s). Expected %s bytes, got %s: %s",
             self.communicator.device_product_str,
@@ -159,7 +159,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed
 
-        self.assertIsNone(result)
+        assert result is None
         # The logger call in the application code is now logger.exception
         self.mock_logger.exception.assert_called_with(
             "HID read error on device %s (%s)",
