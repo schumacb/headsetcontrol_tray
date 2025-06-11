@@ -111,7 +111,7 @@ class HeadsetService:
                 str(final_rules_path),  # Convert Path to string for logging
             )
             if self.udev_manager.create_rules_interactive():  # This method logs its own success/failure
-                pass  # udev_setup_details was removed
+                self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
         else:
             logger.debug(
                 "Udev rules file %s exists. Skipping interactive udev guide related to connection failure.",

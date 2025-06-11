@@ -214,7 +214,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
             local_mock_comm_class.return_value = self.mock_hid_communicator_instance
             service = HeadsetService()  # Trigger the call path
 
-        self.assertEqual(service.get_udev_setup_details(), dummy_details)
+        self.assertEqual(service.udev_setup_details, dummy_details)
 
 
 class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
