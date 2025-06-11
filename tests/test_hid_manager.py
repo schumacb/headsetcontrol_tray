@@ -196,7 +196,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         self,
         mock_find_devices: MagicMock,
         mock_hid_device_constructor: MagicMock,
-    ):
+    ) -> None:
         mock_device_info = create_mock_device_info(
             app_config.TARGET_PIDS[0],
             interface_number=app_config.HID_REPORT_INTERFACE,

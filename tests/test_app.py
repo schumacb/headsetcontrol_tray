@@ -1,5 +1,4 @@
 import os
-import subprocess  # For subprocess.CompletedProcess
 import sys
 from typing import Any  # Added typing.Any
 import unittest
@@ -29,7 +28,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     # setUpClass is no longer needed as qapp fixture handles setup per test.
     # tearDownClass is no longer needed as qapp fixture handles teardown per test.
 
-    def setUp(self):
+    def setUp(self) -> None:
         # qapp fixture ensures QApplication.instance() is available here.
         self.qapp_instance = QApplication.instance()
         assert self.qapp_instance is not None, (
@@ -49,19 +48,6 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             "rule_filename": "99-sample.rules",
         }
 
-        # Ensure __file__ is not None for path operations
-        app_module_file = sys.modules["headsetcontrol_tray.app"].__file__
-        assert app_module_file is not None, (
-            "sys.modules['headsetcontrol_tray.app'].__file__ is None"
-        )
-        current_script_dir = os.path.dirname(os.path.abspath(app_module_file))
-        repo_root = os.path.abspath(os.path.join(current_script_dir, ".."))
-        self.expected_helper_script_path = os.path.join(
-            repo_root,
-            "scripts",
-            "install-udev-rules.sh",
-        )
-
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
@@ -70,7 +56,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
         _MockSystemTrayIcon: MagicMock,
-    ):
+    ) -> None:
         mock_service_instance = MockHeadsetService.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
         mock_service_instance.udev_setup_details = self.sample_details
@@ -136,7 +122,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
         _MockSystemTrayIcon: MagicMock,
-    ):
+    ) -> None:
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = None
         mock_service_instance.is_device_connected = Mock(
@@ -149,7 +135,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
     # tearDown is no longer strictly needed to stop the QApplication patch,
     # but can be kept for other cleanup if necessary.
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.qapplication_patch.stop()
         # If any test instance of SteelSeriesTrayApp is stored on self, clean it up.
         # e.g., if self.tray_app = SteelSeriesTrayApp() was in setUp:

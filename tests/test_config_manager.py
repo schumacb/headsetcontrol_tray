@@ -49,7 +49,7 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_load_json_file")
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_init_paths_created_and_loaded(self, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock):
+    def test_init_paths_created_and_loaded(self, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock) -> None:
         mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [1] * 10}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
@@ -66,7 +66,7 @@ class TestConfigManager(unittest.TestCase):
         self,
         mock_save_json: mock.MagicMock,
         mock_load_json: mock.MagicMock,
-    ):
+    ) -> None:
         mock_load_json.side_effect = [{"some_setting": "value"}, {}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
@@ -78,7 +78,7 @@ class TestConfigManager(unittest.TestCase):
         )
 
     @mock.patch("json.load")
-    def test_load_json_file_success(self, mock_json_load: mock.MagicMock):
+    def test_load_json_file_success(self, mock_json_load: mock.MagicMock) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
         expected_data = {"key": "value"}
@@ -99,7 +99,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(loaded_data, expected_data)
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock):
+    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
 
@@ -120,7 +120,7 @@ class TestConfigManager(unittest.TestCase):
         )
         self.assertEqual(loaded_data, {})
 
-    def test_load_json_file_does_not_exist(self):
+    def test_load_json_file_does_not_exist(self) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = False
         with mock.patch.object(ConfigManager, "__init__", lambda _: None):
@@ -131,7 +131,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(loaded_data, {})
 
     @mock.patch("json.dump")
-    def test_save_json_file_success(self, mock_json_dump: mock.MagicMock):
+    def test_save_json_file_success(self, mock_json_dump: mock.MagicMock) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
 
@@ -189,7 +189,7 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.open = mock.mock_open()
 
         with (
-            mock.patch.object(ConfigManager, "__init__", lambda x: None),
+            mock.patch.object(ConfigManager, "__init__", lambda _: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
