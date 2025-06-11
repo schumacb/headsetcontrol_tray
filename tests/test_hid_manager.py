@@ -46,9 +46,8 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         self.manager = HIDConnectionManager()
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
-    # Removed @patch("headsetcontrol_tray.hid_manager.logger")
-    @pytest.mark.usefixtures("mock_logger_fixture")
-    def test_find_potential_hid_devices_success(self, mock_hid_enumerate: MagicMock) -> None: # Removed _mock_logger
+    @patch("headsetcontrol_tray.hid_manager.logger") # Restored
+    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock, mock_hid_enumerate: MagicMock) -> None: # Restored _mock_logger
         """Test successful discovery of potential HID devices."""
         mock_dev1_pid = app_config.TARGET_PIDS[0]
         mock_dev_other_vid_pid = 0x9999
@@ -84,11 +83,10 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         mock_logger.exception.assert_called_with("Error enumerating HID devices")
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
-    # Removed @patch("headsetcontrol_tray.hid_manager.logger")
-    @pytest.mark.usefixtures("mock_logger_fixture")
+    @patch("headsetcontrol_tray.hid_manager.logger") # Restored
     def test_find_potential_hid_devices_no_matches(
         self,
-        # Removed _mock_logger: MagicMock,
+        _mock_logger: MagicMock, # Restored
         mock_hid_enumerate: MagicMock,
     ) -> None:
         """Test find_potential_hid_devices handles no matching devices found."""
@@ -192,29 +190,25 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
                 # app_config.TARGET_PIDS.remove(pid_2202) # If not using tearDown for this.
 
 
-@patch(
-    "headsetcontrol_tray.hid_manager.hid.Device",
-)  # Mock the hid.Device class constructor
-@patch.object(
-    HIDConnectionManager,
-    "_find_potential_hid_devices",
-)  # Mock the method within the class
+# Removed class-level patches:
+# @patch("headsetcontrol_tray.hid_manager.hid.Device")
+# @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
 
-
-@pytest.fixture
-def mock_logger_fixture():
-    with patch("headsetcontrol_tray.hid_manager.logger") as mock_fixture:
-        yield mock_fixture
-
-@pytest.fixture
-def mock_find_devices_unused_fixture():
-    with patch.object(HIDConnectionManager, "_find_potential_hid_devices") as mock_fixture:
-        yield mock_fixture
-
-@pytest.fixture
-def mock_hid_device_constructor_unused_fixture():
-    with patch("headsetcontrol_tray.hid_manager.hid.Device") as mock_fixture:
-        yield mock_fixture
+# Removed fixtures:
+# @pytest.fixture
+# def mock_logger_fixture():
+#     with patch("headsetcontrol_tray.hid_manager.logger") as mock_fixture:
+#         yield mock_fixture
+#
+# @pytest.fixture
+# def mock_find_devices_unused_fixture():
+#     with patch.object(HIDConnectionManager, "_find_potential_hid_devices") as mock_fixture:
+#         yield mock_fixture
+#
+# @pytest.fixture
+# def mock_hid_device_constructor_unused_fixture():
+#     with patch("headsetcontrol_tray.hid_manager.hid.Device") as mock_fixture:
+#         yield mock_fixture
 
 
 class TestHIDConnectionManagerConnection(unittest.TestCase):
@@ -223,6 +217,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         """Set up for HID device connection tests."""
         self.manager = HIDConnectionManager()
 
+    @patch("headsetcontrol_tray.hid_manager.hid.Device")
+    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
     def test_connect_device_success(
         self,
         mock_find_devices: MagicMock,
@@ -251,6 +247,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             path=mock_device_info["path"],
         )
 
+    @patch("headsetcontrol_tray.hid_manager.hid.Device")
+    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
     def test_connect_device_no_devices_found(
         self,
         mock_find_devices: MagicMock,
@@ -266,11 +264,13 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_hid_device_constructor.assert_not_called()
 
     @patch("headsetcontrol_tray.hid_manager.logger")
+    @patch("headsetcontrol_tray.hid_manager.hid.Device")
+    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
     def test_connect_device_open_fails_for_all(
         self,
-        mock_logger: MagicMock,
-        mock_find_devices: MagicMock,
-        mock_hid_device_constructor: MagicMock,
+        mock_find_devices: MagicMock, # Innermost
+        mock_hid_device_constructor: MagicMock, # Inner
+        mock_logger: MagicMock, # Outermost
     ) -> None:
         """Test _connect_device handles hid.Device.open failures for all candidates."""
         mock_dev_info1 = create_mock_device_info(
@@ -300,13 +300,14 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             mock.ANY,
         )
 
-    @patch.object(HIDConnectionManager, "_connect_device")
-    @pytest.mark.usefixtures("mock_find_devices_unused_fixture", "mock_hid_device_constructor_unused_fixture")
+    @patch.object(HIDConnectionManager, "_connect_device") # provides mock_internal_connect_device
+    @patch("headsetcontrol_tray.hid_manager.hid.Device") # provides _mock_hid_device_constructor_unused
+    @patch.object(HIDConnectionManager, "_find_potential_hid_devices") # provides _mock_find_devices_unused
     def test_ensure_connection_already_connected(
         self,
+        _mock_find_devices_unused: MagicMock,
+        _mock_hid_device_constructor_unused: MagicMock,
         mock_internal_connect_device: MagicMock,
-        # Removed _mock_find_devices_unused: MagicMock,
-        # Removed _mock_hid_device_constructor_unused: MagicMock,
     ) -> None:
         """Test ensure_connection when a device is already connected."""
         self.manager.hid_device = MagicMock(spec=hid.Device)  # Already connected
@@ -316,13 +317,14 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         assert result
         mock_internal_connect_device.assert_not_called()
 
-    @patch.object(HIDConnectionManager, "_connect_device")
-    @pytest.mark.usefixtures("mock_find_devices_unused_fixture", "mock_hid_device_constructor_unused_fixture")
+    @patch.object(HIDConnectionManager, "_connect_device") # provides mock_internal_connect_device
+    @patch("headsetcontrol_tray.hid_manager.hid.Device") # provides _mock_hid_device_constructor_unused
+    @patch.object(HIDConnectionManager, "_find_potential_hid_devices") # provides _mock_find_devices_unused
     def test_ensure_connection_needs_connection(
         self,
+        _mock_find_devices_unused: MagicMock,
+        _mock_hid_device_constructor_unused: MagicMock,
         mock_internal_connect_device: MagicMock,
-        # Removed _mock_find_devices_unused: MagicMock,
-        # Removed _mock_hid_device_constructor_unused: MagicMock,
     ) -> None:
         """Test ensure_connection when a new connection attempt is needed."""
         self.manager.hid_device = None  # Not connected
