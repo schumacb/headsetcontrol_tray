@@ -1,16 +1,19 @@
 """Tests for the UDEVManager class."""
 
-import sys # Removed import os
+# Standard library imports
+import sys
 import unittest
-from pathlib import Path # Added Path
+from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
+# Code to modify sys.path must come before application-specific imports
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
+    str((Path(__file__).parent / ".." / "src").resolve()),
 )
 
+# Application-specific imports
 # NUM_EQ_BANDS is not used here, but if other constants from headset_status were needed,
 # they could be imported. For now, only app_config for logger name.
 from headsetcontrol_tray.udev_manager import (

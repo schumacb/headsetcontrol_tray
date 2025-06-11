@@ -1,22 +1,29 @@
 """Tests for the HIDConnectionManager class."""
 
-import sys # Removed import os
-from typing import Any  # Added
+# Standard library imports
+import sys
 import unittest
-from pathlib import Path # Added Path
-from unittest import mock  # Added
+from pathlib import Path
+from typing import Any
+from unittest import mock # Python 3.3+
 from unittest.mock import MagicMock, patch
 
+# Third-party imports
 import hid
 
+# Code to modify sys.path must come before application-specific imports
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
+    str((Path(__file__).parent / ".." / "src").resolve()),
 )
 
+# Application-specific imports
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.hid_manager import HIDConnectionManager
+
+# Constants for test assertions
+EXPECTED_HID_OPEN_ATTEMPTS_ON_FAILURE = 2
 
 
 # Default mock device info structure
@@ -279,7 +286,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
         assert not result
         assert self.manager.hid_device is None
-        assert mock_hid_device_constructor.call_count == 2  # Tried both devices
+        assert mock_hid_device_constructor.call_count == EXPECTED_HID_OPEN_ATTEMPTS_ON_FAILURE  # Tried both devices
         mock_logger.exception.assert_any_call(
             "    Failed to open HID device path %s",
             mock.ANY,

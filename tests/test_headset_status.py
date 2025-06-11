@@ -1,19 +1,22 @@
 """Tests for HeadsetStatusParser and HeadsetCommandEncoder."""
 
-import sys # Removed import os
+# Standard library imports
+import sys
 import unittest
-from pathlib import Path # Added Path
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+# Code to modify sys.path must come before application-specific imports
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
+    str((Path(__file__).parent / ".." / "src").resolve()),
 )
 
+# Application-specific imports
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.headset_status import (
-    NUM_EQ_BANDS,  # Added import
+    NUM_EQ_BANDS,
     HeadsetCommandEncoder,
     HeadsetStatusParser,
 )
@@ -21,7 +24,6 @@ from headsetcontrol_tray.headset_status import (
 
 class _TestDataCreationError(IndexError):  # Renamed class
     """Custom exception for errors during test data creation."""
-    pass
 
 
 # Helper to create mock response data for HeadsetStatusParser

@@ -1,29 +1,34 @@
 """Tests for the main application logic (SteelSeriesTrayApp)."""
 
-import sys # Removed import os
+# Standard library imports
+import logging
+import sys
 import tempfile
 import unittest
-from pathlib import Path # Added Path
-import logging # Added logging
-from typing import Any # Added Any
-from unittest.mock import MagicMock, Mock, patch  # Removed Any from here
+from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock, Mock, patch
 
-logger = logging.getLogger(__name__) # Added logger instance
+# Third-party imports
+import pytest
+from PySide6.QtWidgets import QApplication, QMessageBox
 
-# Ensure the application modules can be imported
+# Logger instance
+logger = logging.getLogger(__name__)
+
+# Ensure the application modules can be imported by modifying sys.path
+# This needs to be done before attempting to import application-specific modules.
 sys.path.insert(
     0,
-    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
+    str((Path(__file__).parent / ".." / "src").resolve()),
 )
 
-from PySide6.QtWidgets import QApplication, QMessageBox
-import pytest  # Added for @pytest.mark.usefixtures
-
+# Application-specific imports
 # Modules to be tested or mocked
 try:
     from headsetcontrol_tray.app import SteelSeriesTrayApp
 except ImportError as e:
-    logger.error(f"ImportError in test_app.py: {e}") # Replaced print with logger.error
+    logger.exception("ImportError in test_app.py: %s", e)  # Changed to logger.exception and string formatting
     raise
 
 

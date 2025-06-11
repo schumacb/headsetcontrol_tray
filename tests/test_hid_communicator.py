@@ -1,19 +1,23 @@
 """Tests for the HIDCommunicator class."""
 
-import sys # Removed import os
+# Standard library imports
+import sys
 import unittest
-from pathlib import Path # Added Path
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+# Third-party imports
 import hid
-import pytest  # Added import
+import pytest
 
+# Code to modify sys.path must come before application-specific imports
 # Ensure src is in path for imports
 sys.path.insert(
     0,
-    str((Path(__file__).parent / ".." / "src").resolve()), # Replaced with pathlib
+    str((Path(__file__).parent / ".." / "src").resolve()),
 )
 
+# Application-specific imports
 from headsetcontrol_tray.exceptions import HIDCommunicationError
 from headsetcontrol_tray.hid_communicator import HIDCommunicator
 
