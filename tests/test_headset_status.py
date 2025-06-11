@@ -61,7 +61,7 @@ def create_status_response_data(
 
 
 class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
-    def setUp(self):  # Signature changed
+    def setUp(self) -> None:  # Signature changed
         self.logger_patcher = patch(
             f"{HeadsetStatusParser.__module__}.logger",
             new_callable=MagicMock,
@@ -74,7 +74,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_parse_status_report_online_charging_full_battery_mid_chatmix(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         # Status: 0x01 (Charging), Level: 0x04 (100%), Game: 50, Chat: 50 (Balanced -> UI 64)
         response_data = create_status_response_data(
             status_byte_val=0x01,
@@ -93,7 +93,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         parsed = self.parser.parse_status_report(response_data)
         self.assertEqual(parsed, expected_status)
 
-    def test_parse_status_report_offline(self):  # Removed mock_logger arg
+    def test_parse_status_report_offline(self) -> None:  # Removed mock_logger arg
         # Status: 0x00 (Offline)
         response_data = create_status_response_data(
             status_byte_val=0x00,
@@ -114,7 +114,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_parse_status_report_various_battery_levels(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         # status_byte_val=0x02 (Online, not charging)
         levels_map = {0x00: 0, 0x01: 25, 0x02: 50, 0x03: 75, 0x04: 100}
         for level_byte, expected_percent in levels_map.items():
@@ -130,7 +130,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
                     self.assertFalse(parsed["battery_charging"])  # Status 0x02
                     self.assertTrue(parsed["headset_online"])
 
-    def test_parse_status_report_unknown_battery_level(self):  # Removed mock_logger arg
+    def test_parse_status_report_unknown_battery_level(self) -> None:  # Removed mock_logger arg
         response_data = create_status_response_data(
             status_byte_val=0x02,
             level_byte_val=0x05,
@@ -146,7 +146,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_parse_status_report_various_chatmix_values(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         # status_byte_val=0x02 (Online, not charging), level_byte_val=0x02 (50%)
         chatmix_tests = [
             # (game_raw, chat_raw, expected_ui_value)
@@ -170,7 +170,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
                 if parsed:  # For Mypy
                     self.assertEqual(parsed["chatmix"], expected_mix)
 
-    def test_parse_status_report_insufficient_data(self):  # Removed mock_logger arg
+    def test_parse_status_report_insufficient_data(self) -> None:  # Removed mock_logger arg
         short_data = b"\x00\x01"  # Too short for full parsing
         parsed = self.parser.parse_status_report(short_data)
         self.assertIsNone(parsed)
@@ -182,7 +182,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_determine_headset_online_status_short_data(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         # Test the specific helper if data is too short for HID_RES_STATUS_BATTERY_STATUS_BYTE
         short_data = bytes(
             [0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE),
@@ -196,7 +196,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
 
 class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
-    def setUp(self):  # Signature changed
+    def setUp(self) -> None:  # Signature changed
         self.logger_patcher = patch(
             f"{HeadsetCommandEncoder.__module__}.logger",
             new_callable=MagicMock,
@@ -207,7 +207,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         self.encoder = HeadsetCommandEncoder()
         # self.mock_logger is now available
 
-    def test_encode_set_sidetone(self):  # Removed mock_logger arg
+    def test_encode_set_sidetone(self) -> None:  # Removed mock_logger arg
         # (level_ui, expected_hw_byte)
         sidetone_map = {
             0: 0x00,
@@ -227,7 +227,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
                 encoded = self.encoder.encode_set_sidetone(ui_level)
                 self.assertEqual(encoded, expected_payload)
 
-    def test_encode_set_inactive_timeout(self):  # Removed mock_logger arg
+    def test_encode_set_inactive_timeout(self) -> None:  # Removed mock_logger arg
         # (minutes_in, expected_minutes_byte)
         timeout_map = {0: 0, 30: 30, 90: 90, 100: 90, -10: 0}  # Also test clamping
         for minutes_in, minutes_byte in timeout_map.items():
@@ -238,7 +238,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
                 encoded = self.encoder.encode_set_inactive_timeout(minutes_in)
                 self.assertEqual(encoded, expected_payload)
 
-    def test_encode_set_eq_values_valid(self):  # Removed mock_logger arg
+    def test_encode_set_eq_values_valid(self) -> None:  # Removed mock_logger arg
         # 10 float values from -10.0 to 10.0
         # Hardware: 0x14 (0dB), 0x0A (-10dB), 0x1E (10dB)
         # byte_value = int(0x14 + clamped_val)
@@ -251,7 +251,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         encoded = self.encoder.encode_set_eq_values(eq_floats)
         self.assertEqual(encoded, expected_payload)
 
-    def test_encode_set_eq_values_invalid_band_count(self):  # Removed mock_logger arg
+    def test_encode_set_eq_values_invalid_band_count(self) -> None:  # Removed mock_logger arg
         eq_floats_short = [0.0] * 9
         encoded = self.encoder.encode_set_eq_values(eq_floats_short)
         self.assertIsNone(encoded)
@@ -264,7 +264,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     # For ARCTIS_NOVA_7_HW_PRESETS, we need to ensure it's structured as expected
     # or mock it if its content is complex or external.
     # Assuming app_config.ARCTIS_NOVA_7_HW_PRESETS is available and has a known structure.
-    def test_encode_set_eq_preset_id_valid(self):  # Removed mock_logger arg
+    def test_encode_set_eq_preset_id_valid(self) -> None:  # Removed mock_logger arg
         # Assume preset ID 0 exists and has 10 float values.
         preset_id_to_test = 0
         if preset_id_to_test not in app_config.ARCTIS_NOVA_7_HW_PRESETS:
@@ -286,7 +286,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
             # preset_values might be seen as List[Any] by mypy depending on app_config typing
             mock_encode_eq.assert_called_once_with([float(v) for v in preset_values])
 
-    def test_encode_set_eq_preset_id_invalid_id(self):  # Removed mock_logger arg
+    def test_encode_set_eq_preset_id_invalid_id(self) -> None:  # Removed mock_logger arg
         invalid_id = 99
         encoded = self.encoder.encode_set_eq_preset_id(invalid_id)
         self.assertIsNone(encoded)
@@ -306,7 +306,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     )
     def test_encode_set_eq_preset_id_malformed_preset_data_band_count(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         encoded = self.encoder.encode_set_eq_preset_id(0)
         self.assertIsNone(encoded)
         self.mock_logger.error.assert_any_call(
@@ -327,7 +327,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
     )
     def test_encode_set_eq_preset_id_malformed_preset_data_values_type(
         self,
-    ):  # Removed mock_logger arg
+    ) -> None:  # Removed mock_logger arg
         encoded = self.encoder.encode_set_eq_preset_id(0)
         self.assertIsNone(encoded)
         self.mock_logger.error.assert_any_call(

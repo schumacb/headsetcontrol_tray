@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from typing import Any # Added
 from unittest import mock  # Added
 from unittest.mock import MagicMock, patch
 
@@ -23,7 +24,7 @@ def create_mock_device_info(
     usage_page: int = 0,
     usage: int = 0,
     path_suffix: str = "1",
-):
+) -> dict[str, Any]:
     return {
         "vendor_id": app_config.STEELSERIES_VID,
         "product_id": pid,
@@ -36,12 +37,12 @@ def create_mock_device_info(
 
 
 class TestHIDConnectionManagerDiscovery(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.manager = HIDConnectionManager()
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")
-    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock, mock_hid_enumerate: MagicMock):
+    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock, mock_hid_enumerate: MagicMock) -> None:
         mock_dev1_pid = app_config.TARGET_PIDS[0]
         mock_dev_other_vid_pid = 0x9999
 
@@ -68,7 +69,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         self,
         mock_logger: MagicMock,
         mock_hid_enumerate: MagicMock,
-    ):
+    ) -> None:
         mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
         devices = self.manager._find_potential_hid_devices()
         self.assertEqual(len(devices), 0)
@@ -80,7 +81,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
         self,
         _mock_logger: MagicMock,
         mock_hid_enumerate: MagicMock,
-    ):
+    ) -> None:
         mock_hid_enumerate.return_value = [
             create_mock_device_info(0x9999),  # Wrong PID
             {
@@ -96,7 +97,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
 class TestHIDConnectionManagerSorting(unittest.TestCase):
     _original_target_pids = None  # Class attribute for backup
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.manager = HIDConnectionManager()
         # Backup TARGET_PIDS before each test in this class if necessary, or use setUpClass
         if TestHIDConnectionManagerSorting._original_target_pids is None:
@@ -104,7 +105,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
                 app_config.TARGET_PIDS,
             )
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         # Restore TARGET_PIDS after each test if it was backed up and potentially modified
         if TestHIDConnectionManagerSorting._original_target_pids is not None:
             app_config.TARGET_PIDS = list(
@@ -114,7 +115,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
             # Or, manage this in setUpClass & tearDownClass. For simplicity here, this works per test.
             # TestHIDConnectionManagerSorting._original_target_pids = None
 
-    def test_sort_hid_devices(self):
+    def test_sort_hid_devices(self) -> None:
         # Create devices with attributes that will affect sort order
         # Exact match (highest priority: -2)
         dev_a = create_mock_device_info(
@@ -188,7 +189,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
     "_find_potential_hid_devices",
 )  # Mock the method within the class
 class TestHIDConnectionManagerConnection(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.manager = HIDConnectionManager()
 
     def test_connect_device_success(
@@ -222,7 +223,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         self,
         mock_find_devices: MagicMock,
         mock_hid_device_constructor: MagicMock,
-    ):
+    ) -> None:
         mock_find_devices.return_value = []
 
         result = self.manager._connect_device()
@@ -237,7 +238,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_logger: MagicMock,
         mock_find_devices: MagicMock,
         mock_hid_device_constructor: MagicMock,
-    ):
+    ) -> None:
         mock_dev_info1 = create_mock_device_info(
             app_config.TARGET_PIDS[0],
             path_suffix="fail1",
@@ -274,7 +275,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_internal_connect_device: MagicMock,
         _mock_find_devices_unused: MagicMock,
         _mock_hid_device_constructor_unused: MagicMock,
-    ):
+    ) -> None:
         self.manager.hid_device = MagicMock(spec=hid.Device)  # Already connected
 
         result = self.manager.ensure_connection()
@@ -288,7 +289,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_internal_connect_device: MagicMock,
         _mock_find_devices_unused: MagicMock,
         _mock_hid_device_constructor_unused: MagicMock,
-    ):
+    ) -> None:
         self.manager.hid_device = None  # Not connected
         mock_internal_connect_device.return_value = (
             True  # Simulate successful connection by _connect_device
@@ -301,10 +302,10 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
 
 class TestHIDConnectionManagerClose(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.manager = HIDConnectionManager()
 
-    def test_close_device(self):
+    def test_close_device(self) -> None:
         mock_hid_dev = MagicMock(spec=hid.Device)
         # Simulate selected_device_info having a path for logging purposes
         self.manager.selected_device_info = {"path": b"/dev/mock_hid"}
@@ -316,7 +317,7 @@ class TestHIDConnectionManagerClose(unittest.TestCase):
         self.assertIsNone(self.manager.hid_device)
         self.assertIsNone(self.manager.selected_device_info)
 
-    def test_close_no_device(self):
+    def test_close_no_device(self) -> None:
         self.manager.hid_device = None
         self.manager.selected_device_info = None
 

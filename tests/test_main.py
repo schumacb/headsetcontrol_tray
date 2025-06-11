@@ -13,7 +13,7 @@ from headsetcontrol_tray import __main__ as hct_main
 @mock.patch("headsetcontrol_tray.__main__.SteelSeriesTrayApp")
 @mock.patch("headsetcontrol_tray.__main__.sys.exit")
 @mock.patch("headsetcontrol_tray.__main__.signal.signal")
-def test_main_function_calls(mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, MockSteelSeriesTrayApp: mock.MagicMock):
+def test_main_function_calls(mock_signal: mock.MagicMock, mock_sys_exit: mock.MagicMock, MockSteelSeriesTrayApp: mock.MagicMock) -> None:
     """Test that main() function initializes and runs the app, and sets signal handler."""
     mock_app_instance = MockSteelSeriesTrayApp.return_value
     mock_app_instance.run.return_value = 0
@@ -30,7 +30,7 @@ def test_main_function_calls(mock_signal: mock.MagicMock, mock_sys_exit: mock.Ma
     reason="Known to fail: runpy does not work well with patching __main__.main, and it exposes QApplication init crash.",
 )
 @mock.patch("headsetcontrol_tray.__main__.main")
-def test_main_block_execution(mock_main_function: mock.MagicMock):
+def test_main_block_execution(mock_main_function: mock.MagicMock) -> None:
     """Test that the if __name__ == "__main__": block calls main()."""
     # Use runpy to execute the __main__ module in a way that __name__ is set to "__main__"
     # This simulates running `python -m headsetcontrol_tray`
@@ -50,7 +50,7 @@ def test_main_block_execution_revised(
     mock_signal: mock.MagicMock,
     mock_sys_exit: mock.MagicMock,
     MockSteelSeriesTrayApp: mock.MagicMock,
-):
+) -> None:
     """Test that the if __name__ == "__main__": block calls main() which then tries to run the app."""
     # We want to ensure the real main() is entered if __name__ == '__main__'.
     # The real main() will then call SteelSeriesTrayApp(), sys.exit(), signal.signal()
@@ -73,7 +73,7 @@ def test_main_block_execution_revised(
 # This is a bit more involved as it happens at import time.
 # We can check if it's installed by checking logging levels or by mocking verboselogs itself.
 @mock.patch("verboselogs.install")
-def test_verboselogs_install_called_on_import(mock_verboselogs_install: mock.MagicMock):
+def test_verboselogs_install_called_on_import(mock_verboselogs_install: mock.MagicMock) -> None:
     """Test that verboselogs.install() is called when __main__ is imported."""
     # To ensure this test is isolated and actually tests the import-time behavior,
     # we need to reload the module. This is generally tricky and can have side effects.

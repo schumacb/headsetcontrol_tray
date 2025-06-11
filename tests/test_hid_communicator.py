@@ -17,7 +17,7 @@ from headsetcontrol_tray.hid_communicator import HIDCommunicator
 
 # Removed class decorator
 class TestHIDCommunicator(unittest.TestCase):
-    def setUp(self):  # Signature changed
+    def setUp(self) -> None:  # Signature changed
         self.logger_patcher = patch(
             f"{HIDCommunicator.__module__}.logger",
             new_callable=MagicMock,
@@ -40,7 +40,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
         # self.mock_logger is now available
 
-    def test_init_with_none_device_raises_value_error(self):  # Removed mock_logger arg
+    def test_init_with_none_device_raises_value_error(self) -> None:  # Removed mock_logger arg
         with self.assertRaises(HIDCommunicationError):
             # Provide a dummy device_info for this specific error test
             HIDCommunicator(None, device_info={"path": b"", "product_string": ""})
@@ -48,7 +48,7 @@ class TestHIDCommunicator(unittest.TestCase):
             "HIDCommunicator initialized with a None hid_device. This is unexpected.",
         )
 
-    def test_write_report_success_with_report_id(self):  # Removed mock_logger arg
+    def test_write_report_success_with_report_id(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.write.return_value = (
             3  # Expected length of b'\x01\x02\x03'
         )
@@ -59,7 +59,7 @@ class TestHIDCommunicator(unittest.TestCase):
         self.mock_hid_device.write.assert_called_once_with(b"\x01\x02\x03")
         self.mock_logger.debug.assert_any_call("Bytes written: %s", 3)
 
-    def test_write_report_success_no_report_id(self):  # Removed mock_logger arg
+    def test_write_report_success_no_report_id(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.write.return_value = 2  # Expected length of b'\x01\x02'
 
         result = self.communicator.write_report(report_id=0, data=[0x01, 0x02])
@@ -67,7 +67,7 @@ class TestHIDCommunicator(unittest.TestCase):
         self.assertTrue(result)
         self.mock_hid_device.write.assert_called_once_with(b"\x01\x02")
 
-    def test_write_report_hid_write_returns_zero_bytes(self):  # Removed mock_logger arg
+    def test_write_report_hid_write_returns_zero_bytes(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.write.return_value = 0  # Simulate write returning 0 bytes
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
@@ -80,7 +80,7 @@ class TestHIDCommunicator(unittest.TestCase):
             self.communicator.device_path_str,
         )
 
-    def test_write_report_hid_write_raises_exception(self):  # Removed mock_logger arg
+    def test_write_report_hid_write_raises_exception(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.write.side_effect = hid.HIDException("HID Write Error")
 
         result = self.communicator.write_report(report_id=0x01, data=[0x02, 0x03])
@@ -93,7 +93,7 @@ class TestHIDCommunicator(unittest.TestCase):
             self.communicator.device_path_str,
         )
 
-    def test_read_report_success(self):  # Removed mock_logger arg
+    def test_read_report_success(self) -> None:  # Removed mock_logger arg
         expected_bytes = b"\x01\x02\x03"
         self.mock_hid_device.read.return_value = bytearray(
             expected_bytes,
@@ -112,7 +112,7 @@ class TestHIDCommunicator(unittest.TestCase):
             expected_bytes.hex(),
         )
 
-    def test_read_report_no_data_returns_none(self):  # Removed mock_logger arg
+    def test_read_report_no_data_returns_none(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.read.return_value = bytearray(b"")  # Empty bytearray
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed
@@ -125,7 +125,7 @@ class TestHIDCommunicator(unittest.TestCase):
             3,
         )  # timeout part removed from log
 
-    def test_read_report_incomplete_data_returns_none(self):  # Removed mock_logger arg
+    def test_read_report_incomplete_data_returns_none(self) -> None:  # Removed mock_logger arg
         incomplete_bytes = b"\x01\x02"
         self.mock_hid_device.read.return_value = bytearray(incomplete_bytes)
 
@@ -141,7 +141,7 @@ class TestHIDCommunicator(unittest.TestCase):
             incomplete_bytes.hex(),
         )
 
-    def test_read_report_hid_read_raises_exception(self):  # Removed mock_logger arg
+    def test_read_report_hid_read_raises_exception(self) -> None:  # Removed mock_logger arg
         self.mock_hid_device.read.side_effect = hid.HIDException("HID Read Error")
 
         result = self.communicator.read_report(report_length=3)  # timeout_ms removed

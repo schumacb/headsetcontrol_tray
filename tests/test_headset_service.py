@@ -27,7 +27,7 @@ from headsetcontrol_tray.headset_service import HeadsetService
 # Common mock setup for HeadsetService dependencies
 # No class decorators here now
 class BaseHeadsetServiceTestCase(unittest.TestCase):
-    def setUp(self):  # Signature changed, no # type: ignore[override] needed
+    def setUp(self) -> None:  # Signature changed, no # type: ignore[override] needed
         # Patch 'pathlib.Path' in the context of the headset_service module
         self.mock_path_patcher = patch("headsetcontrol_tray.headset_service.Path")
         mock_path_class = self.mock_path_patcher.start()
@@ -116,7 +116,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
         # Reset call counts for mocks that might be called during HeadsetService initialization
         self.reset_common_mocks()
 
-    def reset_common_mocks(self):
+    def reset_common_mocks(self) -> None:
         # Reset the .exists() mock on the final path object
         if hasattr(self, "mock_final_path") and hasattr(self.mock_final_path, "exists"):
             self.mock_final_path.exists.reset_mock()
@@ -143,7 +143,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
 
 class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
-    def test_init_connection_fail_udev_rules_missing_triggers_creation(self):
+    def test_init_connection_fail_udev_rules_missing_triggers_creation(self) -> None:
         # Reset mocks called during setUp's HeadsetService() instantiation
         self.reset_common_mocks()
 
@@ -174,7 +174,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         self.mock_udev_manager_instance.create_rules_interactive.assert_called_once()
         self.assertIsNotNone(service.udev_setup_details)
 
-    def test_init_connection_fail_udev_rules_exist_no_creation(self):
+    def test_init_connection_fail_udev_rules_exist_no_creation(self) -> None:
         self.reset_common_mocks()
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = False
         self.mock_hid_connection_manager_instance.get_hid_device.return_value = None
@@ -192,7 +192,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
             service.udev_setup_details,
         )  # Should be None as interactive creation wasn't called
 
-    def test_get_udev_setup_details_returns_data(self):
+    def test_get_udev_setup_details_returns_data(self) -> None:
         self.reset_common_mocks()
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = False
         self.mock_hid_connection_manager_instance.get_hid_device.return_value = None
@@ -218,7 +218,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
 
 
 class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
-    def test_is_device_connected_success(self):
+    def test_is_device_connected_success(self) -> None:
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = True
         self.mock_hid_connection_manager_instance.get_hid_device.return_value = (
             self.mock_hid_device_instance
@@ -240,7 +240,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
             status_report_bytes,
         )
 
-    def test_is_device_connected_manager_fails_connection(self):
+    def test_is_device_connected_manager_fails_connection(self) -> None:
         self.reset_common_mocks()
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = False
         self.mock_hid_connection_manager_instance.get_hid_device.return_value = None
@@ -271,13 +271,13 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         self.mock_hid_connection_manager_instance.ensure_connection.assert_called()
         self.mock_hid_communicator_instance.write_report.assert_not_called()
 
-    def test_is_device_connected_parser_returns_offline(self):
+    def test_is_device_connected_parser_returns_offline(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": False,
         }
         self.assertFalse(self.service.is_device_connected())
 
-    def test_get_battery_level_success(self):
+    def test_get_battery_level_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": True,
             "battery_percent": 75,
@@ -287,17 +287,17 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         }
         self.assertEqual(self.service.get_battery_level(), 75)
 
-    def test_get_battery_level_offline(self):
+    def test_get_battery_level_offline(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": False,
         }
         self.assertIsNone(self.service.get_battery_level())
 
-    def test_get_battery_level_parse_fail(self):
+    def test_get_battery_level_parse_fail(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = None
         self.assertIsNone(self.service.get_battery_level())
 
-    def test_get_chatmix_value_success(self):
+    def test_get_chatmix_value_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": True,
             "battery_percent": 75,
@@ -307,7 +307,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         }
         self.assertEqual(self.service.get_chatmix_value(), 32)
 
-    def test_is_charging_success(self):
+    def test_is_charging_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
             "headset_online": True,
             "battery_percent": 75,
@@ -317,7 +317,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         }
         self.assertTrue(self.service.is_charging())
 
-    def test_write_failure_in_get_status_closes_connection(self):
+    def test_write_failure_in_get_status_closes_connection(self) -> None:
         self.reset_common_mocks()
         self.mock_hid_communicator_instance.write_report.return_value = (
             False  # Simulate write failure
@@ -330,7 +330,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
             self.service.hid_communicator,
         )  # Communicator should be cleared
 
-    def test_read_failure_in_get_status(self):
+    def test_read_failure_in_get_status(self) -> None:
         self.reset_common_mocks()
         self.mock_hid_communicator_instance.write_report.return_value = (
             True  # Write succeeds
@@ -347,7 +347,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
 
 class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
-    def test_set_sidetone_level_success(self):
+    def test_set_sidetone_level_success(self) -> None:
         encoded_payload = [0x01, 0x02]
         self.mock_command_encoder_instance.encode_set_sidetone.return_value = (
             encoded_payload
@@ -365,7 +365,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
             data=encoded_payload,
         )
 
-    def test_set_sidetone_level_encoder_returns_none(self):
+    def test_set_sidetone_level_encoder_returns_none(self) -> None:
         self.mock_command_encoder_instance.encode_set_sidetone.return_value = (
             None  # Simulate encoding error
         )
@@ -374,7 +374,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.assertFalse(result)
         self.mock_hid_communicator_instance.write_report.assert_not_called()
 
-    def test_set_sidetone_level_write_fail(self):
+    def test_set_sidetone_level_write_fail(self) -> None:
         encoded_payload = [0x01, 0x02]
         self.mock_command_encoder_instance.encode_set_sidetone.return_value = (
             encoded_payload
@@ -389,7 +389,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.mock_hid_connection_manager_instance.close.assert_called_once()  # Ensure connection is closed on failure
         self.assertIsNone(self.service.hid_communicator)
 
-    def test_set_inactive_timeout_success(self):
+    def test_set_inactive_timeout_success(self) -> None:
         payload = [0x0A, 30]
         self.mock_command_encoder_instance.encode_set_inactive_timeout.return_value = (
             payload
@@ -404,7 +404,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
             data=payload,
         )
 
-    def test_set_eq_values_success(self):
+    def test_set_eq_values_success(self) -> None:
         values = [1.0] * 10
         payload = [0x0B] + ([0x15] * 10) + [0x00]  # Example payload
         self.mock_command_encoder_instance.encode_set_eq_values.return_value = payload
@@ -418,7 +418,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
             data=payload,
         )
 
-    def test_set_eq_preset_id_success(self):
+    def test_set_eq_preset_id_success(self) -> None:
         preset_id = 1
         payload = [0x0C] + ([0x10] * 10) + [0x00]  # Example payload
         self.mock_command_encoder_instance.encode_set_eq_preset_id.return_value = (
@@ -434,7 +434,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
             data=payload,
         )
 
-    def test_close_method(self):
+    def test_close_method(self) -> None:
         self.service.close()
         self.mock_hid_connection_manager_instance.close.assert_called_once()
         self.assertIsNone(self.service.hid_communicator)
