@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from unittest.mock import MagicMock, call, patch
+import pytest # Added import
 
 # Ensure src is in path for imports
 sys.path.insert(
@@ -17,6 +18,12 @@ from headsetcontrol_tray.udev_manager import (
     UDEV_RULE_FILENAME,
     UDEVManager,
 )
+
+
+@pytest.fixture
+def mock_temp_file_unused_fixture():
+    with patch("tempfile.NamedTemporaryFile") as mock_fixture:
+        yield mock_fixture
 
 
 class TestUDEVManager(unittest.TestCase):  # Removed class decorator
@@ -163,12 +170,11 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         """Test get_last_udev_setup_details returns None initially."""
         assert self.manager.get_last_udev_setup_details() is None
 
-    @patch(
-        "tempfile.NamedTemporaryFile",
-    )  # Still need to mock this even if we just set details manually
+    # Removed @patch("tempfile.NamedTemporaryFile")
+    @pytest.mark.usefixtures("mock_temp_file_unused_fixture")
     def test_get_last_udev_setup_details_returns_set_details(
         self,
-        _mock_temp_file_unused: MagicMock,
+        # Removed _mock_temp_file_unused: MagicMock,
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
         """Test get_last_udev_setup_details returns previously set details."""
         dummy_details = {

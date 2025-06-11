@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 import unittest
 from unittest import mock
+import pytest # Added import
 
 # Assuming app_config and ConfigManager are in src/headsetcontrol_tray
 from headsetcontrol_tray import app_config
@@ -12,6 +13,17 @@ from headsetcontrol_tray.exceptions import ConfigError
 
 # Disable logging for tests to keep output clean, unless specifically testing logging
 logging.disable(logging.CRITICAL)
+
+
+@pytest.fixture
+def mock_json_load_raises_fixture():
+    with mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0)) as mock_fixture:
+        yield mock_fixture
+
+@pytest.fixture
+def mock_json_dump_raises_oserror_fixture():
+    with mock.patch("json.dump", side_effect=OSError("Permission denied")) as mock_fixture:
+        yield mock_fixture
 
 
 class TestConfigManager(unittest.TestCase):
@@ -105,8 +117,9 @@ class TestConfigManager(unittest.TestCase):
         mock_json_load.assert_called_once()
         assert loaded_data == expected_data
 
-    @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock) -> None:
+    # Removed @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
+    @pytest.mark.usefixtures("mock_json_load_raises_fixture")
+    def test_load_json_file_decode_error(self) -> None: # Removed _mock_json_load_raises parameter
         """Test handling of JSONDecodeError when loading a file."""
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
@@ -188,10 +201,11 @@ class TestConfigManager(unittest.TestCase):
             mock_file_path,
         )
 
-    @mock.patch("json.dump", side_effect=OSError("Permission denied"))
+    # Removed @mock.patch("json.dump", side_effect=OSError("Permission denied"))
+    @pytest.mark.usefixtures("mock_json_dump_raises_oserror_fixture")
     def test_save_json_file_os_error_on_dump(
         self,
-        _mock_json_dump_raises_oserror: mock.MagicMock,
+        # _mock_json_dump_raises_oserror: mock.MagicMock, # Removed parameter
     ) -> None:
         """Test handling of OSError during json.dump."""
         mock_file_path = mock.MagicMock(spec=Path)
@@ -256,13 +270,13 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager()
             cm._custom_eq_curves = {}
             cm._settings = {}
-        with self.assertRaises(ConfigError):
+        with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
-        with self.assertRaises(ConfigError):
+        with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveLong", [0] * 11)
-        with self.assertRaises(ConfigError):
+        with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore[list-item]
-        with self.assertRaises(ConfigError):
+        with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("NoValues", [])
 
     @mock.patch.object(ConfigManager, "_save_json_file")

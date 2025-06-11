@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
+import pytest # Added import
 
 import hid
 
@@ -45,7 +46,7 @@ class TestHIDCommunicator(unittest.TestCase):
 
     def test_init_with_none_device_raises_value_error(self) -> None:  # Removed mock_logger arg
         """Test __init__ raises HIDCommunicationError if hid_device is None."""
-        with self.assertRaises(HIDCommunicationError):
+        with pytest.raises(HIDCommunicationError):
             # Provide a dummy device_info for this specific error test
             HIDCommunicator(None, device_info={"path": b"", "product_string": ""})
         self.mock_logger.error.assert_called_with(

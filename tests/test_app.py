@@ -23,6 +23,12 @@ except ImportError as e:
     raise
 
 
+@pytest.fixture
+def mock_system_tray_icon_fixture():
+    with patch("headsetcontrol_tray.app.sti.SystemTrayIcon") as mock_sti:
+        yield mock_sti
+
+
 @pytest.mark.usefixtures("qapp")
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     """Tests UDEV dialog interactions in the SteelSeriesTrayApp."""
@@ -51,14 +57,15 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             "rule_filename": "99-sample.rules",
         }
 
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    # Removed @patch("headsetcontrol_tray.app.sti.SystemTrayIcon", new_callable=MagicMock, name="_MockSystemTrayIcon")
+    # Removed @pytest.mark.usefixtures("_MockSystemTrayIcon")
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @pytest.mark.usefixtures("mock_system_tray_icon_fixture")
     def test_initial_dialog_shown_when_details_present(
         self,
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
-        _MockSystemTrayIcon: MagicMock,
     ) -> None:
         """Test that the initial udev help dialog is shown if udev details are present."""
         mock_service_instance = MockHeadsetService.return_value
@@ -115,14 +122,15 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         assert self.sample_details["temp_file_path"] in informative_text_call_args
         assert "Show Manual Instructions Only" not in informative_text_call_args
 
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
+    # Removed @patch("headsetcontrol_tray.app.sti.SystemTrayIcon", new_callable=MagicMock, name="_MockSystemTrayIcon")
+    # Removed @pytest.mark.usefixtures("_MockSystemTrayIcon")
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
+    @pytest.mark.usefixtures("mock_system_tray_icon_fixture")
     def test_initial_dialog_not_shown_when_details_absent(
         self,
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
-        _MockSystemTrayIcon: MagicMock,
     ) -> None:
         """Test that the initial udev help dialog is not shown if udev details are absent."""
         mock_service_instance = MockHeadsetService.return_value
