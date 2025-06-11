@@ -33,7 +33,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_success(
         self,
-        mock_named_temp_file,
+        mock_named_temp_file: MagicMock,
     ):  # Removed mock_logger_passed_in_test_method_ignored
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules"
@@ -100,7 +100,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_os_error_on_write(
         self,
-        mock_named_temp_file,
+        mock_named_temp_file: MagicMock,
     ):  # Removed mock_logger_passed_in_test_method_ignored
         mock_temp_file_context = MagicMock()
         mock_temp_file_context.name = "/tmp/fake_headsetcontrol_oserror.rules"
@@ -122,7 +122,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_unexpected_error(
         self,
-        mock_named_temp_file,
+        mock_named_temp_file: MagicMock,
     ):  # Removed mock_logger_passed_in_test_method_ignored
         # Simulate an error other than OSError during the tempfile operation
         mock_named_temp_file.side_effect = Exception("Unexpected tempfile system error")
@@ -146,7 +146,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     )  # Still need to mock this even if we just set details manually
     def test_get_last_udev_setup_details_returns_set_details(
         self,
-        mock_temp_file_unused,
+        mock_temp_file_unused: MagicMock,
     ):  # Removed mock_logger_passed_in_test_method_ignored
         dummy_details = {
             "temp_file_path": "/tmp/dummy",

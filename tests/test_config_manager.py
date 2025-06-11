@@ -49,7 +49,7 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_load_json_file")
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_init_paths_created_and_loaded(self, mock_save_json, mock_load_json):
+    def test_init_paths_created_and_loaded(self, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock):
         mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [1] * 10}]
         cm = ConfigManager()
         self.mock_config_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
@@ -64,8 +64,8 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_init_default_eq_curves_saved_if_empty(
         self,
-        mock_save_json,
-        mock_load_json,
+        mock_save_json: mock.MagicMock,
+        mock_load_json: mock.MagicMock,
     ):
         mock_load_json.side_effect = [{"some_setting": "value"}, {}]
         cm = ConfigManager()
@@ -78,7 +78,7 @@ class TestConfigManager(unittest.TestCase):
         )
 
     @mock.patch("json.load")
-    def test_load_json_file_success(self, mock_json_load):
+    def test_load_json_file_success(self, mock_json_load: mock.MagicMock):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
         expected_data = {"key": "value"}
@@ -99,7 +99,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(loaded_data, expected_data)
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, mock_json_load_raises):
+    def test_load_json_file_decode_error(self, mock_json_load_raises: mock.MagicMock):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
 
@@ -131,7 +131,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(loaded_data, {})
 
     @mock.patch("json.dump")
-    def test_save_json_file_success(self, mock_json_dump):
+    def test_save_json_file_success(self, mock_json_dump: mock.MagicMock):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
 
@@ -154,7 +154,7 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch("json.dump")
     def test_save_json_file_io_error(
         self,
-        mock_json_dump,
+        mock_json_dump: mock.MagicMock,
     ):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
@@ -180,7 +180,7 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch("json.dump", side_effect=OSError("Permission denied"))
     def test_save_json_file_os_error_on_dump(
         self,
-        mock_json_dump_raises_oserror,
+        mock_json_dump_raises_oserror: mock.MagicMock,
     ):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
@@ -215,7 +215,7 @@ class TestConfigManager(unittest.TestCase):
         )
 
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_set_setting(self, mock_save_json):
+    def test_set_setting(self, mock_save_json: mock.MagicMock):
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):
             cm = ConfigManager()
             cm._settings = {}
@@ -250,12 +250,12 @@ class TestConfigManager(unittest.TestCase):
         with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveLong", [0] * 11)
         with self.assertRaises(ConfigError):
-            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore[list-item]
+            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)
         with self.assertRaises(ConfigError):
             cm.save_custom_eq_curve("NoValues", [])
 
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_save_custom_eq_curve_success(self, mock_save_json):
+    def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock):
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"ExistingCurve": [0] * 10}
@@ -272,7 +272,7 @@ class TestConfigManager(unittest.TestCase):
         # That's typically handled by UI logic after successful save.
 
     @mock.patch.object(ConfigManager, "_save_json_file")
-    def test_delete_custom_eq_curve(self, mock_save_json):
+    def test_delete_custom_eq_curve(self, mock_save_json: mock.MagicMock):
         with mock.patch.object(ConfigManager, "__init__", lambda x: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {

@@ -111,7 +111,7 @@ class HeadsetService:
                 str(final_rules_path),  # Convert Path to string for logging
             )
             if self.udev_manager.create_rules_interactive():  # This method logs its own success/failure
-                self.udev_setup_details = self.udev_manager.get_last_udev_setup_details()
+                pass  # udev_setup_details was removed
         else:
             logger.debug(
                 "Udev rules file %s exists. Skipping interactive udev guide related to connection failure.",
@@ -399,8 +399,3 @@ class HeadsetService:
             payload,
             report_id=0,
         )
-
-    def get_udev_setup_details(self) -> dict[str, Any] | None:
-        """Returns details about udev setup if guided during the current session."""
-        # This returns details if udev setup was guided *during this session*
-        return self.udev_setup_details

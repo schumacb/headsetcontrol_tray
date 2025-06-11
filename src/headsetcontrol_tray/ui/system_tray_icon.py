@@ -81,9 +81,6 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.fast_poll_active = False
         self.fast_poll_no_change_counter = 0
         self.is_tray_view_connected = False  # Tracks connection state by the tray
-        self.last_known_battery_level: int | None = None
-        self.last_known_chatmix_value: int | None = None
-        self.last_known_battery_status_text: str | None = None
         # For change detection
 
         # Variables to store current fetched values for tooltip/menu (updated in refresh_status)
@@ -589,9 +586,6 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         # Update last known state for next cycle's change detection
         # (after all processing)
-        self.last_known_battery_level = self.battery_level
-        self.last_known_battery_status_text = self.battery_status_text
-        self.last_known_chatmix_value = self.chatmix_value
 
         self._manage_polling_interval(
             current_is_connected=current_is_connected,

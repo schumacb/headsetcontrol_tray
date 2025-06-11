@@ -12,6 +12,7 @@ sys.path.insert(
 )
 
 from PySide6.QtWidgets import QApplication, QMessageBox
+from unittest.mock import MagicMock, Mock # This line was already effectively present but re-adding for completeness if original was different
 import pytest  # Added for @pytest.mark.usefixtures
 
 # Modules to be tested or mocked
@@ -66,9 +67,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
     def test_initial_dialog_shown_when_details_present(
         self,
-        MockHeadsetService,
-        MockQMessageBoxClass,
-        MockSystemTrayIcon,
+        MockHeadsetService: MagicMock,
+        MockQMessageBoxClass: MagicMock,
+        MockSystemTrayIcon: MagicMock,
     ):
         mock_service_instance = MockHeadsetService.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
@@ -82,7 +83,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         # close_button_mock was unused
         added_buttons_initial = []
 
-        def side_effect_add_button_initial(text_or_button, role=None):
+        def side_effect_add_button_initial(text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None):
             button = MagicMock(spec=QMessageBox.StandardButton)
             if isinstance(text_or_button, QMessageBox.StandardButton):
                 button.standard_button_enum = text_or_button
@@ -136,9 +137,9 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
     def test_initial_dialog_not_shown_when_details_absent(
         self,
-        MockHeadsetService,
-        MockQMessageBoxClass,
-        MockSystemTrayIcon,
+        MockHeadsetService: MagicMock,
+        MockQMessageBoxClass: MagicMock,
+        MockSystemTrayIcon: MagicMock,
     ):
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = None
@@ -152,18 +153,18 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
     def run_pkexec_test_flow(
         self,
-        mock_subprocess_run,
-        mock_os_path_exists,
-        MockQMessageBoxClass,
-        MockHeadsetService,
-        MockSystemTrayIcon,
-        pkexec_returncode,
-        pkexec_stdout,
-        pkexec_stderr,
-        expected_icon,
-        expected_title,
-        expected_text,
-        expected_informative_text_contains,
+        mock_subprocess_run: MagicMock,
+        mock_os_path_exists: MagicMock,
+        MockQMessageBoxClass: MagicMock,
+        MockHeadsetService: MagicMock,
+        MockSystemTrayIcon: MagicMock,
+        pkexec_returncode: int,
+        pkexec_stdout: str,
+        pkexec_stderr: str,
+        expected_icon: QMessageBox.Icon,
+        expected_title: str,
+        expected_text: str,
+        expected_informative_text_contains: list[str],
     ):
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = self.sample_details
@@ -182,7 +183,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             None,
         ]  # Using a list to allow modification in closure, typed with Any
 
-        def initial_dialog_add_button_side_effect(text_or_button, role=None):
+        def initial_dialog_add_button_side_effect(text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None):
             button_mock = MagicMock(spec=QMessageBox.StandardButton)
             if isinstance(text_or_button, str):
                 button_mock.text = text_or_button

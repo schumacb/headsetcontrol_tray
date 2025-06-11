@@ -284,7 +284,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         ) as mock_encode_eq:
             self.encoder.encode_set_eq_preset_id(preset_id_to_test)
             # preset_values might be seen as List[Any] by mypy depending on app_config typing
-            mock_encode_eq.assert_called_once_with([float(v) for v in preset_values])  # type: ignore[arg-type]
+            mock_encode_eq.assert_called_once_with([float(v) for v in preset_values])
 
     def test_encode_set_eq_preset_id_invalid_id(self):  # Removed mock_logger arg
         invalid_id = 99
