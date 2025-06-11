@@ -146,7 +146,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     )  # Still need to mock this even if we just set details manually
     def test_get_last_udev_setup_details_returns_set_details(
         self,
-        mock_temp_file_unused: MagicMock,
+        _mock_temp_file_unused: MagicMock,
     ):  # Removed mock_logger_passed_in_test_method_ignored
         dummy_details = {
             "temp_file_path": "/tmp/dummy",

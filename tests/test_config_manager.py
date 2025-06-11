@@ -99,7 +99,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(loaded_data, expected_data)
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, mock_json_load_raises: mock.MagicMock):
+    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
 
@@ -180,7 +180,7 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch("json.dump", side_effect=OSError("Permission denied"))
     def test_save_json_file_os_error_on_dump(
         self,
-        mock_json_dump_raises_oserror: mock.MagicMock,
+        _mock_json_dump_raises_oserror: mock.MagicMock,
     ):
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}

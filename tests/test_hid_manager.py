@@ -41,7 +41,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")
-    def test_find_potential_hid_devices_success(self, mock_logger: MagicMock, mock_hid_enumerate: MagicMock):
+    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock, mock_hid_enumerate: MagicMock):
         mock_dev1_pid = app_config.TARGET_PIDS[0]
         mock_dev_other_vid_pid = 0x9999
 
@@ -78,7 +78,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     @patch("headsetcontrol_tray.hid_manager.logger")
     def test_find_potential_hid_devices_no_matches(
         self,
-        mock_logger: MagicMock,
+        _mock_logger: MagicMock,
         mock_hid_enumerate: MagicMock,
     ):
         mock_hid_enumerate.return_value = [
@@ -272,8 +272,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
     def test_ensure_connection_already_connected(
         self,
         mock_internal_connect_device: MagicMock,
-        mock_find_devices_unused: MagicMock,
-        mock_hid_device_constructor_unused: MagicMock,
+        _mock_find_devices_unused: MagicMock,
+        _mock_hid_device_constructor_unused: MagicMock,
     ):
         self.manager.hid_device = MagicMock(spec=hid.Device)  # Already connected
 
@@ -286,8 +286,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
     def test_ensure_connection_needs_connection(
         self,
         mock_internal_connect_device: MagicMock,
-        mock_find_devices_unused: MagicMock,
-        mock_hid_device_constructor_unused: MagicMock,
+        _mock_find_devices_unused: MagicMock,
+        _mock_hid_device_constructor_unused: MagicMock,
     ):
         self.manager.hid_device = None  # Not connected
         mock_internal_connect_device.return_value = (

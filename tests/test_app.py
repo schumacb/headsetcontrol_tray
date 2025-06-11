@@ -69,7 +69,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self,
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
-        MockSystemTrayIcon: MagicMock,
+        _MockSystemTrayIcon: MagicMock,
     ):
         mock_service_instance = MockHeadsetService.return_value
         # Simulate that HeadsetService failed to connect and thus populated udev_setup_details
@@ -139,7 +139,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         self,
         MockHeadsetService: MagicMock,
         MockQMessageBoxClass: MagicMock,
-        MockSystemTrayIcon: MagicMock,
+        _MockSystemTrayIcon: MagicMock,
     ):
         mock_service_instance = MockHeadsetService.return_value
         mock_service_instance.udev_setup_details = None
@@ -157,7 +157,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
         mock_os_path_exists: MagicMock,
         MockQMessageBoxClass: MagicMock,
         MockHeadsetService: MagicMock,
-        MockSystemTrayIcon: MagicMock,
+        _MockSystemTrayIcon: MagicMock,
         pkexec_returncode: int,
         pkexec_stdout: str,
         pkexec_stderr: str,
