@@ -1,7 +1,6 @@
 """Tests for the HIDConnectionManager class."""
 
-import os
-import sys
+import sys # Removed import os
 from typing import Any  # Added
 import unittest
 from pathlib import Path # Added Path

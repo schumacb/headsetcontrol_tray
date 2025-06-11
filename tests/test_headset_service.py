@@ -1,6 +1,5 @@
 """Tests for the HeadsetService class."""
 
-import os
 from pathlib import Path  # Added
 import sys
 import unittest

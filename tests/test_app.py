@@ -1,7 +1,6 @@
 """Tests for the main application logic (SteelSeriesTrayApp)."""
 
-import os
-import sys
+import sys # Removed import os
 import tempfile
 import unittest
 from pathlib import Path # Added Path

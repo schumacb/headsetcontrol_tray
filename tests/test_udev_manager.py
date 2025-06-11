@@ -1,7 +1,6 @@
 """Tests for the UDEVManager class."""
 
-import os
-import sys
+import sys # Removed import os
 import unittest
 from pathlib import Path # Added Path
 from unittest.mock import MagicMock, call, patch

@@ -109,8 +109,8 @@ class TestConfigManager(unittest.TestCase):
 
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings assignment removed as it's not used by _load_json_file directly
+            # cm._custom_eq_curves assignment removed as it's not used by _load_json_file directly
             loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
 
         mock_file_path.exists.assert_called_once()
@@ -135,8 +135,8 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings assignment removed
+            # cm._custom_eq_curves assignment removed
             loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
         mock_logger.exception.assert_called_once_with(
             "Failed to load JSON file %s. Using empty config.",
@@ -150,8 +150,8 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.exists.return_value = False
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings assignment removed
+            # cm._custom_eq_curves assignment removed
             loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
         assert loaded_data == {}
 
@@ -166,8 +166,7 @@ class TestConfigManager(unittest.TestCase):
 
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # _settings and _custom_eq_curves not used by _save_json_file
             cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_file_path.open.assert_called_once_with("w")
@@ -194,8 +193,7 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # _settings and _custom_eq_curves not used by _save_json_file
             cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_json_dump.assert_not_called()
@@ -221,8 +219,7 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # _settings and _custom_eq_curves not used by _save_json_file
             cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_logger.exception.assert_called_once_with(
@@ -271,7 +268,7 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._custom_eq_curves = {}  # noqa: SLF001
-            cm._settings = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Removed as unused by save_custom_eq_curve
         with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
         with pytest.raises(ConfigError):
@@ -287,7 +284,7 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"ExistingCurve": [0] * 10}  # noqa: SLF001
-            cm._settings = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Removed as unused by save_custom_eq_curve
         new_curve_name = "NewCurve"
         new_curve_values = [1] * 10
         cm.save_custom_eq_curve(new_curve_name, new_curve_values)
@@ -346,8 +343,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter/setter shortcuts for sidetone level."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Unused as get_setting/set_setting are mocked
+            # cm._custom_eq_curves = {}  # noqa: SLF001 # Unused
             with (
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
@@ -365,8 +362,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter/setter shortcuts for EQ preset ID."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Unused as get_setting/set_setting are mocked
+            # cm._custom_eq_curves = {}  # noqa: SLF001 # Unused
             with (
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
@@ -386,8 +383,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter for active EQ type and its interaction with preset/custom setters."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Unused as get_setting is mocked
+            # cm._custom_eq_curves = {}  # noqa: SLF001 # Unused
             with mock.patch.object(cm, "get_setting") as mock_get: # Removed mock_set
                 mock_get.return_value = "Preset"
                 assert cm.get_active_eq_type() == "Preset"
@@ -448,8 +445,8 @@ class TestConfigManager(unittest.TestCase):
         """Test setting the last custom EQ curve name."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}  # noqa: SLF001
-            cm._custom_eq_curves = {}  # noqa: SLF001
+            # cm._settings = {}  # noqa: SLF001 # Unused as set_setting is mocked
+            # cm._custom_eq_curves = {}  # noqa: SLF001 # Unused
             with mock.patch.object(cm, "set_setting") as mock_set:
                 cm.set_last_custom_eq_curve_name("MyNewCustomCurve")
                 mock_set.assert_any_call(
