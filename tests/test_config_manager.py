@@ -109,9 +109,9 @@ class TestConfigManager(unittest.TestCase):
 
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            loaded_data = cm._load_json_file(mock_file_path)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
 
         mock_file_path.exists.assert_called_once()
         mock_file_path.open.assert_called_once_with()
@@ -135,9 +135,9 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            loaded_data = cm._load_json_file(mock_file_path)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
         mock_logger.exception.assert_called_once_with(
             "Failed to load JSON file %s. Using empty config.",
             mock_file_path,
@@ -150,9 +150,9 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.exists.return_value = False
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            loaded_data = cm._load_json_file(mock_file_path)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            loaded_data = cm._load_json_file(mock_file_path)  # noqa: SLF001
         assert loaded_data == {}
 
     @mock.patch("json.dump")
@@ -166,9 +166,9 @@ class TestConfigManager(unittest.TestCase):
 
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            cm._save_json_file(mock_file_path, data_to_save)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_file_path.open.assert_called_once_with("w")
         mock_json_dump.assert_called_once_with(
@@ -194,9 +194,9 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            cm._save_json_file(mock_file_path, data_to_save)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_json_dump.assert_not_called()
         mock_logger.exception.assert_called_once_with(
@@ -221,9 +221,9 @@ class TestConfigManager(unittest.TestCase):
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
-            cm._save_json_file(mock_file_path, data_to_save)
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            cm._save_json_file(mock_file_path, data_to_save)  # noqa: SLF001
 
         mock_logger.exception.assert_called_once_with(
             "Error saving file %s",
@@ -234,8 +234,8 @@ class TestConfigManager(unittest.TestCase):
         """Test retrieving settings with and without defaults."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {"existing_key": "existing_value"}
-            cm._custom_eq_curves = {}
+            cm._settings = {"existing_key": "existing_value"}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
         assert cm.get_setting("existing_key") == "existing_value"
         assert cm.get_setting("non_existing_key") is None
         assert cm.get_setting("non_existing_key_with_default", "default_val") == "default_val"
@@ -245,8 +245,8 @@ class TestConfigManager(unittest.TestCase):
         """Test setting a configuration value and saving the config."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
         cm.set_setting("test_key", "test_value")
         assert cm.get_setting("test_key") == "test_value" # Changed
         mock_save_json.assert_called_once_with(self.mock_config_file, {"test_key": "test_value"}) # Changed
@@ -255,14 +255,14 @@ class TestConfigManager(unittest.TestCase):
         """Test retrieving all custom EQ curves."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._custom_eq_curves = {"Curve1": [0] * 10, "Curve2": [1] * 10}
+            cm._custom_eq_curves = {"Curve1": [0] * 10, "Curve2": [1] * 10}  # noqa: SLF001
         assert cm.get_all_custom_eq_curves() == {"Curve1": [0] * 10, "Curve2": [1] * 10}
 
     def test_get_custom_eq_curve(self) -> None:
         """Test retrieving a specific custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._custom_eq_curves = {"MyCurve": [1] * 10}
+            cm._custom_eq_curves = {"MyCurve": [1] * 10}  # noqa: SLF001
         assert cm.get_custom_eq_curve("MyCurve") == [1] * 10
         assert cm.get_custom_eq_curve("NonExistentCurve") is None
 
@@ -270,8 +270,8 @@ class TestConfigManager(unittest.TestCase):
         """Test validation when saving custom EQ curves."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._custom_eq_curves = {}
-            cm._settings = {}
+            cm._custom_eq_curves = {}  # noqa: SLF001
+            cm._settings = {}  # noqa: SLF001
         with pytest.raises(ConfigError):
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
         with pytest.raises(ConfigError):
@@ -286,8 +286,8 @@ class TestConfigManager(unittest.TestCase):
         """Test successfully saving a valid custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._custom_eq_curves = {"ExistingCurve": [0] * 10}
-            cm._settings = {}
+            cm._custom_eq_curves = {"ExistingCurve": [0] * 10}  # noqa: SLF001
+            cm._settings = {}  # noqa: SLF001
         new_curve_name = "NewCurve"
         new_curve_values = [1] * 10
         cm.save_custom_eq_curve(new_curve_name, new_curve_values)
@@ -305,12 +305,12 @@ class TestConfigManager(unittest.TestCase):
         """Test deleting a custom EQ curve."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._custom_eq_curves = {
+            cm._custom_eq_curves = {  # noqa: SLF001
                 "ToDelete": [0] * 10,
                 "ToKeep": [1] * 10,
                 app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10,
             }
-            cm._settings = {
+            cm._settings = {  # noqa: SLF001
                 "last_custom_eq_curve_name": "ToDelete",
                 "active_eq_type": "Custom",
             }
@@ -326,7 +326,7 @@ class TestConfigManager(unittest.TestCase):
         # cm._settings was already updated by the previous delete if the curve was active.
         # For this part of the test, we assume the last_custom_eq_curve_name is "OtherCurve"
         # (which is fine as it's not "ToKeep", so deleting "ToKeep" won't change it to default).
-        cm._settings = {"last_custom_eq_curve_name": "OtherCurve"} # Reset for this specific scenario
+        cm._settings = {"last_custom_eq_curve_name": "OtherCurve"} # noqa: SLF001 # Reset for this specific scenario
 
         cm.delete_custom_eq_curve("ToKeep")  # Deleting a non-active, non-default curve
         assert cm.get_custom_eq_curve("ToKeep") is None # Changed
@@ -346,8 +346,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter/setter shortcuts for sidetone level."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
             with (
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
@@ -365,8 +365,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter/setter shortcuts for EQ preset ID."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
             with (
                 mock.patch.object(cm, "get_setting") as mock_get,
                 mock.patch.object(cm, "set_setting") as mock_set,
@@ -386,8 +386,8 @@ class TestConfigManager(unittest.TestCase):
         """Test getter for active EQ type and its interaction with preset/custom setters."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
             with mock.patch.object(cm, "get_setting") as mock_get: # Removed mock_set
                 mock_get.return_value = "Preset"
                 assert cm.get_active_eq_type() == "Preset"
@@ -402,54 +402,54 @@ class TestConfigManager(unittest.TestCase):
         """Test fallbacks for retrieving the last custom EQ curve name."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
 
-            cm._settings = {"last_custom_eq_curve_name": "MyFavCurve"}
-            cm._custom_eq_curves = {
+            cm._settings = {"last_custom_eq_curve_name": "MyFavCurve"}  # noqa: SLF001
+            cm._custom_eq_curves = {  # noqa: SLF001
                 "MyFavCurve": [1] * 10,
                 app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10,
             }
             assert cm.get_last_custom_eq_curve_name() == "MyFavCurve"
 
-            cm._settings = {"last_custom_eq_curve_name": "NonExistent"}
-            cm._custom_eq_curves = {
+            cm._settings = {"last_custom_eq_curve_name": "NonExistent"}  # noqa: SLF001
+            cm._custom_eq_curves = {  # noqa: SLF001
                 app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10,
                 "AnotherCurve": [2] * 10,
             }
             assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
 
-            cm._settings = {"last_custom_eq_curve_name": "NonExistent"}
-            cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}
+            cm._settings = {"last_custom_eq_curve_name": "NonExistent"}  # noqa: SLF001
+            cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}  # noqa: SLF001
             # Ensure DEFAULT_CUSTOM_EQ_CURVE_NAME is not in this set for the test
-            if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:
-                del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]
+            if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:  # noqa: SLF001
+                del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]  # noqa: SLF001
             assert cm.get_last_custom_eq_curve_name() == "FirstCurve"
 
-            cm._settings = {"last_custom_eq_curve_name": "NonExistentCurveOnly"}
-            cm._custom_eq_curves = {}  # No curves at all
+            cm._settings = {"last_custom_eq_curve_name": "NonExistentCurveOnly"}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001 # No curves at all
             assert cm.get_last_custom_eq_curve_name() == "NonExistentCurveOnly"
 
-            cm._settings = {}  # No setting for last_custom_eq_curve_name
-            cm._custom_eq_curves = {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}
+            cm._settings = {}  # noqa: SLF001 # No setting for last_custom_eq_curve_name
+            cm._custom_eq_curves = {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}  # noqa: SLF001
             assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
 
-            cm._settings = {}
-            cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}
-            if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:
-                del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {"FirstCurve": [3] * 10, "SecondCurve": [4] * 10}  # noqa: SLF001
+            if app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in cm._custom_eq_curves:  # noqa: SLF001
+                del cm._custom_eq_curves[app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME]  # noqa: SLF001
             assert cm.get_last_custom_eq_curve_name() == "FirstCurve"
 
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
             assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
 
     def test_set_last_custom_eq_curve_name(self) -> None:
         """Test setting the last custom EQ curve name."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
-            cm._custom_eq_curves = {}
+            cm._settings = {}  # noqa: SLF001
+            cm._custom_eq_curves = {}  # noqa: SLF001
             with mock.patch.object(cm, "set_setting") as mock_set:
                 cm.set_last_custom_eq_curve_name("MyNewCustomCurve")
                 mock_set.assert_any_call(
@@ -464,54 +464,54 @@ class TestConfigManager(unittest.TestCase):
         """Test get_setting for 'chatmix_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) is True
-            cm._settings = {"chatmix_enabled": False}
+            cm._settings = {"chatmix_enabled": False}  # noqa: SLF001
             assert cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) is False
 
     def test_get_setting_for_auto_mute_mic_enabled(self) -> None:
         """Test get_setting for 'auto_mute_mic_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("auto_mute_mic_enabled", self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED) is False
-            cm._settings = {"auto_mute_mic_enabled": True}
+            cm._settings = {"auto_mute_mic_enabled": True}  # noqa: SLF001
             assert cm.get_setting("auto_mute_mic_enabled", self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED) is True
 
     def test_get_setting_for_run_on_startup_enabled(self) -> None:
         """Test get_setting for 'run_on_startup_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("run_on_startup_enabled", self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED) is True
-            cm._settings = {"run_on_startup_enabled": False}
+            cm._settings = {"run_on_startup_enabled": False}  # noqa: SLF001
             assert cm.get_setting("run_on_startup_enabled", self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED) is False
 
     def test_get_setting_for_minimize_to_tray_enabled(self) -> None:
         """Test get_setting for 'minimize_to_tray_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("minimize_to_tray_enabled", self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED) is True
-            cm._settings = {"minimize_to_tray_enabled": False}
+            cm._settings = {"minimize_to_tray_enabled": False}  # noqa: SLF001
             assert cm.get_setting("minimize_to_tray_enabled", self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED) is False
 
     def test_get_setting_for_check_for_updates_enabled(self) -> None:
         """Test get_setting for 'check_for_updates_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("check_for_updates_enabled", self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED) is True
-            cm._settings = {"check_for_updates_enabled": False}
+            cm._settings = {"check_for_updates_enabled": False}  # noqa: SLF001
             assert cm.get_setting("check_for_updates_enabled", self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED) is False
 
     def test_get_setting_for_include_prereleases_enabled(self) -> None:
         """Test get_setting for 'include_prereleases_enabled'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("include_prereleases_enabled", self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED) is False
-            cm._settings = {"include_prereleases_enabled": True}
+            cm._settings = {"include_prereleases_enabled": True}  # noqa: SLF001
             assert cm.get_setting("include_prereleases_enabled", self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED) is True
 
     def test_get_setting_for_last_selected_device_serial(
@@ -520,18 +520,18 @@ class TestConfigManager(unittest.TestCase):
         """Test get_setting for 'last_selected_device_serial'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("last_selected_device_serial", None) is None
-            cm._settings = {"last_selected_device_serial": "SERIAL123"}
+            cm._settings = {"last_selected_device_serial": "SERIAL123"}  # noqa: SLF001
             assert cm.get_setting("last_selected_device_serial", None) == "SERIAL123"
 
     def test_get_setting_for_dark_mode(self) -> None:  # Covers get_dark_mode
         """Test get_setting for 'dark_mode'."""
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager()
-            cm._settings = {}
+            cm._settings = {}  # noqa: SLF001
             assert cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE) == "auto"
-            cm._settings = {"dark_mode": "dark"}
+            cm._settings = {"dark_mode": "dark"}  # noqa: SLF001
             assert cm.get_setting("dark_mode", self.CM_DEFAULT_DARK_MODE) == "dark"
 
 

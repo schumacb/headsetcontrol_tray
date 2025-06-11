@@ -20,6 +20,11 @@ from headsetcontrol_tray.headset_status import (
 )
 
 
+class TestDataCreationError(IndexError):
+    """Custom exception for errors during test data creation."""
+    pass
+
+
 # Helper to create mock response data for HeadsetStatusParser
 def create_status_response_data(
     status_byte_val: int,
@@ -36,30 +41,42 @@ def create_status_response_data(
     if len(data) > app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE:
         data[app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE] = status_byte_val
     else:
-        raise IndexError(
-            f"HID_RES_STATUS_BATTERY_STATUS_BYTE index {app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} out of bounds for data length {len(data)}",
+        msg = (
+            f"HID_RES_STATUS_BATTERY_STATUS_BYTE index "
+            f"{app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE} "
+            f"out of bounds for data length {len(data)}"
         )
+        raise TestDataCreationError(msg)
 
     if len(data) > app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE:
         data[app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE] = level_byte_val
     else:
-        raise IndexError(
-            f"HID_RES_STATUS_BATTERY_LEVEL_BYTE index {app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE} out of bounds for data length {len(data)}",
+        msg = (
+            f"HID_RES_STATUS_BATTERY_LEVEL_BYTE index "
+            f"{app_config.HID_RES_STATUS_BATTERY_LEVEL_BYTE} "
+            f"out of bounds for data length {len(data)}"
         )
+        raise TestDataCreationError(msg)
 
     if len(data) > app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE] = game_byte_val
     else:
-        raise IndexError(
-            f"HID_RES_STATUS_CHATMIX_GAME_BYTE index {app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE} out of bounds for data length {len(data)}",
+        msg = (
+            f"HID_RES_STATUS_CHATMIX_GAME_BYTE index "
+            f"{app_config.HID_RES_STATUS_CHATMIX_GAME_BYTE} "
+            f"out of bounds for data length {len(data)}"
         )
+        raise TestDataCreationError(msg)
 
     if len(data) > app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE:
         data[app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE] = chat_byte_val
     else:
-        raise IndexError(
-            f"HID_RES_STATUS_CHATMIX_CHAT_BYTE index {app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE} out of bounds for data length {len(data)}",
+        msg = (
+            f"HID_RES_STATUS_CHATMIX_CHAT_BYTE index "
+            f"{app_config.HID_RES_STATUS_CHATMIX_CHAT_BYTE} "
+            f"out of bounds for data length {len(data)}"
         )
+        raise TestDataCreationError(msg)
 
     return bytes(data)
 
@@ -201,7 +218,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         short_data = bytes(
             [0] * (app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE),
         )  # Length exactly up to, but not including, the byte
-        assert not self.parser._determine_headset_online_status(short_data)
+        assert not self.parser._determine_headset_online_status(short_data)  # noqa: SLF001
         self.mock_logger.warning.assert_called_with(
             "_determine_headset_online_status: Response data too short. Expected > %s bytes, got %s",
             app_config.HID_RES_STATUS_BATTERY_STATUS_BYTE,
@@ -239,9 +256,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         }
         for ui_level, hw_byte in sidetone_map.items():
             with self.subTest(ui_level=ui_level):
-                expected_payload = list(app_config.HID_CMD_SET_SIDETONE_PREFIX) + [
-                    hw_byte,
-                ]
+                expected_payload = [*app_config.HID_CMD_SET_SIDETONE_PREFIX, hw_byte]
                 encoded = self.encoder.encode_set_sidetone(ui_level)
                 assert encoded == expected_payload
 
@@ -251,9 +266,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         timeout_map = {0: 0, 30: 30, 90: 90, 100: 90, -10: 0}  # Also test clamping
         for minutes_in, minutes_byte in timeout_map.items():
             with self.subTest(minutes_in=minutes_in):
-                expected_payload = list(app_config.HID_CMD_SET_INACTIVE_TIME_PREFIX) + [
-                    minutes_byte,
-                ]
+                expected_payload = [*app_config.HID_CMD_SET_INACTIVE_TIME_PREFIX, minutes_byte]
                 encoded = self.encoder.encode_set_inactive_timeout(minutes_in)
                 assert encoded == expected_payload
 
@@ -261,10 +274,9 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
         """Test encoding of set EQ values command with valid float inputs."""
         # 10 float values from -10.0 to 10.0
         # Hardware: 0x14 (0dB), 0x0A (-10dB), 0x1E (10dB)
-        # byte_value = int(0x14 + clamped_val)
         eq_floats = [-10.0, -5.0, 0.0, 5.0, 10.0, -10.0, -5.0, 0.0, 5.0, 10.0]
         expected_hw_bytes = [0x0A, 0x0F, 0x14, 0x19, 0x1E, 0x0A, 0x0F, 0x14, 0x19, 0x1E]
-        expected_payload = list(app_config.HID_CMD_SET_EQ_BANDS_PREFIX) + expected_hw_bytes + [0x00]  # Terminator
+        expected_payload = [*app_config.HID_CMD_SET_EQ_BANDS_PREFIX, *expected_hw_bytes, 0x00]  # Terminator
 
         encoded = self.encoder.encode_set_eq_values(eq_floats)
         assert encoded == expected_payload

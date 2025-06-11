@@ -31,7 +31,8 @@ def test_main_function_calls(
 
 
 @pytest.mark.skip(
-    reason="Known to fail: runpy does not work well with patching __main__.main, and it exposes QApplication init crash.",
+    reason=("Known to fail: runpy does not work well with patching __main__.main, "
+            "and it exposes QApplication init crash."),
 )
 @mock.patch("headsetcontrol_tray.__main__.main")
 def test_main_block_execution(mock_main_function: mock.MagicMock) -> None:
@@ -43,7 +44,8 @@ def test_main_block_execution(mock_main_function: mock.MagicMock) -> None:
 
 
 @pytest.mark.skip(
-    reason="Known to fail: runpy does not work well with patching for __main__ execution, and it exposes QApplication init crash.",
+    reason=("Known to fail: runpy does not work well with patching for __main__ execution, "
+            "and it exposes QApplication init crash."),
 )
 @mock.patch(
     "headsetcontrol_tray.__main__.SteelSeriesTrayApp",

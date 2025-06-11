@@ -70,7 +70,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
             },  # Different VID
         ]
 
-        devices = self.manager._find_potential_hid_devices()
+        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 1
         assert devices[0]["product_id"] == mock_dev1_pid
         mock_hid_enumerate.assert_called_once_with(app_config.STEELSERIES_VID, 0)
@@ -84,7 +84,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     ) -> None:
         """Test find_potential_hid_devices handles hid.enumerate errors."""
         mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
-        devices = self.manager._find_potential_hid_devices()
+        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 0
         mock_logger.exception.assert_called_with("Error enumerating HID devices")
 
@@ -104,7 +104,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
                 "path": b"other_path",
             },  # Different VID
         ]
-        devices = self.manager._find_potential_hid_devices()
+        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 0
 
 
@@ -131,7 +131,6 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
             )
             # Reset for next test, so setUpClass logic isn't strictly needed if we reset here
             # Or, manage this in setUpClass & tearDownClass. For simplicity here, this works per test.
-            # TestHIDConnectionManagerSorting._original_target_pids = None
 
     def test_sort_hid_devices(self) -> None:
         """Test the sorting logic for HID devices based on priority criteria."""
@@ -177,41 +176,23 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         devices_unsorted = [dev_e, dev_c, dev_a, dev_d, dev_b]
         expected_order = [dev_a, dev_b, dev_c, dev_d, dev_e]  # Based on sort keys
 
-        sorted_devices = self.manager._sort_hid_devices(devices_unsorted)
+        sorted_devices = self.manager._sort_hid_devices(devices_unsorted)  # noqa: SLF001
         assert [d["path"] for d in sorted_devices] == [e["path"] for e in expected_order]
 
         # No explicit cleanup here needed due to tearDown,
         # but ensure test logic that modifies app_config.TARGET_PIDS is careful.
-        # The original test had a cleanup:
-        # if pid_2202 not in getattr(self, '_original_target_pids', app_config.TARGET_PIDS):
-        #    app_config.TARGET_PIDS.remove(pid_2202)
-        # This suggests that the original TARGET_PIDS for comparison in getattr should be the class one.
-        if pid_2202 not in TestHIDConnectionManagerSorting._original_target_pids:  # type: ignore
-            # This condition means pid_2202 was added for the test and wasn't in original
-            if pid_2202 in app_config.TARGET_PIDS:  # if it's still there (it should be if tearDown hasn't run)
-                pass  # tearDown will handle it. Or remove here if tearDown is not used.
-                # app_config.TARGET_PIDS.remove(pid_2202) # If not using tearDown for this.
+        if (
+            pid_2202 not in TestHIDConnectionManagerSorting._original_target_pids  # type: ignore[attr-defined]
+            and pid_2202 in app_config.TARGET_PIDS
+        ):
+            # This condition means pid_2202 was added for the test, wasn't in original,
+            # and is still in app_config.TARGET_PIDS (tearDown will handle it).
+            pass
 
 
 # Removed class-level patches:
 # @patch("headsetcontrol_tray.hid_manager.hid.Device")
 # @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
-
-# Removed fixtures:
-# @pytest.fixture
-# def mock_logger_fixture():
-#     with patch("headsetcontrol_tray.hid_manager.logger") as mock_fixture:
-#         yield mock_fixture
-#
-# @pytest.fixture
-# def mock_find_devices_unused_fixture():
-#     with patch.object(HIDConnectionManager, "_find_potential_hid_devices") as mock_fixture:
-#         yield mock_fixture
-#
-# @pytest.fixture
-# def mock_hid_device_constructor_unused_fixture():
-#     with patch("headsetcontrol_tray.hid_manager.hid.Device") as mock_fixture:
-#         yield mock_fixture
 
 
 class TestHIDConnectionManagerConnection(unittest.TestCase):
@@ -240,7 +221,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_hid_instance = MagicMock(spec=hid.Device)
         mock_hid_device_constructor.return_value = mock_hid_instance
 
-        result = self.manager._connect_device()
+        result = self.manager._connect_device()  # noqa: SLF001
 
         assert result
         assert self.manager.hid_device is not None
@@ -261,7 +242,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         """Test _connect_device handles no devices found by _find_potential_hid_devices."""
         mock_find_devices.return_value = []
 
-        result = self.manager._connect_device()
+        result = self.manager._connect_device()  # noqa: SLF001
 
         assert not result
         assert self.manager.hid_device is None
@@ -294,7 +275,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             "Failed to open HID device",
         )
 
-        result = self.manager._connect_device()
+        result = self.manager._connect_device()  # noqa: SLF001
 
         assert not result
         assert self.manager.hid_device is None

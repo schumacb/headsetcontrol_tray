@@ -43,20 +43,25 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
         """Test successful interactive creation of udev rules."""
         mock_temp_file_context = MagicMock()
-        # mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules" # This line was identified as unused by Vulture previously, but it IS used.
         # The Vulture output might be for a different version or a misinterpretation.
-        # The actual unused assignment by Vulture was for a generic "temp_file_path" string, not this specific path.
-        # Let's assume the task meant to remove a *different* `mock_temp_file_context.name` assignment if it existed and was truly unused.
-        # For now, I will proceed assuming the user's instruction is to remove a line *like* this if it were unused.
+        # The actual unused assignment by Vulture was for a generic "temp_file_path" string,
+        # not this specific path.
+        # Let's assume the task meant to remove a *different* `mock_temp_file_context.name`
+        # assignment if it existed and was truly unused.
+        # For now, I will proceed assuming the user's instruction is to remove a line *like*
+        # this if it were unused.
         # If the Vulture output was precise and this line *is* the target despite its usage,
-        # this operation will comment it out. If Vulture pointed to a *different* line, this won't touch it.
+        # this operation will comment it out. If Vulture pointed to a *different* line,
+        # this won't touch it.
         # Based on the prompt, it seems Vulture might have flagged a generic assignment like:
         # mock_temp_file_context.name = "temp_file_path" (which is not present here)
         # I will proceed by making no change to this specific line as it appears used,
         # and assume the user's intent is to remove *actually* unused lines.
-        # If a generic "temp_file_path" assignment *was* here and Vulture flagged it, it would be removed.
+        # If a generic "temp_file_path" assignment *was* here and Vulture flagged it,
+        # it would be removed.
         # Since it's not, I will verify the next step.
-        # The user's prompt specifically says: Remove the line `mock_temp_file_context.name = "temp_file_path"`.
+        # The user's prompt specifically says: Remove the line
+        # `mock_temp_file_context.name = "temp_file_path"`.
         # This exact line is NOT in the current code for this method.
         # The existing line is `mock_temp_file_context.name = "/tmp/fake_headsetcontrol_abcdef.rules"`
         # This line IS USED to set up `expected_details`.
@@ -133,7 +138,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "Could not write temporary udev rule file",  # The original code logs the exception object as part of the message if using %s, e
+            "Could not write temporary udev rule file",
+            # The original code logs the exception object as part of the message if using %s, e
         )
 
     @patch("tempfile.NamedTemporaryFile")

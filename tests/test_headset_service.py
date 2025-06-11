@@ -17,14 +17,6 @@ sys.path.insert(
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.headset_service import HeadsetService
 
-# Removed direct import of constants like STEELSERIES_VID from headset_service, will use app_config
-
-# New imports for mocked classes (though patches target their path in headset_service.py)
-# from headsetcontrol_tray.hid_manager import HIDConnectionManager
-# from headsetcontrol_tray.hid_communicator import HIDCommunicator
-# from headsetcontrol_tray.udev_manager import UDEVManager
-# from headsetcontrol_tray.headset_status import HeadsetStatusParser, HeadsetCommandEncoder
-
 # Constants for magic numbers used in test comparisons
 EXPECTED_BATTERY_LEVEL_HIGH = 75
 EXPECTED_CHATMIX_VALUE_MID = 32
@@ -167,7 +159,8 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
         # Path(...).exists() is called, so check that mock
         self.mock_final_path.exists.assert_called_once()
         # We can also check that Path was constructed with the correct base dir if needed
-        # e.g., self.mock_path_instance.parent_of_final_path_mock.__truediv__.assert_called_with(STEELSERIES_UDEV_FILENAME)
+        # e.g., self.mock_path_instance.parent_of_final_path_mock \
+        # .__truediv__.assert_called_with(STEELSERIES_UDEV_FILENAME)
         # For now, just checking .exists() is enough to confirm the flow.
 
         self.mock_udev_manager_instance.create_rules_interactive.assert_called_once()
@@ -323,7 +316,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         self.reset_common_mocks()
         self.mock_hid_communicator_instance.write_report.return_value = False  # Simulate write failure
 
-        self.service._get_parsed_status_hid()  # Call the method that experiences the failure
+        self.service._get_parsed_status_hid()  # noqa: SLF001 # Call the method that experiences the failure
 
         self.mock_hid_connection_manager_instance.close.assert_called_once()
         assert self.service.hid_communicator is None  # Communicator should be cleared
@@ -334,11 +327,11 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         self.mock_hid_communicator_instance.write_report.return_value = True  # Write succeeds
         self.mock_hid_communicator_instance.read_report.return_value = None  # Read fails
 
-        result = self.service._get_parsed_status_hid()
+        result = self.service._get_parsed_status_hid()  # noqa: SLF001
 
         assert result is None
-        assert self.service.get_last_hid_report_data() is None  # Changed to public getter
-        assert self.service.get_last_parsed_status() is None  # Changed to public getter
+        assert self.service._last_hid_raw_read_data is None  # noqa: SLF001 # Should be cleared
+        assert self.service._last_hid_parsed_status is None  # noqa: SLF001
 
 
 class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
