@@ -1,3 +1,4 @@
+"""Tests for the HIDConnectionManager class."""
 import os
 import sys
 import unittest
@@ -25,6 +26,7 @@ def create_mock_device_info(
     usage: int = 0,
     path_suffix: str = "1",
 ) -> dict[str, Any]:
+    """Helper function to create mock HID device info dictionaries for tests."""
     return {
         "vendor_id": app_config.STEELSERIES_VID,
         "product_id": pid,
@@ -37,6 +39,7 @@ def create_mock_device_info(
 
 
 class TestHIDConnectionManagerDiscovery(unittest.TestCase):
+    """Tests HID device discovery functionalities of HIDConnectionManager."""
     def setUp(self) -> None:
         """Set up for HID connection manager discovery tests."""
         self.manager = HIDConnectionManager()
@@ -99,6 +102,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
 
 
 class TestHIDConnectionManagerSorting(unittest.TestCase):
+    """Tests HID device sorting logic within HIDConnectionManager."""
     _original_target_pids = None  # Class attribute for backup
 
     def setUp(self) -> None:
@@ -196,6 +200,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
     "_find_potential_hid_devices",
 )  # Mock the method within the class
 class TestHIDConnectionManagerConnection(unittest.TestCase):
+    """Tests HID device connection logic of HIDConnectionManager."""
     def setUp(self) -> None:
         """Set up for HID device connection tests."""
         self.manager = HIDConnectionManager()
@@ -315,6 +320,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
 
 
 class TestHIDConnectionManagerClose(unittest.TestCase):
+    """Tests HID device closing logic of HIDConnectionManager."""
     def setUp(self) -> None:
         """Set up for HID device close operation tests."""
         self.manager = HIDConnectionManager()

@@ -1,3 +1,4 @@
+"""Tests for the UDEVManager class."""
 import os
 import sys
 import unittest
@@ -19,6 +20,7 @@ from headsetcontrol_tray.udev_manager import (
 
 
 class TestUDEVManager(unittest.TestCase):  # Removed class decorator
+    """Tests UDEV rule management functionalities."""
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for UDEVManager tests."""
         self.logger_patcher = patch(

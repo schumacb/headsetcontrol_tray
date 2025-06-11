@@ -1,3 +1,4 @@
+"""Tests for the HeadsetService class."""
 import os
 from pathlib import Path  # Added
 import sys
@@ -27,6 +28,7 @@ from headsetcontrol_tray.headset_service import HeadsetService
 # Common mock setup for HeadsetService dependencies
 # No class decorators here now
 class BaseHeadsetServiceTestCase(unittest.TestCase):
+    """Base class for HeadsetService tests with common mock setup."""
     def setUp(self) -> None:  # Signature changed, no # type: ignore[override] needed
         """Set up common mocks for HeadsetService tests."""
         # Patch 'pathlib.Path' in the context of the headset_service module
@@ -145,6 +147,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
 
 class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
+    """Tests UDEV interaction functionalities of HeadsetService."""
     def test_init_connection_fail_udev_rules_missing_triggers_creation(self) -> None:
         """Test __init__ triggers udev creation if connection fails and rules are missing."""
         # Reset mocks called during setUp's HeadsetService() instantiation
@@ -223,6 +226,7 @@ class TestHeadsetServiceUdevInteraction(BaseHeadsetServiceTestCase):
 
 
 class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
+    """Tests connection and status retrieval of HeadsetService."""
     def test_is_device_connected_success(self) -> None:
         """Test is_device_connected returns True when HID communication and parsing succeed."""
         self.mock_hid_connection_manager_instance.ensure_connection.return_value = True
@@ -362,6 +366,7 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
 
 class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
+    """Tests command sending functionalities of HeadsetService."""
     def test_set_sidetone_level_success(self) -> None:
         """Test successfully setting the sidetone level."""
         encoded_payload = [0x01, 0x02]

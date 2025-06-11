@@ -1,3 +1,4 @@
+"""Tests for the main application logic (SteelSeriesTrayApp)."""
 import os
 import sys
 from typing import Any  # Added typing.Any
@@ -24,6 +25,7 @@ except ImportError as e:
 
 @pytest.mark.usefixtures("qapp")
 class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
+    """Tests UDEV dialog interactions in the SteelSeriesTrayApp."""
     # qapp_for_class is no longer needed as qapp fixture handles instance per test.
     # setUpClass is no longer needed as qapp fixture handles setup per test.
     # tearDownClass is no longer needed as qapp fixture handles teardown per test.

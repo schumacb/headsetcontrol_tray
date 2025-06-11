@@ -1,3 +1,4 @@
+"""Tests for the __main__ module entry point of the application."""
 import runpy
 import signal
 from unittest import mock

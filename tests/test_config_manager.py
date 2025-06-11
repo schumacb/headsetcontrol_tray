@@ -1,3 +1,4 @@
+"""Tests for the ConfigManager class."""
 import json
 import logging
 from pathlib import Path
@@ -14,6 +15,7 @@ logging.disable(logging.CRITICAL)
 
 
 class TestConfigManager(unittest.TestCase):
+    """Test suite for configuration management functionalities."""
     def setUp(self) -> None:
         """Set up test environment before each test."""
         self.mock_config_dir = mock.MagicMock(spec=Path)

@@ -1,3 +1,4 @@
+"""Tests for the HIDCommunicator class."""
 import os
 import sys
 import unittest
@@ -17,6 +18,7 @@ from headsetcontrol_tray.hid_communicator import HIDCommunicator
 
 # Removed class decorator
 class TestHIDCommunicator(unittest.TestCase):
+    """Tests HID communication functionalities."""
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HIDCommunicator tests."""
         self.logger_patcher = patch(

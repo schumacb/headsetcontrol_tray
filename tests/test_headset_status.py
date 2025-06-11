@@ -1,3 +1,4 @@
+"""Tests for HeadsetStatusParser and HeadsetCommandEncoder."""
 import os
 import sys
 import unittest
@@ -24,6 +25,7 @@ def create_status_response_data(
     game_byte_val: int = 0,  # Raw value 0-100
     chat_byte_val: int = 0,  # Raw value 0-100
 ) -> bytes:
+    """Helper function to create mock status response data for tests."""
     data = bytearray(
         [0] * app_config.HID_INPUT_REPORT_LENGTH_STATUS,
     )  # Use bytearray for mutability
@@ -61,6 +63,7 @@ def create_status_response_data(
 
 
 class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
+    """Tests for the HeadsetStatusParser class."""
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HeadsetStatusParser tests."""
         self.logger_patcher = patch(
@@ -204,6 +207,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
 
 class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
+    """Tests for the HeadsetCommandEncoder class."""
     def setUp(self) -> None:  # Signature changed
         """Set up test environment for HeadsetCommandEncoder tests."""
         self.logger_patcher = patch(
