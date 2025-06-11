@@ -15,17 +15,6 @@ from headsetcontrol_tray.exceptions import ConfigError
 logging.disable(logging.CRITICAL)
 
 
-@pytest.fixture
-def mock_json_load_raises_fixture():
-    with mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0)) as mock_fixture:
-        yield mock_fixture
-
-@pytest.fixture
-def mock_json_dump_raises_oserror_fixture():
-    with mock.patch("json.dump", side_effect=OSError("Permission denied")) as mock_fixture:
-        yield mock_fixture
-
-
 class TestConfigManager(unittest.TestCase):
     """Test suite for configuration management functionalities."""
     def setUp(self) -> None:
@@ -117,9 +106,8 @@ class TestConfigManager(unittest.TestCase):
         mock_json_load.assert_called_once()
         assert loaded_data == expected_data
 
-    # Removed @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    @pytest.mark.usefixtures("mock_json_load_raises_fixture")
-    def test_load_json_file_decode_error(self) -> None: # Removed _mock_json_load_raises parameter
+    @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0)) # Restored
+    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock) -> None: # Restored parameter
         """Test handling of JSONDecodeError when loading a file."""
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
@@ -201,11 +189,10 @@ class TestConfigManager(unittest.TestCase):
             mock_file_path,
         )
 
-    # Removed @mock.patch("json.dump", side_effect=OSError("Permission denied"))
-    @pytest.mark.usefixtures("mock_json_dump_raises_oserror_fixture")
+    @mock.patch("json.dump", side_effect=OSError("Permission denied")) # Restored
     def test_save_json_file_os_error_on_dump(
         self,
-        # _mock_json_dump_raises_oserror: mock.MagicMock, # Removed parameter
+        _mock_json_dump_raises_oserror: mock.MagicMock, # Restored
     ) -> None:
         """Test handling of OSError during json.dump."""
         mock_file_path = mock.MagicMock(spec=Path)

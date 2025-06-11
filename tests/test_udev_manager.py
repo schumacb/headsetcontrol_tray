@@ -20,12 +20,6 @@ from headsetcontrol_tray.udev_manager import (
 )
 
 
-@pytest.fixture
-def mock_temp_file_unused_fixture():
-    with patch("tempfile.NamedTemporaryFile") as mock_fixture:
-        yield mock_fixture
-
-
 class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     """Tests UDEV rule management functionalities."""
     def setUp(self) -> None:  # Signature changed
@@ -170,11 +164,10 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         """Test get_last_udev_setup_details returns None initially."""
         assert self.manager.get_last_udev_setup_details() is None
 
-    # Removed @patch("tempfile.NamedTemporaryFile")
-    @pytest.mark.usefixtures("mock_temp_file_unused_fixture")
+    @patch("tempfile.NamedTemporaryFile") # Restored
     def test_get_last_udev_setup_details_returns_set_details(
         self,
-        # Removed _mock_temp_file_unused: MagicMock,
+        _mock_temp_file_unused: MagicMock, # Restored
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
         """Test get_last_udev_setup_details returns previously set details."""
         dummy_details = {
