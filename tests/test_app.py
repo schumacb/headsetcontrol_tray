@@ -58,7 +58,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
     def test_initial_dialog_shown_when_details_present(
         self,
-        _MockSystemTrayIcon: MagicMock, # Corrected order
+        _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
         MockHeadsetService: MagicMock, # Corrected order
         MockQMessageBoxClass: MagicMock, # Corrected order
     ) -> None:
@@ -122,7 +122,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
     @patch("headsetcontrol_tray.app.sti.SystemTrayIcon") # Restored
     def test_initial_dialog_not_shown_when_details_absent(
         self,
-        _MockSystemTrayIcon: MagicMock, # Corrected order
+        _MockSystemTrayIcon: MagicMock,  # noqa: PT019 # Corrected order
         MockHeadsetService: MagicMock, # Corrected order
         MockQMessageBoxClass: MagicMock, # Corrected order
     ) -> None:

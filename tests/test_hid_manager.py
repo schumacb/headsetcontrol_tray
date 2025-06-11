@@ -47,7 +47,8 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger") # Restored
-    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock, mock_hid_enumerate: MagicMock) -> None: # Restored _mock_logger
+    def test_find_potential_hid_devices_success(self, _mock_logger: MagicMock,  # noqa: PT019
+                                               mock_hid_enumerate: MagicMock) -> None: # Restored _mock_logger
         """Test successful discovery of potential HID devices."""
         mock_dev1_pid = app_config.TARGET_PIDS[0]
         mock_dev_other_vid_pid = 0x9999
@@ -86,7 +87,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     @patch("headsetcontrol_tray.hid_manager.logger") # Restored
     def test_find_potential_hid_devices_no_matches(
         self,
-        _mock_logger: MagicMock, # Restored
+        _mock_logger: MagicMock,  # noqa: PT019 # Restored
         mock_hid_enumerate: MagicMock,
     ) -> None:
         """Test find_potential_hid_devices handles no matching devices found."""
@@ -305,8 +306,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
     @patch.object(HIDConnectionManager, "_find_potential_hid_devices") # provides _mock_find_devices_unused
     def test_ensure_connection_already_connected(
         self,
-        _mock_find_devices_unused: MagicMock,
-        _mock_hid_device_constructor_unused: MagicMock,
+        _mock_find_devices_unused: MagicMock,  # noqa: PT019
+        _mock_hid_device_constructor_unused: MagicMock,  # noqa: PT019
         mock_internal_connect_device: MagicMock,
     ) -> None:
         """Test ensure_connection when a device is already connected."""
@@ -322,8 +323,8 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
     @patch.object(HIDConnectionManager, "_find_potential_hid_devices") # provides _mock_find_devices_unused
     def test_ensure_connection_needs_connection(
         self,
-        _mock_find_devices_unused: MagicMock,
-        _mock_hid_device_constructor_unused: MagicMock,
+        _mock_find_devices_unused: MagicMock,  # noqa: PT019
+        _mock_hid_device_constructor_unused: MagicMock,  # noqa: PT019
         mock_internal_connect_device: MagicMock,
     ) -> None:
         """Test ensure_connection when a new connection attempt is needed."""

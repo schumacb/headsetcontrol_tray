@@ -167,7 +167,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
     @patch("tempfile.NamedTemporaryFile") # Restored
     def test_get_last_udev_setup_details_returns_set_details(
         self,
-        _mock_temp_file_unused: MagicMock, # Restored
+        _mock_temp_file_unused: MagicMock,  # noqa: PT019 # Restored
     ) -> None:  # Removed mock_logger_passed_in_test_method_ignored
         """Test get_last_udev_setup_details returns previously set details."""
         dummy_details = {

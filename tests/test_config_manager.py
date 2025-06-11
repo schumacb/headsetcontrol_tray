@@ -107,7 +107,8 @@ class TestConfigManager(unittest.TestCase):
         assert loaded_data == expected_data
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0)) # Restored
-    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock) -> None: # Restored parameter
+    def test_load_json_file_decode_error(self, _mock_json_load_raises: mock.MagicMock  # noqa: PT019
+                                         ) -> None: # Restored parameter
         """Test handling of JSONDecodeError when loading a file."""
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
@@ -192,7 +193,7 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch("json.dump", side_effect=OSError("Permission denied")) # Restored
     def test_save_json_file_os_error_on_dump(
         self,
-        _mock_json_dump_raises_oserror: mock.MagicMock, # Restored
+        _mock_json_dump_raises_oserror: mock.MagicMock,  # noqa: PT019 # Restored
     ) -> None:
         """Test handling of OSError during json.dump."""
         mock_file_path = mock.MagicMock(spec=Path)
