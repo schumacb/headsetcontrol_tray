@@ -270,7 +270,7 @@ class SettingsDialog(QDialog):
             )
             self._load_initial_settings()
 
-    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802
+    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802 # This is an override of QDialog.showEvent
         """Reloads settings and refreshes view when the dialog is shown."""
         super().showEvent(event)
         self._load_initial_settings()

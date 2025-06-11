@@ -163,7 +163,7 @@ class EqualizerEditorWidget(QWidget):
         self._select_initial_eq_from_config()
 
     def _populate_eq_combo(self) -> None:
-        self.eq_combo.blockSignals(b=True)
+        self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
         current_combo_data = self.eq_combo.currentData()  # Preserve selection if possible
         self.eq_combo.clear()
 
@@ -195,7 +195,7 @@ class EqualizerEditorWidget(QWidget):
             self.eq_combo.setCurrentIndex(restored_idx)
         # If not restored, _select_initial_eq_from_config will handle setting the index
 
-        self.eq_combo.blockSignals(b=False)
+        self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
 
     def _select_initial_eq_from_config(self) -> None:
         active_type_from_config = self.config_manager.get_active_eq_type()
@@ -232,9 +232,9 @@ class EqualizerEditorWidget(QWidget):
                 )
 
             else:
-                self.eq_combo.blockSignals(b=True)
+                self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
                 self.eq_combo.setCurrentIndex(found_idx)
-                self.eq_combo.blockSignals(b=False)
+                self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
                 self._process_eq_selection(
                     self.eq_combo.itemData(found_idx),
                     is_initial_load=True,
@@ -244,9 +244,9 @@ class EqualizerEditorWidget(QWidget):
                 "Initial EQ target %s not found in combo. Selecting first available.",
                 target_data_to_select,
             )
-            self.eq_combo.blockSignals(b=True)
+            self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
             self.eq_combo.setCurrentIndex(0)
-            self.eq_combo.blockSignals(b=False)
+            self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
             self._process_eq_selection(self.eq_combo.itemData(0), is_initial_load=True)
         else:
             logger.error("EQ combo is empty. Cannot select initial EQ.")
@@ -435,7 +435,7 @@ class EqualizerEditorWidget(QWidget):
         is_custom_mode_active: bool,
     ) -> None:
         if is_custom_mode_active and self._current_custom_curve_original_name:
-            self.eq_combo.blockSignals(b=True)
+            self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
             active_curve_name = self._current_custom_curve_original_name
             for i in range(self.eq_combo.count()):
                 item_data = self.eq_combo.itemData(i)
@@ -462,7 +462,7 @@ class EqualizerEditorWidget(QWidget):
                     original_text = self.eq_combo.itemText(current_idx).rstrip("*")
                     self.eq_combo.setItemText(current_idx, original_text)
 
-            self.eq_combo.blockSignals(b=False)
+            self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
         elif not is_custom_mode_active:
             # If not in custom mode, remove all unsaved indicators
             self._remove_all_unsaved_indicators_from_combo()
@@ -484,7 +484,7 @@ class EqualizerEditorWidget(QWidget):
         self._update_combo_text_for_unsaved_changes(is_custom_mode_active=is_custom_mode_active)
 
     def _remove_all_unsaved_indicators_from_combo(self) -> None:
-        self.eq_combo.blockSignals(b=True)
+        self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
         current_idx = self.eq_combo.currentIndex()  # Preserve if it's a HW preset
         for i in range(self.eq_combo.count()):
             item_data = self.eq_combo.itemData(i)
@@ -494,7 +494,7 @@ class EqualizerEditorWidget(QWidget):
                     self.eq_combo.setItemText(i, original_name)
         if current_idx != -1:
             self.eq_combo.setCurrentIndex(current_idx)
-        self.eq_combo.blockSignals(b=False)
+        self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
 
     def _update_slider_label(self, index: int, value: int) -> None:
         self.slider_labels[index].setText(f"{value} dB")
@@ -559,9 +559,9 @@ class EqualizerEditorWidget(QWidget):
 
     def _set_slider_visuals(self, values: list[int]) -> None:
         for i, value in enumerate(values):
-            self.sliders[i].blockSignals(True)  # noqa: FBT003
+            self.sliders[i].blockSignals(True)  # noqa: FBT003 # blockSignals only takes positinal Arguments
             self.sliders[i].setValue(value)
-            self.sliders[i].blockSignals(False)  # noqa: FBT003
+            self.sliders[i].blockSignals(False)  # noqa: FBT003 # blockSignals only takes positinal Arguments
             self._update_slider_label(i, value)
 
     def _get_slider_values(self) -> list[int]:
@@ -675,7 +675,7 @@ class EqualizerEditorWidget(QWidget):
                     found_idx = i
                     break
 
-            self.eq_combo.blockSignals(b=True)
+            self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
             if found_idx != -1:
                 self.eq_combo.setCurrentIndex(found_idx)
             else:
@@ -684,7 +684,7 @@ class EqualizerEditorWidget(QWidget):
                     new_name,
                 )
                 self._select_initial_eq_from_config()
-            self.eq_combo.blockSignals(b=False)
+            self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
 
             # After setCurrentIndex, _on_eq_selected_in_combo will fire, which
             # calls _process_eq_selection. This will handle setting config and
@@ -754,9 +754,9 @@ class EqualizerEditorWidget(QWidget):
                 idx_to_select = 0
 
             if idx_to_select != -1:
-                self.eq_combo.blockSignals(b=True)
+                self.eq_combo.blockSignals(True) # noqa: FBT003 # blockSignals only takes positinal Arguments
                 self.eq_combo.setCurrentIndex(idx_to_select)
-                self.eq_combo.blockSignals(b=False)
+                self.eq_combo.blockSignals(False) # noqa: FBT003 # blockSignals only takes positinal Arguments
                 self._process_eq_selection(
                     self.eq_combo.itemData(idx_to_select),
                     is_initial_load=False,

@@ -9,7 +9,7 @@ import verboselogs
 # This MUST be done before other application modules (that use logging) are imported.
 verboselogs.install()
 
-from headsetcontrol_tray.app import SteelSeriesTrayApp  # noqa: E402
+from headsetcontrol_tray.app import SteelSeriesTrayApp  # noqa: E402 # verboselogs.install must be called before this import
 
 
 def main() -> None:
@@ -22,4 +22,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()  # pragma: no cover
+    main()
