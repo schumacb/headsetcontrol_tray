@@ -87,7 +87,7 @@ class TestConfigManager(unittest.TestCase):
         # Mock Path.open()
         mock_file_path.open = mock.mock_open(read_data=json.dumps(expected_data))
 
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -107,7 +107,7 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.open = mock.mock_open()
 
         with (
-            mock.patch.object(ConfigManager, "__init__", lambda x: None),
+            mock.patch.object(ConfigManager, "__init__", lambda _: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
@@ -123,7 +123,7 @@ class TestConfigManager(unittest.TestCase):
     def test_load_json_file_does_not_exist(self):
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = False
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -138,7 +138,7 @@ class TestConfigManager(unittest.TestCase):
         # Mock Path.open()
         mock_file_path.open = mock.mock_open()
 
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -163,7 +163,7 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.open = mock.Mock(side_effect=OSError("Disk full"))
 
         with (
-            mock.patch.object(ConfigManager, "__init__", lambda x: None),
+            mock.patch.object(ConfigManager, "__init__", lambda _: None),
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager()
@@ -203,7 +203,7 @@ class TestConfigManager(unittest.TestCase):
         )
 
     def test_get_setting(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {"existing_key": "existing_value"}
             cm._custom_eq_curves = {}
@@ -216,7 +216,7 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_set_setting(self, mock_save_json: mock.MagicMock):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -225,7 +225,7 @@ class TestConfigManager(unittest.TestCase):
         mock_save_json.assert_called_once_with(self.mock_config_file, cm._settings)
 
     def test_get_all_custom_eq_curves(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"Curve1": [0] * 10, "Curve2": [1] * 10}
         self.assertEqual(
@@ -234,14 +234,14 @@ class TestConfigManager(unittest.TestCase):
         )
 
     def test_get_custom_eq_curve(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"MyCurve": [1] * 10}
         self.assertEqual(cm.get_custom_eq_curve("MyCurve"), [1] * 10)
         self.assertIsNone(cm.get_custom_eq_curve("NonExistentCurve"))
 
     def test_save_custom_eq_curve_validation(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {}
             cm._settings = {}
@@ -256,7 +256,7 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {"ExistingCurve": [0] * 10}
             cm._settings = {}
@@ -273,7 +273,7 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_delete_custom_eq_curve(self, mock_save_json: mock.MagicMock):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._custom_eq_curves = {
                 "ToDelete": [0] * 10,
@@ -309,7 +309,7 @@ class TestConfigManager(unittest.TestCase):
 
     # Test specific setting shortcuts by checking their interaction with get_setting/set_setting
     def test_sidetone_level_shortcuts(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -327,7 +327,7 @@ class TestConfigManager(unittest.TestCase):
                 mock_set.assert_called_once_with("sidetone_level", 75)
 
     def test_eq_preset_id_shortcuts(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -347,7 +347,7 @@ class TestConfigManager(unittest.TestCase):
                 mock_set.assert_any_call("active_eq_type", "hardware")
 
     def test_active_eq_type_shortcuts(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -365,7 +365,7 @@ class TestConfigManager(unittest.TestCase):
                 # It's set by set_last_active_eq_preset_id or set_last_custom_eq_curve_name.
 
     def test_get_last_custom_eq_curve_name_fallbacks(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -419,7 +419,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_set_last_custom_eq_curve_name(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             cm._custom_eq_curves = {}
@@ -434,7 +434,7 @@ class TestConfigManager(unittest.TestCase):
     # The following tests verify get_setting with various hardcoded defaults from ConfigManager
     # if specific getters for them don't exist in ConfigManager itself.
     def test_get_setting_for_chatmix_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -448,7 +448,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_auto_mute_mic_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -468,7 +468,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_run_on_startup_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -488,7 +488,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_minimize_to_tray_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -508,7 +508,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_check_for_updates_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -528,7 +528,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_include_prereleases_enabled(self):
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(
@@ -550,7 +550,7 @@ class TestConfigManager(unittest.TestCase):
     def test_get_setting_for_last_selected_device_serial(
         self,
     ):  # Covers get_last_selected_device_serial
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertIsNone(cm.get_setting("last_selected_device_serial", None))
@@ -561,7 +561,7 @@ class TestConfigManager(unittest.TestCase):
             )
 
     def test_get_setting_for_dark_mode(self):  # Covers get_dark_mode
-        with mock.patch.object(ConfigManager, "__init__", lambda x: None):
+        with mock.patch.object(ConfigManager, "__init__", lambda _: None):
             cm = ConfigManager()
             cm._settings = {}
             self.assertEqual(

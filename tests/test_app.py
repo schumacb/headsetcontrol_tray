@@ -41,7 +41,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
             "headsetcontrol_tray.app.QApplication",
             return_value=self.qapp_instance,
         )
-        self.mock_qapplication_constructor = self.qapplication_patch.start()
+        self.qapplication_patch.start()
 
         self.sample_details = {
             "temp_file_path": "/tmp/test_rules_sample.txt",
@@ -85,10 +85,6 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         def side_effect_add_button_initial(text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None):
             button = MagicMock(spec=QMessageBox.StandardButton)
-            if isinstance(text_or_button, QMessageBox.StandardButton):
-                button.standard_button_enum = text_or_button
-            else:
-                button.text = text_or_button
             added_buttons_initial.append(
                 {"button": button, "role": role, "text_or_enum": text_or_button},
             )
@@ -96,7 +92,7 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
 
-        def set_clicked_button_to_close_equivalent(*args, **kwargs):
+        def set_clicked_button_to_close_equivalent(*_, **_):
             found_close_button = None
             for b_info in added_buttons_initial:
                 if (
@@ -150,106 +146,6 @@ class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
 
         SteelSeriesTrayApp()  # Constructor called for side effects
         MockQMessageBoxClass.assert_not_called()
-
-    def run_pkexec_test_flow(
-        self,
-        mock_subprocess_run: MagicMock,
-        mock_os_path_exists: MagicMock,
-        MockQMessageBoxClass: MagicMock,
-        MockHeadsetService: MagicMock,
-        _MockSystemTrayIcon: MagicMock,
-        pkexec_returncode: int,
-        pkexec_stdout: str,
-        pkexec_stderr: str,
-        expected_icon: QMessageBox.Icon,
-        expected_title: str,
-        expected_text: str,
-        expected_informative_text_contains: list[str],
-    ):
-        mock_service_instance = MockHeadsetService.return_value
-        mock_service_instance.udev_setup_details = self.sample_details
-        mock_service_instance.is_device_connected = Mock(return_value=False)
-        mock_service_instance.close = Mock()
-
-        mock_os_path_exists.return_value = (
-            True  # For these flows, pkexec is attempted, so script must exist
-        )
-
-        mock_initial_dialog = MagicMock(spec=QMessageBox)
-        mock_feedback_dialog = MagicMock(spec=QMessageBox)
-        MockQMessageBoxClass.side_effect = [mock_initial_dialog, mock_feedback_dialog]
-
-        captured_auto_button: list[Any] = [
-            None,
-        ]  # Using a list to allow modification in closure, typed with Any
-
-        def initial_dialog_add_button_side_effect(text_or_button: str | QMessageBox.StandardButton, role: QMessageBox.ButtonRole | None = None):
-            button_mock = MagicMock(spec=QMessageBox.StandardButton)
-            if isinstance(text_or_button, str):
-                button_mock.text = text_or_button
-            else:
-                button_mock.standard_button_enum = text_or_button
-
-            if role == QMessageBox.ButtonRole.AcceptRole:  # Corrected Enum
-                captured_auto_button[0] = button_mock
-                # When the "Install Automatically" button is added by the app,
-                # immediately set the mock_initial_dialog's clickedButton behavior.
-                mock_initial_dialog.clickedButton.return_value = captured_auto_button[0]
-            return button_mock
-
-        mock_initial_dialog.addButton.side_effect = (
-            initial_dialog_add_button_side_effect
-        )
-
-        # Fallback if AcceptRole button somehow not added (shouldn't happen in these tests)
-        # but this ensures clickedButton always has a return_value before exec()
-        if mock_initial_dialog.clickedButton.return_value is None:
-            mock_initial_dialog.clickedButton.return_value = MagicMock(
-                spec=QMessageBox.StandardButton,
-            )  # Non-Accept button
-
-        mock_subprocess_run.return_value = subprocess.CompletedProcess(
-            args=[
-                "pkexec",
-                self.expected_helper_script_path,
-                self.sample_details["temp_file_path"],
-                self.sample_details["final_file_path"],
-            ],
-            returncode=pkexec_returncode,
-            stdout=pkexec_stdout,
-            stderr=pkexec_stderr,
-        )
-
-        # Instantiate the app, which will trigger the dialog flow
-        SteelSeriesTrayApp()
-
-        # Assertions for subprocess
-        mock_subprocess_run.assert_called_once()
-        cmd_called = mock_subprocess_run.call_args[0][0]
-        self.assertEqual(cmd_called[0], "pkexec")
-        self.assertEqual(cmd_called[1], self.expected_helper_script_path)
-        self.assertEqual(cmd_called[2], self.sample_details["temp_file_path"])
-        self.assertEqual(cmd_called[3], self.sample_details["final_file_path"])
-
-        # Assertions for the feedback dialog (which is the second dialog shown)
-        mock_feedback_dialog.setIcon.assert_called_with(expected_icon)
-        mock_feedback_dialog.setWindowTitle.assert_called_with(expected_title)
-        mock_feedback_dialog.setText.assert_called_with(expected_text)
-        if isinstance(expected_informative_text_contains, str):
-            self.assertIn(
-                expected_informative_text_contains,
-                mock_feedback_dialog.setInformativeText.call_args[0][0],
-            )
-        else:
-            for item in expected_informative_text_contains:
-                self.assertIn(
-                    item,
-                    mock_feedback_dialog.setInformativeText.call_args[0][0],
-                )
-        mock_feedback_dialog.exec.assert_called_once()
-
-        # Check that initial dialog was also shown
-        mock_initial_dialog.exec.assert_called_once()
 
     # tearDown is no longer strictly needed to stop the QApplication patch,
     # but can be kept for other cleanup if necessary.
