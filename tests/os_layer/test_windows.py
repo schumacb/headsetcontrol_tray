@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch # Ensure patch is imported
 
 import pytest
 
@@ -10,17 +10,18 @@ from headsetcontrol_tray.app_config import APP_NAME
 
 
 @pytest.fixture
-def windows_impl_fixture(mocker): # Renamed
-    mock_hid_manager = MagicMock(spec=WindowsHIDManager)
-    mocker.patch("headsetcontrol_tray.os_layer.windows.WindowsHIDManager", return_value=mock_hid_manager)
-    impl = WindowsImpl()
-    impl._hid_manager = mock_hid_manager
-    return impl
+def windows_impl_fixture(): # mocker removed
+    with patch("headsetcontrol_tray.os_layer.windows.WindowsHIDManager") as mock_hid_manager_class:
+        mock_hid_manager_instance = MagicMock(spec=WindowsHIDManager)
+        mock_hid_manager_class.return_value = mock_hid_manager_instance
+        impl = WindowsImpl()
+        impl._hid_manager = mock_hid_manager_instance
+        yield impl # Use yield for pytest fixtures
 
 def test_windows_impl_get_os_name(windows_impl_fixture):
     assert windows_impl_fixture.get_os_name() == "windows"
 
-def test_windows_impl_get_hid_manager(windows_impl_fixture, mocker):
+def test_windows_impl_get_hid_manager(windows_impl_fixture): # mocker removed
     assert isinstance(windows_impl_fixture.get_hid_manager(), MagicMock)
     assert isinstance(windows_impl_fixture._hid_manager, HIDManagerInterface)
 
@@ -70,14 +71,13 @@ def test_windows_impl_get_data_dir(windows_impl_fixture, local_appdata_val, expe
 def test_windows_impl_needs_device_setup(windows_impl_fixture):
     assert windows_impl_fixture.needs_device_setup() is False
 
-def test_windows_impl_perform_device_setup(windows_impl_fixture, mocker):
-    # Patch QMessageBox from the correct module if it's different from PySide6.QtWidgets
-    mock_qmessagebox = mocker.patch("headsetcontrol_tray.os_layer.windows.QMessageBox")
-    mock_parent_widget = MagicMock()
+def test_windows_impl_perform_device_setup(windows_impl_fixture): # mocker removed
+    with patch("headsetcontrol_tray.os_layer.windows.QMessageBox") as mock_qmessagebox:
+        mock_parent_widget = MagicMock()
 
-    success, proc_result, error = windows_impl_fixture.perform_device_setup(ui_parent=mock_parent_widget)
+        success, proc_result, error = windows_impl_fixture.perform_device_setup(ui_parent=mock_parent_widget)
 
-    assert success is False
-    assert proc_result is None
-    assert error is None
-    mock_qmessagebox.information.assert_called_once()
+        assert success is False
+        assert proc_result is None
+        assert error is None
+        mock_qmessagebox.information.assert_called_once()
