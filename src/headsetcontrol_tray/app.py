@@ -2,9 +2,11 @@
 
 import logging
 import os  # Keep for os.environ
-from pathlib import Path  # Added
-import subprocess  # Added for pkexec
+from pathlib import Path
+import platform # To detect OS
+# import subprocess # No longer directly used in app.py
 import sys
+from typing import Any
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -12,14 +14,19 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from . import app_config
 from . import config_manager as cfg_mgr
 from . import headset_service as hs_svc
-from .exceptions import TrayAppInitializationError
+from .exceptions import TrayAppInitializationError # Keep for error handling
 from .ui import system_tray_icon as sti
+from .os_layer.base import OSInterface
+from .os_layer.linux import LinuxImpl # Needed for isinstance check and specific logic
+from .os_layer.windows import WindowsImpl
+from .os_layer.macos import MacOSImpl
+# from .udev_manager import UDEVManager # Removed
 
 # Initialize logging
 log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
 log_level = getattr(logging, log_level_str, logging.INFO)
 
-# pkexec exit codes
+# pkexec exit codes (still needed for interpreting results from LinuxImpl)
 PKEXEC_EXIT_SUCCESS = 0
 PKEXEC_EXIT_USER_CANCELLED = 126
 PKEXEC_EXIT_AUTH_FAILED = 127
@@ -43,18 +50,11 @@ class SteelSeriesTrayApp:
             "Application starting with log level %s",
             logging.getLevelName(logger.getEffectiveLevel()),
         )
-        # Use existing QApplication instance if available (e.g., from pytest-qt),
-        # else create a new one.
         _q_instance = QApplication.instance()
         if _q_instance:
             create_new_qapp = False
-            # Check if the imported QApplication is a real type (not a mock)
             if isinstance(QApplication, type):
-                # QApplication is a real type, so _q_instance is a real Qt object.
-                # We need to ensure it's a full QApplication, not just QCoreApplication.
                 if not isinstance(_q_instance, QApplication):
-                    # This means _q_instance might be QCoreApplication
-                    # or some other non-QApplication type.
                     logger.warning(
                         (
                             "Existing Qt instance found (type: %s), but it's not a "
@@ -63,31 +63,19 @@ class SteelSeriesTrayApp:
                         _q_instance.__class__.__name__,
                     )
                     create_new_qapp = True
-                # If it is already a QApplication, we use it (create_new_qapp remains False).
             else:
-                # QApplication is mocked (e.g., in a test environment).
-                # We assume _q_instance (likely from a mocked
-                # QApplication.instance()) is the mock object the test environment
-                # wants to use. The original check's purpose (differentiating
-                # QCoreApplication from QApplication) is less relevant here, or
-                # should be handled by the mock's configuration. So, we don't
-                # force creating a new QApplication([]), which might interfere
-                # with the mock.
-                pass  # Use existing mock instance. create_new_qapp remains False.
+                pass
 
             if create_new_qapp:
                 self.qt_app = QApplication([])
             else:
                 self.qt_app = _q_instance  # type: ignore [assignment]
-        else:  # No pre-existing instance
+        else:
             self.qt_app = QApplication([])
 
-        self.qt_app.setQuitOnLastWindowClosed(False)  # Important for tray apps
-
-        # Set application name for potential QSettings usage or window titles
+        self.qt_app.setQuitOnLastWindowClosed(False)
         self.qt_app.setApplicationName(app_config.APP_NAME)
 
-        # Attempt to set a generic application icon for dialogs etc.
         app_icon = QIcon.fromTheme(
             "audio-headset",
             QIcon.fromTheme("preferences-desktop-multimedia"),
@@ -95,255 +83,165 @@ class SteelSeriesTrayApp:
         if not app_icon.isNull():
             self.qt_app.setWindowIcon(app_icon)
 
-        self.config_manager = cfg_mgr.ConfigManager()
-        self.headset_service = hs_svc.HeadsetService()
+        self.os_interface = self._get_os_interface()
+        logger.info(f"Initialized OS interface for: {self.os_interface.get_os_name()}")
 
-        # Check if udev rule setup instructions were generated
-        if self.headset_service.udev_setup_details:
-            self._handle_udev_permissions_flow(self.headset_service.udev_setup_details)
+        config_dir = self.os_interface.get_config_dir()
+        logger.info(f"Using configuration directory: {config_dir}")
+        self.config_manager = cfg_mgr.ConfigManager(config_dir_path=config_dir)
+
+        # hid_manager_instance = self.os_interface.get_hid_manager() # Will be used in next step
+        # self.headset_service = hs_svc.HeadsetService(hid_manager=hid_manager_instance)
+        self.headset_service = hs_svc.HeadsetService() # TEMPORARY: until HeadsetService is refactored
 
         if not self.headset_service.is_device_connected():
-            logger.warning("Headset not detected on startup by HeadsetService.")
-            # QSystemTrayIcon.supportsMessages() can check if backend supports this.
-            # For now, tooltip will indicate disconnected state.
+            logger.warning("Headset not detected on initial check by HeadsetService.")
+            if self.os_interface.needs_device_setup():
+                logger.info(
+                    f"OS interface reports that device setup is needed for {self.os_interface.get_os_name()}."
+                )
+                self._perform_os_specific_setup_flow() # Call the new flow
+            else:
+                logger.info(
+                    f"OS interface reports no specific device setup is needed for {self.os_interface.get_os_name()} or it's already done."
+                )
+
+        if not self.headset_service.is_device_connected():
+            logger.warning("Headset still not detected after initial checks and potential setup prompts.")
 
         self.tray_icon = sti.SystemTrayIcon(
             self.headset_service,
             self.config_manager,
             self.quit_application,
         )
+        # Pass self.tray_icon as a QWidget parent for dialogs if needed by tray_icon methods
+        # For example, if tray_icon itself needs to show dialogs directly.
+        # self.tray_icon.set_dialog_parent(self.tray_icon) # Or a hidden main window
         self.tray_icon.show()
-
-        # Apply persisted settings on startup
         self.tray_icon.set_initial_headset_settings()
 
-    def _execute_udev_helper_script(
-        self,
-        temp_file_path: str,
-        final_file_path: str,
-    ) -> subprocess.CompletedProcess:
-        """
-        Executes the udev helper script using pkexec.
-
-        Args:
-            temp_file_path: Path to the temporary udev rule file.
-            final_file_path: The final destination path for the udev rule file.
-
-        Returns:
-            The CompletedProcess object from subprocess.run.
-
-        Raises:
-            FileNotFoundError: If the helper script or pkexec is not found.
-            subprocess.SubprocessError: For other subprocess execution issues.
-        """
-        current_script_dir = Path(__file__).parent
-        repo_root = (current_script_dir / "..").resolve()
-        helper_script_path = repo_root / "scripts" / "install-udev-rules.sh"
-
-        if not helper_script_path.exists():
-            logger.error("Helper script not found at %s", str(helper_script_path))
-            raise TrayAppInitializationError
-
-        # Ensure all parts of cmd are strings for subprocess.run
-        cmd = ["pkexec", str(helper_script_path), temp_file_path, final_file_path]
-        logger.info("Attempting to execute: %s", " ".join(cmd))
-        try:
-            return subprocess.run(  # noqa: S603 # helper_script_path is internally defined, temp_file_path and final_file_path are file paths
-                cmd,
-                capture_output=True,
-                text=True,
-                check=False,  # We check returncode manually
-            )
-        # temp_file_path and final_file_path are file paths, not direct commands.
-        except FileNotFoundError:  # pkexec itself not found
-            logger.exception("pkexec command not found.")
-            raise  # Re-raise to be caught by the caller
-        except subprocess.SubprocessError:  # Catch other potential subprocess errors
-            logger.exception("Subprocess error during pkexec execution:")
-            raise  # Re-raise
-
-    def _show_udev_feedback_dialog(
-        self,
-        parent_dialog: QMessageBox,
-        result: subprocess.CompletedProcess | None,
-        error: Exception | None = None,
-    ) -> None:
-        """Displays a feedback dialog based on the outcome of the udev helper script execution.
-
-        This informs the user of the outcome.
-        """
-        feedback_dialog = QMessageBox(parent_dialog)
-        feedback_dialog.setModal(True)  # Ensure modality
-
-        if error:
-            self._handle_udev_initial_error_feedback(feedback_dialog, error)
-            return
-
-        if result is None:
-            logger.error(
-                "No result from pkexec and no explicit error. This is unexpected.",
-            )
-            feedback_dialog.setIcon(QMessageBox.Icon.Critical)
-            feedback_dialog.setWindowTitle("Error")
-            feedback_dialog.setText(
-                "An unknown error occurred during the installation process.",
-            )
-            feedback_dialog.exec()
-            return
-
-        logger.info("pkexec process completed. Return code: %s", result.returncode)
-        if result.stdout:
-            logger.info("pkexec stdout:\n%s", result.stdout.strip())
-        if result.stderr:
-            logger.warning("pkexec stderr:\n%s", result.stderr.strip())
-
-        if result.returncode == PKEXEC_EXIT_SUCCESS:
-            self._handle_udev_success_feedback(feedback_dialog)
-        elif result.returncode in (PKEXEC_EXIT_USER_CANCELLED, PKEXEC_EXIT_AUTH_FAILED):
-            self._handle_udev_pkexec_error_feedback(feedback_dialog, result)
+    def _get_os_interface(self) -> OSInterface:
+        os_name_lower = platform.system().lower()
+        if os_name_lower == "linux":
+            logger.info("Detected Linux OS.")
+            return LinuxImpl()
+        elif os_name_lower == "windows":
+            logger.info("Detected Windows OS.")
+            return WindowsImpl()
+        elif os_name_lower == "darwin":  # macOS
+            logger.info("Detected macOS.")
+            return MacOSImpl()
         else:
-            self._handle_udev_other_error_feedback(feedback_dialog, result)
-        feedback_dialog.exec()
+            logger.warning(
+                f"Unsupported OS '{platform.system()}'. Falling back to Linux implementation as a default."
+            )
+            return LinuxImpl()
 
-    def _handle_udev_initial_error_feedback(
-        self,
-        dialog: QMessageBox,
-        error: Exception,
-    ) -> None:
-        """Handles feedback for initial errors before pkexec result processing."""
-        logger.exception("Error during udev script execution phase:")
-        dialog.setIcon(QMessageBox.Icon.Critical)
-        dialog.setWindowTitle("Error")
-        if isinstance(error, FileNotFoundError):
-            if "Helper script missing" in str(error):  # Check updated message
-                dialog.setText(
-                    "Installation script not found.\nPlease report this issue.",
-                )
-            else:  # pkexec not found
-                dialog.setText(
-                    "pkexec command not found.\nPlease ensure PolicyKit is correctly installed and configured.",
-                )
-        else:  # General subprocess error or other unexpected error
+    def _perform_os_specific_setup_flow(self) -> None:
+        """
+        Handles the UI flow for OS-specific device setup if indicated by the OSInterface.
+        This may involve showing dialogs and triggering the setup process via OSInterface.
+        """
+        os_name = self.os_interface.get_os_name()
+        logger.info(f"Starting OS-specific setup flow for {os_name}.")
+
+        if os_name == "linux":
+            dialog = QMessageBox(self.tray_icon)
+            dialog.setWindowTitle("Headset Permissions Setup (Linux)")
+            dialog.setIcon(QMessageBox.Icon.Information)
             dialog.setText(
-                f"An unexpected error occurred while trying to run the helper script:\n{error}",
-            )
-        dialog.exec()
-
-    def _handle_udev_success_feedback(self, dialog: QMessageBox) -> None:
-        """Handles feedback for successful udev rule installation."""
-        logger.info("pkexec script executed successfully.")
-        dialog.setIcon(QMessageBox.Icon.Information)
-        dialog.setWindowTitle("Success")
-        dialog.setText("Udev rules installed successfully.")
-        dialog.setInformativeText(
-            "Please replug your headset for the changes to take effect.",
-        )
-
-    def _handle_udev_pkexec_error_feedback(
-        self,
-        dialog: QMessageBox,
-        result: subprocess.CompletedProcess,
-    ) -> None:
-        """Handles feedback for pkexec specific errors (cancel, auth fail)."""
-        if result.returncode == PKEXEC_EXIT_USER_CANCELLED:
-            logger.warning("User cancelled pkexec authentication.")
-            dialog.setIcon(QMessageBox.Icon.Warning)
-            dialog.setWindowTitle("Authentication Cancelled")
-            dialog.setText("Udev rule installation was cancelled.")
-            dialog.setInformativeText(
-                "Authentication was not provided. The udev rules have not been "
-                "installed. You can try again or use the manual instructions.",
-            )
-        elif result.returncode == PKEXEC_EXIT_AUTH_FAILED:
-            logger.error(
-                "pkexec authorization failed or error. stderr: %s",
-                result.stderr.strip(),
-            )
-            dialog.setIcon(QMessageBox.Icon.Critical)
-            dialog.setWindowTitle("Authorization Error")
-            dialog.setText(
-                "Failed to install udev rules due to an authorization error.",
+                "Your SteelSeries headset might need additional permissions (udev rules) to be fully functional."
             )
             dialog.setInformativeText(
-                f"Details: {result.stderr.strip()}\n\nPlease ensure you have "
-                "privileges or contact support. You can also try the manual "
-                "instructions.",
+                "Do you want to attempt to install these rules automatically?\n"
+                "This will require administrator privileges (via pkexec)."
             )
+            auto_button = dialog.addButton("Install Automatically", QMessageBox.ButtonRole.AcceptRole)
+            manual_button = dialog.addButton("Show Manual Instructions", QMessageBox.ButtonRole.ActionRole)
+            dialog.addButton(QMessageBox.StandardButton.Close)
+            dialog.setDefaultButton(auto_button)
+            dialog.exec()
 
-    def _handle_udev_other_error_feedback(
-        self,
-        dialog: QMessageBox,
-        result: subprocess.CompletedProcess,
-    ) -> None:
-        """Handles feedback for other udev helper script errors."""
-        logger.error(
-            "pkexec helper script failed with code %s. stderr: %s",
-            result.returncode,
-            result.stderr.strip(),
-        )
-        dialog.setIcon(QMessageBox.Icon.Critical)
-        dialog.setWindowTitle("Installation Failed")
-        dialog.setText("The udev rule installation script failed.")
-        dialog.setInformativeText(
-            f"Error (code {result.returncode}): {result.stderr.strip()}\n\n"
-            "Please check the output and try the manual instructions, or contact "
-            "support.",
-        )
+            if dialog.clickedButton() == auto_button:
+                logger.info("User chose to install udev rules automatically via OSInterface.")
+                success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=self.tray_icon)
 
-    def _handle_udev_permissions_flow(self, udev_details: dict) -> None:
-        """Handles the dialog flow for udev permissions and pkexec."""
-        temp_file = udev_details["temp_file_path"]
-        final_file = udev_details["final_file_path"]
+                feedback_dialog = QMessageBox(self.tray_icon)
+                feedback_dialog.setModal(True)
 
-        dialog = QMessageBox()
-        dialog.setWindowTitle("Headset Permissions Setup Required")
-        dialog.setIcon(QMessageBox.Icon.Information)
-        dialog.setText(
-            "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
-        )
+                if exec_error:
+                    logger.exception("Error during udev script execution phase: %s", exec_error)
+                    feedback_dialog.setIcon(QMessageBox.Icon.Critical)
+                    feedback_dialog.setWindowTitle("Setup Error")
+                    if isinstance(exec_error, TrayAppInitializationError):
+                        if "Helper script not found" in str(exec_error):
+                             feedback_dialog.setText("Installation script not found. Please report this issue.")
+                        elif "pkexec command not found" in str(exec_error):
+                             feedback_dialog.setText("pkexec command not found. Please ensure PolicyKit is correctly installed.")
+                        else:
+                             feedback_dialog.setText(f"A setup error occurred: {exec_error}")
+                    else:
+                        feedback_dialog.setText(f"An unexpected error occurred: {exec_error}")
+                elif proc_result is None and not success :
+                    logger.error("No process result from setup and no explicit error. This is unexpected.")
+                    feedback_dialog.setIcon(QMessageBox.Icon.Critical)
+                    feedback_dialog.setWindowTitle("Unknown Error")
+                    feedback_dialog.setText("An unknown error occurred during the installation process.")
+                elif proc_result:
+                    logger.info("pkexec process completed. Return code: %s", proc_result.returncode)
+                    if proc_result.stdout: logger.info("pkexec stdout:\n%s", proc_result.stdout.strip())
+                    if proc_result.stderr: logger.warning("pkexec stderr:\n%s", proc_result.stderr.strip())
 
-        informative_text_string = (
-            f"A rule file has been prepared at: {temp_file}\n\n"
-            "To resolve this, you can use the 'Install Automatically' button, or "
-            "follow these manual steps in a terminal:\n"
-            f'1. Copy the rule file:\n   sudo cp "{temp_file}" "{final_file}"\n'
-            "2. Reload udev rules:\n"
-            "   sudo udevadm control --reload-rules && sudo udevadm trigger\n"
-            "3. Replug your headset.\n\n"
-            "Without these rules, the application might not be able to detect or "
-            "control your headset."
-        )
-        dialog.setInformativeText(informative_text_string)
+                    if success:
+                        feedback_dialog.setIcon(QMessageBox.Icon.Information)
+                        feedback_dialog.setWindowTitle("Success")
+                        feedback_dialog.setText("Udev rules installed successfully.")
+                        feedback_dialog.setInformativeText("Please replug your headset for the changes to take effect, then restart the application.")
+                    elif proc_result.returncode == PKEXEC_EXIT_USER_CANCELLED:
+                        feedback_dialog.setIcon(QMessageBox.Icon.Warning)
+                        feedback_dialog.setWindowTitle("Authentication Cancelled")
+                        feedback_dialog.setText("Udev rule installation was cancelled by user.")
+                    elif proc_result.returncode == PKEXEC_EXIT_AUTH_FAILED:
+                        feedback_dialog.setIcon(QMessageBox.Icon.Critical)
+                        feedback_dialog.setWindowTitle("Authorization Error")
+                        feedback_dialog.setText("Failed to install udev rules due to an authorization error.")
+                        feedback_dialog.setInformativeText(f"Details: {proc_result.stderr.strip()}")
+                    else:
+                        feedback_dialog.setIcon(QMessageBox.Icon.Critical)
+                        feedback_dialog.setWindowTitle("Installation Failed")
+                        feedback_dialog.setText("The udev rule installation script failed.")
+                        feedback_dialog.setInformativeText(f"Error (code {proc_result.returncode}): {proc_result.stderr.strip()}")
+                else:
+                    feedback_dialog.setIcon(QMessageBox.Icon.Warning)
+                    feedback_dialog.setWindowTitle("Setup Incomplete")
+                    feedback_dialog.setText("Device setup process finished with an undetermined state.")
 
-        auto_button = dialog.addButton(
-            "Install Automatically",
-            QMessageBox.ButtonRole.AcceptRole,
-        )
-        _ = dialog.addButton(QMessageBox.StandardButton.Close)
-        dialog.setDefaultButton(auto_button)
-        dialog.exec()
+                feedback_dialog.exec()
 
-        if dialog.clickedButton() == auto_button:
-            logger.info("User chose to install udev rules automatically.")
-            process_result: subprocess.CompletedProcess | None = None
-            execution_error: Exception | None = None
-            try:
-                process_result = self._execute_udev_helper_script(temp_file, final_file)
-            except FileNotFoundError as e:  # Helper script or pkexec not found
-                execution_error = e
-            except subprocess.SubprocessError as e:  # Other subprocess errors
-                execution_error = e
-            except OSError as e:  # More specific exception for OS related errors
-                logger.exception(
-                    "OS error during _execute_udev_helper_script:",
+            elif dialog.clickedButton() == manual_button:
+                manual_instructions_dialog = QMessageBox(self.tray_icon)
+                manual_instructions_dialog.setWindowTitle("Manual Udev Setup Instructions")
+                manual_instructions_dialog.setIcon(QMessageBox.Icon.Information)
+                manual_instructions_dialog.setText(
+                    "The udev rules and manual installation steps have been logged to the console/terminal "
+                    "from which this application was started."
                 )
-                execution_error = e
+                manual_instructions_dialog.setInformativeText(
+                    "Please check the console output for details on how to copy the rule file "
+                    "and reload udev. You might need to restart the application after completing these steps."
+                )
+                manual_instructions_dialog.exec()
 
-            self._show_udev_feedback_dialog(dialog, process_result, execution_error)
+                if isinstance(self.os_interface, LinuxImpl):
+                    if not self.os_interface._udev_manager.get_last_udev_setup_details():
+                         self.os_interface._udev_manager.prepare_udev_rule_details()
+            else:
+                logger.info("User closed or cancelled the udev rules setup dialog.")
+
+        elif os_name in ["windows", "macos"]:
+            self.os_interface.perform_device_setup(ui_parent=self.tray_icon)
         else:
-            logger.info(
-                "User closed or cancelled the udev rules dialog, or did not choose automatic install.",
-            )
+            logger.info(f"No specific setup flow implemented for OS: {os_name}")
 
     def run(self) -> int:
         """Starts the Qt application event loop."""
@@ -352,5 +250,5 @@ class SteelSeriesTrayApp:
     def quit_application(self) -> None:
         """Closes headset resources and quits the Qt application."""
         logger.info("Application quitting.")
-        self.headset_service.close()  # Clean up HID connection
+        self.headset_service.close()
         self.qt_app.quit()

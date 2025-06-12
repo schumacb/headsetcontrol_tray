@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess # For CompletedProcess type hint
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -69,7 +70,7 @@ class WindowsImpl(OSInterface):
         logger.info("needs_device_setup: Not implemented for Windows (assuming generic HID works).")
         return False # Placeholder
 
-    def perform_device_setup(self, ui_parent: Any = None) -> bool:
+    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         logger.info("perform_device_setup: No specific device setup implemented for Windows.")
         if ui_parent:
             try:
@@ -81,7 +82,7 @@ class WindowsImpl(OSInterface):
                 )
             except ImportError:
                 logger.error("PySide6 not available for showing info dialog in perform_device_setup (Windows).")
-        return False # Indicates no action taken that requires follow-up
+        return False, None, None # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:
         return self._hid_manager

@@ -1,4 +1,5 @@
 import abc
+import subprocess
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -84,7 +85,7 @@ class OSInterface(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def perform_device_setup(self, ui_parent: Any = None) -> bool:
+    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         """
         Initiates the OS-specific device setup process.
         This might involve running scripts with elevated privileges or guiding the user.

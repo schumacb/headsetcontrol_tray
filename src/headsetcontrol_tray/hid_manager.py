@@ -11,8 +11,8 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 # STEELSERIES_INTERFACE_0 = 0 # app_config.ARCTIS_NOVA_7_USER_INTERFACE
 # STEELSERIES_INTERFACE_3 = 3 # app_config.HID_REPORT_INTERFACE
 
-# Define HidDevice type alias for clarity, using hid.device
-HidDevice = hid.device # Correctly use hid.device if hid is hidapi
+# Define HidDevice type alias for clarity, using hid.Device
+HidDevice = hid.Device # Correctly use hid.Device (from hidapi library)
 
 class HIDConnectionManager: # This will effectively implement HIDManagerInterface
     """Handles the discovery, connection, sorting, and lifecycle for SteelSeries HID devices."""

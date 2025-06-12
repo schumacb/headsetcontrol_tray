@@ -109,11 +109,9 @@ class LinuxImpl(OSInterface):
         # implying an attempt was made because it was likely needed.
         # This is still indirect.
         # A better approach for UDEVManager: add `are_rules_installed()`
-        logger.warning("needs_device_setup: Current implementation is a placeholder. Relies on UDEVManager being refactored for an accurate check.")
-        # For now, let's simulate that it checks if the rules file exists.
-        # This is not robust as it doesn't check content or if it's accessible by this user.
-        final_rules_path = Path("/etc/udev/rules.d/") / self._udev_manager.UDEV_RULE_FILENAME
-        return not final_rules_path.exists()
+        # logger.warning("needs_device_setup: Current implementation is a placeholder. Relies on UDEVManager being refactored for an accurate check.")
+        # Use the new method in UDEVManager
+        return not self._udev_manager.are_rules_installed()
 
 
     def _execute_udev_helper_script(self, temp_file_path: str, final_file_path: str) -> subprocess.CompletedProcess:
@@ -152,22 +150,22 @@ class LinuxImpl(OSInterface):
             raise TrayAppInitializationError(f"Subprocess error: {e}")
 
 
-    def perform_device_setup(self, ui_parent: Any = None) -> bool:
+    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         """
         Guides the user through installing udev rules for Linux.
         This adapts logic from app.py's _handle_udev_permissions_flow.
-        Returns True if setup was successful or attempted, False on failure before attempt.
+        Returns a tuple: (success: bool, process_result: Optional[CompletedProcess], error: Optional[Exception])
         Actual success of pkexec script is communicated via UI by app.py.
         The ui_parent is expected to be a QWidget or similar that can host QMessageBox.
         """
         logger.info("Initiating Linux device setup (udev rules).")
 
         # 1. Generate the temporary rule file using UDEVManager
-        # UDEVManager.create_rules_interactive() writes to a temp file and returns True/False
-        # and stores details in self.last_udev_setup_details.
         if not self._udev_manager.create_rules_interactive():
             logger.error("Failed to create temporary udev rule file via UDEVManager.")
             # Communicate this failure via ui_parent if available
+            # This part of UI handling might be better in app.py based on the return from this method.
+            # For now, keeping it here for immediate feedback if ui_parent is provided.
             if ui_parent:
                 try:
                     from PySide6.QtWidgets import QMessageBox
@@ -178,37 +176,25 @@ class LinuxImpl(OSInterface):
                     )
                 except ImportError:
                     logger.error("PySide6 not available for showing error dialog in perform_device_setup.")
-            return False
+            # Return structure: success, process_result, error
+            return False, None, TrayAppInitializationError("Failed to prepare udev rule details.")
 
         udev_details = self._udev_manager.get_last_udev_setup_details()
-        if not udev_details:
-            logger.error("UDEVManager created rules but details are missing.")
-            return False
+        if not udev_details: # Should not happen if prepare_udev_rule_details succeeded
+            logger.error("UDEVManager prepared rules but details are missing.")
+            return False, None, TrayAppInitializationError("UDEVManager details missing after preparation.")
 
         temp_file = udev_details["temp_file_path"]
         final_file = udev_details["final_file_path"]
 
-        # 2. Present dialog to user (adapted from app.py)
-        # This part requires PySide6.QtWidgets.
-        # The main application (app.py) will handle the UI interaction.
-        # This method should return the details needed for app.py to show the dialog
-        # and then app.py can call another method on this class to execute pkexec.
-        # For now, let's assume this method is called *after* user clicks "Install Automatically"
-        # or this method itself shows a basic dialog if ui_parent is None (e.g. for CLI context)
-        # The plan was for app.py to use this.
-        # So, this method should just run pkexec. The dialog part will be in app.py.
-        # Let's adjust: perform_device_setup is the part that runs pkexec.
-        # The decision to run it (the dialog) is external.
-
         logger.info(f"Executing udev helper script. Temp: {temp_file}, Final: {final_file}")
 
+        execution_error: Optional[Exception] = None
+        process_result: Optional[subprocess.CompletedProcess] = None
+        success = False
         try:
-            # This is where app.py would get the process_result and error
-            # For now, this method directly calls it.
-            # The `_show_udev_feedback_dialog` from app.py would be called by app.py itself.
             process_result = self._execute_udev_helper_script(temp_file, final_file)
 
-            # Log results
             logger.info("pkexec process completed. Return code: %s", process_result.returncode)
             if process_result.stdout:
                 logger.info("pkexec stdout:\n%s", process_result.stdout.strip())
@@ -217,20 +203,19 @@ class LinuxImpl(OSInterface):
 
             if process_result.returncode == PKEXEC_EXIT_SUCCESS:
                 logger.info("Udev rules installed successfully via pkexec.")
-                # UDEVManager might need a way to confirm this, e.g. by re-checking rule file
-                return True # Indicates setup was successful
+                success = True
             else:
-                logger.warning(f"pkexec script failed with code {process_result.returncode}.")
-                # The app.py will show the detailed error to the user.
-                return False # Indicates setup was attempted but failed
+                logger.warning(f"pkexec helper script failed with code {process_result.returncode}.")
+                # The error is implicitly in process_result, no separate exception here unless pkexec itself failed to run.
 
-        except TrayAppInitializationError as e: # Errors from _execute_udev_helper_script
-            logger.error(f"Device setup failed before pkexec execution: {e}")
-            # app.py would handle showing this error.
-            return False # Indicates setup failed critically
+        except TrayAppInitializationError as e: # Errors from _execute_udev_helper_script itself
+            logger.error(f"Device setup failed before or during pkexec execution: {e}")
+            execution_error = e
         except Exception as e: # Catch any other unexpected error
             logger.exception(f"An unexpected error occurred during perform_device_setup: {e}")
-            return False
+            execution_error = e # General exception
+
+        return success, process_result, execution_error
 
 
     def get_hid_manager(self) -> HIDManagerInterface:

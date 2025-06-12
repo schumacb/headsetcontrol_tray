@@ -1,4 +1,5 @@
 import logging
+import subprocess # For CompletedProcess type hint
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -61,7 +62,7 @@ class MacOSImpl(OSInterface):
         logger.info("needs_device_setup: Not implemented for macOS (assuming generic HID works).")
         return False # Placeholder
 
-    def perform_device_setup(self, ui_parent: Any = None) -> bool:
+    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         logger.info("perform_device_setup: No specific device setup implemented for macOS.")
         if ui_parent:
             try:
@@ -73,7 +74,7 @@ class MacOSImpl(OSInterface):
                 )
             except ImportError:
                 logger.error("PySide6 not available for showing info dialog in perform_device_setup (macOS).")
-        return False # Indicates no action taken
+        return False, None, None # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:
         return self._hid_manager
