@@ -13,40 +13,13 @@ from ..hid_manager import HIDConnectionManager # The concrete implementation of 
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.windows")
 
-class WindowsHIDManager(HIDManagerInterface):
-    """Windows-specific HID Manager implementation (placeholder)."""
-    def __init__(self):
-        self._hid_connection_manager = HIDConnectionManager()
-
-    def find_potential_hid_devices(self) -> list[dict[str, Any]]:
-        return self._hid_connection_manager._find_potential_hid_devices()
-
-    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        return self._hid_connection_manager._sort_hid_devices(devices)
-
-    def connect_device(self) -> Tuple[Optional[HidDevice], Optional[dict[str, Any]]]:
-        # This part will need alignment with Step 4 (Refactor HIDConnectionManager)
-        if self._hid_connection_manager._connect_device():
-            return self._hid_connection_manager.hid_device, self._hid_connection_manager.selected_device_info
-        return None, None
-
-    def ensure_connection(self) -> bool:
-        return self._hid_connection_manager.ensure_connection()
-
-    def get_hid_device(self) -> Optional[HidDevice]:
-        return self._hid_connection_manager.get_hid_device()
-
-    def get_selected_device_info(self) -> Optional[dict[str, Any]]:
-        return self._hid_connection_manager.get_selected_device_info()
-
-    def close(self) -> None:
-        self._hid_connection_manager.close()
+# WindowsHIDManager class removed
 
 class WindowsImpl(OSInterface):
     """Windows-specific implementation of OSInterface (placeholder)."""
 
     def __init__(self):
-        self._hid_manager = WindowsHIDManager()
+        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
         appdata = os.getenv("APPDATA")

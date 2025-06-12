@@ -4,6 +4,7 @@ from typing import Any, Optional, Tuple # Ensure Tuple is imported
 import hid
 
 from . import app_config
+from .os_layer.base import HIDManagerInterface # Added import
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 # Define HidDevice type alias for clarity, using hid.Device
 HidDevice = hid.Device # Correctly use hid.Device (from hidapi library)
 
-class HIDConnectionManager: # This will effectively implement HIDManagerInterface
+class HIDConnectionManager(HIDManagerInterface): # Inherit from HIDManagerInterface
     """Handles the discovery, connection, sorting, and lifecycle for SteelSeries HID devices."""
 
     def __init__(self) -> None:
@@ -23,7 +24,7 @@ class HIDConnectionManager: # This will effectively implement HIDManagerInterfac
         self.selected_device_info: Optional[dict[str, Any]] = None
         logger.debug("HIDConnectionManager initialized.")
 
-    def _find_potential_hid_devices(self) -> list[dict[str, Any]]: # Name matches plan
+    def find_potential_hid_devices(self) -> list[dict[str, Any]]: # Renamed and matches plan
         logger.debug(
             "Enumerating HID devices for VID 0x%04x, Target PIDs: %s",
             app_config.STEELSERIES_VID,
@@ -76,7 +77,7 @@ class HIDConnectionManager: # This will effectively implement HIDManagerInterfac
         )
         return potential_devices
 
-    def _sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]: # Name matches plan
+    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]: # Renamed and matches plan
         # Sort key based on interface number, usage page, and specific PIDs.
         # Higher preference (lower sort key value) for more specific matches.
         def sort_key(d_info: dict[str, Any]) -> int:
@@ -156,7 +157,7 @@ class HIDConnectionManager: # This will effectively implement HIDManagerInterfac
             return self.hid_device, self.selected_device_info
 
         logger.debug("connect_device: Attempting to find and connect to a new device.")
-        potential_devices = self._find_potential_hid_devices()
+        potential_devices = self.find_potential_hid_devices() # Use renamed public method
 
         if not potential_devices:
             logger.warning("connect_device: No potential HID devices found after enumeration.")
@@ -164,7 +165,7 @@ class HIDConnectionManager: # This will effectively implement HIDManagerInterfac
             self.selected_device_info = None
             return None, None
 
-        sorted_devices = self._sort_hid_devices(potential_devices)
+        sorted_devices = self.sort_hid_devices(potential_devices) # Use renamed public method
 
         for dev_info_to_try in sorted_devices:
             path_bytes = dev_info_to_try.get("path")

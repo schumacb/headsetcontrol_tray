@@ -22,47 +22,14 @@ PKEXEC_EXIT_USER_CANCELLED = 126 # User cancelled authentication
 PKEXEC_EXIT_AUTH_FAILED = 127 # Authentication failed or other error (e.g. no agent)
 
 
-class LinuxHIDManager(HIDManagerInterface):
-    """Linux-specific HID Manager implementation."""
-    def __init__(self):
-        # Assuming HIDConnectionManager is the concrete class that will do the work.
-        # It might be refactored later as per plan step 4.
-        self._hid_connection_manager = HIDConnectionManager()
-
-    def find_potential_hid_devices(self) -> list[dict[str, Any]]:
-        return self._hid_connection_manager._find_potential_hid_devices()
-
-    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        return self._hid_connection_manager._sort_hid_devices(devices)
-
-    def connect_device(self) -> Tuple[Optional[HidDevice], Optional[dict[str, Any]]]:
-        # HIDConnectionManager._connect_device returns a bool.
-        # We need to adapt it or call a method that returns the device and info.
-        # For now, let's assume a refactor or direct access.
-        # This part will need alignment with Step 4 (Refactor HIDConnectionManager)
-        if self._hid_connection_manager._connect_device():
-            return self._hid_connection_manager.hid_device, self._hid_connection_manager.selected_device_info
-        return None, None
-
-    def ensure_connection(self) -> bool:
-        return self._hid_connection_manager.ensure_connection()
-
-    def get_hid_device(self) -> Optional[HidDevice]:
-        return self._hid_connection_manager.get_hid_device()
-
-    def get_selected_device_info(self) -> Optional[dict[str, Any]]:
-        return self._hid_connection_manager.get_selected_device_info()
-
-    def close(self) -> None:
-        self._hid_connection_manager.close()
-
+# LinuxHIDManager class removed
 
 class LinuxImpl(OSInterface):
     """Linux-specific implementation of OSInterface."""
 
     def __init__(self):
         self._udev_manager = UDEVManager()
-        self._hid_manager = LinuxHIDManager() # Or directly HIDConnectionManager if it fits the interface
+        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
         config_home = os.getenv("XDG_CONFIG_HOME")

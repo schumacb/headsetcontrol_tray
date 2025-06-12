@@ -38,7 +38,7 @@ class UDEVManager:
         """Returns the final absolute path for the udev rule file."""
         return UDEV_RULES_DIR / UDEV_RULE_FILENAME
 
-    def prepare_udev_rule_details(self) -> bool:
+    def create_rules_interactive(self) -> bool: # Renamed from prepare_udev_rule_details
         """
         Creates a temporary udev rule file and stores its details.
         This method is intended to be called when setup is needed.

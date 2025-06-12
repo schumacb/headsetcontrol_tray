@@ -90,9 +90,8 @@ class SteelSeriesTrayApp:
         logger.info(f"Using configuration directory: {config_dir}")
         self.config_manager = cfg_mgr.ConfigManager(config_dir_path=config_dir)
 
-        # hid_manager_instance = self.os_interface.get_hid_manager() # Will be used in next step
-        # self.headset_service = hs_svc.HeadsetService(hid_manager=hid_manager_instance)
-        self.headset_service = hs_svc.HeadsetService() # TEMPORARY: until HeadsetService is refactored
+        hid_manager_instance = self.os_interface.get_hid_manager()
+        self.headset_service = hs_svc.HeadsetService(hid_manager=hid_manager_instance)
 
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on initial check by HeadsetService.")
@@ -233,8 +232,10 @@ class SteelSeriesTrayApp:
                 manual_instructions_dialog.exec()
 
                 if isinstance(self.os_interface, LinuxImpl):
+                    # TODO: Refactor LinuxImpl to have a method like ensure_udev_details_prepared()
+                    # to avoid direct _udev_manager access from app.py
                     if not self.os_interface._udev_manager.get_last_udev_setup_details():
-                         self.os_interface._udev_manager.prepare_udev_rule_details()
+                         self.os_interface._udev_manager.create_rules_interactive()
             else:
                 logger.info("User closed or cancelled the udev rules setup dialog.")
 
