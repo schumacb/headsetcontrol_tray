@@ -4,6 +4,7 @@ import signal
 import sys
 
 import verboselogs
+
 # Install verboselogs custom levels into the standard logging module
 # This MUST be done before other application modules (that use logging) are imported.
 verboselogs.install()

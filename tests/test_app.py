@@ -2,16 +2,17 @@
 
 # Standard library imports
 import logging
+from pathlib import Path
 import sys
 import tempfile
-import unittest
-from pathlib import Path
 from typing import Any
+import unittest
 from unittest.mock import MagicMock, Mock, patch
+
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 # Third-party imports
 import pytest
-from PySide6.QtWidgets import QApplication, QMessageBox
 
 # Logger instance
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ sys.path.insert(
 # Modules to be tested or mocked
 try:
     from headsetcontrol_tray.app import SteelSeriesTrayApp
-except ImportError as e:
+except ImportError:
     logger.exception("ImportError in test_app.py")  # Removed redundant exception object e
     raise
 

@@ -1,9 +1,9 @@
 """Tests for HeadsetStatusParser and HeadsetCommandEncoder."""
 
 # Standard library imports
+from pathlib import Path
 import sys
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Code to modify sys.path must come before application-specific imports
@@ -101,7 +101,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger arg
         """Test parsing a status report for online, charging, full battery, and mid chatmix."""
-        # Status: 0x01 (Charging), Level: 0x04 (100%), Game: 50, Chat: 50 (Balanced -> UI 64)  # noqa: ERA001
+        # Status: 0x01 (Charging), Level: 0x04 (100%), Game: 50, Chat: 50 (Balanced -> UI 64)
         response_data = create_status_response_data(
             status_byte_val=0x01,
             level_byte_val=0x04,
@@ -177,7 +177,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger arg
         """Test parsing status reports with various chatmix values."""
-        # status_byte_val=0x02 (Online, not charging), level_byte_val=0x02 (50%)  # noqa: ERA001
+        # status_byte_val=0x02 (Online, not charging), level_byte_val=0x02 (50%)
         chatmix_tests = [
             # (game_raw, chat_raw, expected_ui_value)  # noqa: ERA001
             (100, 0, 0),

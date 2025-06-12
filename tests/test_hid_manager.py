@@ -1,11 +1,11 @@
 """Tests for the HIDConnectionManager class."""
 
 # Standard library imports
-import sys
-import unittest
 from pathlib import Path
+import sys
 from typing import Any
-from unittest import mock # Python 3.3+
+import unittest
+from unittest import mock  # Python 3.3+
 from unittest.mock import MagicMock, patch
 
 # Third-party imports

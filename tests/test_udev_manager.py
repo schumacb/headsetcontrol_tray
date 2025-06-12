@@ -1,9 +1,9 @@
 """Tests for the UDEVManager class."""
 
 # Standard library imports
+from pathlib import Path
 import sys
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 # Code to modify sys.path must come before application-specific imports
