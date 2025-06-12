@@ -1,55 +1,87 @@
-"""Manages loading and saving of application settings and EQ curves."""
-
 import json
 import logging
 from pathlib import Path
 from typing import Any
 
-from . import app_config
+from . import app_config # Still needed for APP_NAME (for logger) and defaults
 from .exceptions import ConfigError
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
-NUM_EQ_BANDS = 10  # Number of equalizer bands (could be moved to app_config)
-
+NUM_EQ_BANDS = 10  # Number of equalizer bands
 
 class ConfigManager:
     """Manages application settings and custom EQ curves persistence."""
 
-    def __init__(self) -> None:
-        """Initializes the ConfigManager, loading settings and EQ curves."""
-        app_config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        self._settings: dict[str, Any] = self._load_json_file(app_config.CONFIG_FILE)
+    def __init__(self, config_dir_path: Path) -> None:
+        """
+        Initializes the ConfigManager.
+        Args:
+            config_dir_path: The OS-specific path to the application's config directory.
+        """
+        self._config_dir = config_dir_path
+        self._settings_file_path = self._config_dir / "settings.json"
+        self._custom_eq_curves_file_path = self._config_dir / "custom_eq_curves.json"
+
+        # Ensure the configuration directory exists
+        try:
+            self._config_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.error(f"Could not create config directory {self._config_dir}: {e}")
+            # Depending on desired behavior, could raise an exception here or try to proceed
+            # For now, log error and continue; loading will likely fail gracefully.
+
+        self._settings: dict[str, Any] = self._load_json_file(self._settings_file_path)
         self._custom_eq_curves: dict[str, list[int]] = self._load_json_file(
-            app_config.CUSTOM_EQ_CURVES_FILE,
+            self._custom_eq_curves_file_path,
         )
 
-        if not self._custom_eq_curves:  # Initialize with defaults if empty
+        if not self._custom_eq_curves:  # Initialize with defaults if empty or load failed
             self._custom_eq_curves = app_config.DEFAULT_EQ_CURVES.copy()
-            self._save_json_file(
-                app_config.CUSTOM_EQ_CURVES_FILE,
-                self._custom_eq_curves,
-            )
+            # Attempt to save only if directory creation was successful or not attempted
+            if self._config_dir.exists():
+                 self._save_json_file(
+                    self._custom_eq_curves_file_path,
+                    self._custom_eq_curves,
+                )
+            else:
+                logger.warning(
+                    "Config directory does not exist. Skipping initial save of default EQ curves."
+                )
+
 
     def _load_json_file(self, file_path: Path) -> dict:
         if file_path.exists():
             try:
-                with file_path.open() as f:
+                with file_path.open("r", encoding="utf-8") as f: # Specify encoding
                     return json.load(f)
             except json.JSONDecodeError:
                 logger.exception(
-                    "Failed to load JSON file %s. Using empty config.",
+                    "Failed to decode JSON from file %s. Using empty config for this file.",
                     file_path,
                 )
                 return {}
+            except OSError as e:
+                logger.exception(
+                    "OSError while reading file %s. Using empty config for this file: %s",
+                    file_path, e
+                )
+                return {}
+        else:
+            logger.info("Config file %s not found. Returning empty dict.", file_path)
         return {}
 
     def _save_json_file(self, file_path: Path, data: dict) -> None:
+        if not self._config_dir.exists():
+            logger.error(
+                f"Cannot save file {file_path} because config directory {self._config_dir} does not exist."
+            )
+            return
         try:
-            with file_path.open("w") as f:
+            with file_path.open("w", encoding="utf-8") as f: # Specify encoding
                 json.dump(data, f, indent=4)
-        except OSError:  # More specific catch for IOErrors / general OS errors
-            logger.exception("Error saving file %s", file_path)
+        except OSError:
+            logger.exception("Error saving JSON file %s", file_path)
 
     # General Settings
     def get_setting(self, key: str, default: Any = None) -> Any:
@@ -59,7 +91,7 @@ class ConfigManager:
     def set_setting(self, key: str, value: Any) -> None:
         """Sets a setting value by key and saves all settings."""
         self._settings[key] = value
-        self._save_json_file(app_config.CONFIG_FILE, self._settings)
+        self._save_json_file(self._settings_file_path, self._settings)
 
     # EQ Curves
     def get_all_custom_eq_curves(self) -> dict[str, list[int]]:
@@ -73,16 +105,20 @@ class ConfigManager:
     def save_custom_eq_curve(self, name: str, values: list[int]) -> None:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (isinstance(values, list) and len(values) == NUM_EQ_BANDS and all(isinstance(v, int) for v in values)):
-            raise ConfigError
+            logger.error(
+                "Invalid EQ curve format for '%s': Must be a list of %d integers.",
+                name, NUM_EQ_BANDS
+            )
+            raise ConfigError(f"Invalid EQ curve format for '{name}'.") # Raise specific error
         self._custom_eq_curves[name] = values
-        self._save_json_file(app_config.CUSTOM_EQ_CURVES_FILE, self._custom_eq_curves)
+        self._save_json_file(self._custom_eq_curves_file_path, self._custom_eq_curves)
 
     def delete_custom_eq_curve(self, name: str) -> None:
         """Deletes a custom EQ curve and updates the config file."""
         if name in self._custom_eq_curves:
             del self._custom_eq_curves[name]
             self._save_json_file(
-                app_config.CUSTOM_EQ_CURVES_FILE,
+                self._custom_eq_curves_file_path,
                 self._custom_eq_curves,
             )
             # If the deleted curve was the active one, reset to default
@@ -91,8 +127,11 @@ class ConfigManager:
                     "last_custom_eq_curve_name",
                     app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME,
                 )
+        else:
+            logger.warning("Attempted to delete non-existent EQ curve: %s", name)
 
-    # Specific settings shortcuts
+
+    # Specific settings shortcuts (no changes needed below this line for paths)
     def get_last_sidetone_level(self) -> int:
         """Gets the last saved sidetone level."""
         return self.get_setting("sidetone_level", app_config.DEFAULT_SIDETONE_LEVEL)
@@ -120,17 +159,28 @@ class ConfigManager:
 
     def get_last_custom_eq_curve_name(self) -> str:
         """Gets the name of the last active custom EQ curve."""
-        # Ensure the stored curve name still exists, otherwise fallback to default
         name = self.get_setting(
             "last_custom_eq_curve_name",
             app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME,
         )
         if name not in self._custom_eq_curves and app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in self._custom_eq_curves:
+            logger.warning(
+                "Last custom EQ curve '%s' not found, falling back to default '%s'.",
+                name, app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+            )
             return app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
-        if (
-            name not in self._custom_eq_curves and self._custom_eq_curves
-        ):  # fallback to first available if default also gone
-            return next(iter(self._custom_eq_curves))
+        if name not in self._custom_eq_curves and self._custom_eq_curves:
+            fallback_name = next(iter(self._custom_eq_curves))
+            logger.warning(
+                "Last custom EQ curve '%s' not found and default also missing, falling back to first available '%s'.",
+                name, fallback_name
+            )
+            return fallback_name
+        if name not in self._custom_eq_curves and not self._custom_eq_curves:
+             logger.warning(
+                "Last custom EQ curve '%s' not found and no custom curves exist, returning name as is.",
+                name
+            )
         return name
 
     def set_last_custom_eq_curve_name(self, name: str) -> None:

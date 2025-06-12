@@ -1,0 +1,87 @@
+import logging
+import os
+from pathlib import Path
+from typing import Any, Optional, Tuple
+
+# Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
+HidDevice = Any
+
+from .base import OSInterface, HIDManagerInterface
+from .. import app_config # To get app name for paths
+from ..hid_manager import HIDConnectionManager # The concrete implementation of HIDManagerInterface
+
+logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.windows")
+
+class WindowsHIDManager(HIDManagerInterface):
+    """Windows-specific HID Manager implementation (placeholder)."""
+    def __init__(self):
+        self._hid_connection_manager = HIDConnectionManager()
+
+    def find_potential_hid_devices(self) -> list[dict[str, Any]]:
+        return self._hid_connection_manager._find_potential_hid_devices()
+
+    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return self._hid_connection_manager._sort_hid_devices(devices)
+
+    def connect_device(self) -> Tuple[Optional[HidDevice], Optional[dict[str, Any]]]:
+        # This part will need alignment with Step 4 (Refactor HIDConnectionManager)
+        if self._hid_connection_manager._connect_device():
+            return self._hid_connection_manager.hid_device, self._hid_connection_manager.selected_device_info
+        return None, None
+
+    def ensure_connection(self) -> bool:
+        return self._hid_connection_manager.ensure_connection()
+
+    def get_hid_device(self) -> Optional[HidDevice]:
+        return self._hid_connection_manager.get_hid_device()
+
+    def get_selected_device_info(self) -> Optional[dict[str, Any]]:
+        return self._hid_connection_manager.get_selected_device_info()
+
+    def close(self) -> None:
+        self._hid_connection_manager.close()
+
+class WindowsImpl(OSInterface):
+    """Windows-specific implementation of OSInterface (placeholder)."""
+
+    def __init__(self):
+        self._hid_manager = WindowsHIDManager()
+
+    def get_config_dir(self) -> Path:
+        appdata = os.getenv("APPDATA")
+        if appdata:
+            return Path(appdata) / app_config.APP_NAME.replace(" ", "") # No spaces typical for folder names
+        # Fallback if APPDATA is not set, though highly unlikely on Windows
+        return Path.home() / ".config" / app_config.APP_NAME.lower().replace(" ", "_")
+
+
+    def get_data_dir(self) -> Path:
+        local_appdata = os.getenv("LOCALAPPDATA")
+        if local_appdata:
+            return Path(local_appdata) / app_config.APP_NAME.replace(" ", "")
+        # Fallback
+        return Path.home() / ".local" / "share" / app_config.APP_NAME.lower().replace(" ", "_")
+
+    def get_os_name(self) -> str:
+        return "windows"
+
+    def needs_device_setup(self) -> bool:
+        logger.info("needs_device_setup: Not implemented for Windows (assuming generic HID works).")
+        return False # Placeholder
+
+    def perform_device_setup(self, ui_parent: Any = None) -> bool:
+        logger.info("perform_device_setup: No specific device setup implemented for Windows.")
+        if ui_parent:
+            try:
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    ui_parent,
+                    "Device Setup",
+                    "No specific device setup is required for Windows for this application.",
+                )
+            except ImportError:
+                logger.error("PySide6 not available for showing info dialog in perform_device_setup (Windows).")
+        return False # Indicates no action taken that requires follow-up
+
+    def get_hid_manager(self) -> HIDManagerInterface:
+        return self._hid_manager

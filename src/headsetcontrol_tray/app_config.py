@@ -24,11 +24,6 @@ TARGET_PIDS = [
     ARCTIS_NOVA_7P_WIRELESS_PID,  # This is 0x12db (decimal 4827)
 ]
 
-# Configuration File
-CONFIG_DIR = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "steelseries_tray"
-CONFIG_FILE = CONFIG_DIR / "settings.json"
-CUSTOM_EQ_CURVES_FILE = CONFIG_DIR / "custom_eq_curves.json"
-
 # Default settings
 DEFAULT_SIDETONE_LEVEL = 64  # Mid-range
 DEFAULT_INACTIVE_TIMEOUT = 15  # minutes
@@ -128,6 +123,7 @@ HARDWARE_EQ_PRESET_NAMES = {
 #   HeadsetControl's C code writes these bytes directly, often starting with 0x00.
 
 HID_REPORT_INTERFACE = 3
+ARCTIS_NOVA_7_USER_INTERFACE = 0  # Assumed primary interface for PID 0x2202 based on common HID patterns
 HID_REPORT_USAGE_PAGE = 0xFFC0
 HID_REPORT_USAGE_ID = 0x0001  # Equivalent to 0x1 in headsetcontrol
 HID_REPORT_FIXED_FIRST_BYTE = 0x00  # Common first byte for many commands
