@@ -101,7 +101,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger arg
         """Test parsing a status report for online, charging, full battery, and mid chatmix."""
-        # Status: 0x01 (Charging), Level: 0x04 (100%), Game: 50, Chat: 50 (Balanced -> UI 64)
+        # Status: 0x01 (Charging), Level: 0x04 (100%), Game: 50, Chat: 50 (Balanced -> UI 64)  # noqa: ERA001
         response_data = create_status_response_data(
             status_byte_val=0x01,
             level_byte_val=0x04,
@@ -121,7 +121,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
 
     def test_parse_status_report_offline(self) -> None:  # Removed mock_logger arg
         """Test parsing a status report when the headset is offline."""
-        # Status: 0x00 (Offline)
+        # Status: 0x00 (Offline)  # noqa: ERA001
         response_data = create_status_response_data(
             status_byte_val=0x00,
             level_byte_val=0x02,
@@ -143,7 +143,7 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger arg
         """Test parsing status reports with various battery levels."""
-        # status_byte_val=0x02 (Online, not charging)
+        # status_byte_val=0x02 (Online, not charging)  # noqa: ERA001
         levels_map = {0x00: 0, 0x01: 25, 0x02: 50, 0x03: 75, 0x04: 100}
         for level_byte, expected_percent in levels_map.items():
             with self.subTest(level_byte=level_byte):
@@ -177,9 +177,9 @@ class TestHeadsetStatusParser(unittest.TestCase):  # Removed class decorator
         self,
     ) -> None:  # Removed mock_logger arg
         """Test parsing status reports with various chatmix values."""
-        # status_byte_val=0x02 (Online, not charging), level_byte_val=0x02 (50%)
+        # status_byte_val=0x02 (Online, not charging), level_byte_val=0x02 (50%)  # noqa: ERA001
         chatmix_tests = [
-            # (game_raw, chat_raw, expected_ui_value)
+            # (game_raw, chat_raw, expected_ui_value)  # noqa: ERA001
             (100, 0, 0),
             (0, 100, 128),
             (50, 50, 64),
@@ -244,7 +244,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
 
     def test_encode_set_sidetone(self) -> None:  # Removed mock_logger arg
         """Test encoding of set sidetone command for various UI levels."""
-        # (level_ui, expected_hw_byte)
+        # (level_ui, expected_hw_byte)  # noqa: ERA001
         sidetone_map = {
             0: 0x00,
             25: 0x00,
@@ -263,7 +263,7 @@ class TestHeadsetCommandEncoder(unittest.TestCase):  # Removed class decorator
 
     def test_encode_set_inactive_timeout(self) -> None:  # Removed mock_logger arg
         """Test encoding of set inactive timeout command for various minute values."""
-        # (minutes_in, expected_minutes_byte)
+        # (minutes_in, expected_minutes_byte)  # noqa: ERA001
         timeout_map = {0: 0, 30: 30, 90: 90, 100: 90, -10: 0}  # Also test clamping
         for minutes_in, minutes_byte in timeout_map.items():
             with self.subTest(minutes_in=minutes_in):

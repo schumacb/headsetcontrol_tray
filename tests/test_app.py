@@ -28,7 +28,7 @@ sys.path.insert(
 try:
     from headsetcontrol_tray.app import SteelSeriesTrayApp
 except ImportError as e:
-    logger.exception("ImportError in test_app.py: %s", e)  # Changed to logger.exception and string formatting
+    logger.exception("ImportError in test_app.py")  # Removed redundant exception object e
     raise
 
 
