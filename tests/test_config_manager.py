@@ -247,7 +247,7 @@ class TestConfigManager(unittest.TestCase):
         retrieved_curves["NewKey"] = [1]*10 # Modify returned
         assert cm.get_all_custom_eq_curves() == test_curves # Original should be unchanged
 
-    def test_get_custom_eq_curve(self -> None):
+    def test_get_custom_eq_curve(self) -> None:
         test_curves = {"Curve1": [0]*10}
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager(config_dir_path=Path("dummy"))
