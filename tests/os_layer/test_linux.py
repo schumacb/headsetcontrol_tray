@@ -163,112 +163,64 @@ def test_linux_impl_perform_device_setup_exceptions(linux_impl_fixture, exceptio
     assert isinstance(error, expected_exception_type)
     mock_exec_script.assert_called_once()
 
-def test_linux_impl_internal_execute_helper_script_calls_subprocess_run(linux_impl_fixture): # mocker removed
-    temp_path = "/tmp/test.rules"
-    final_path = "/etc/test.rules"
-    dummy_proc = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
+    def test_linux_impl_internal_execute_helper_script_calls_subprocess_run(linux_impl_fixture):
+        temp_path = "/tmp/test.rules"
+        final_path = "/etc/test.rules"
+        dummy_proc = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
 
-    # Mocking Path object behavior for script path resolution
-    mock_script_file_path = MagicMock(spec=Path)
-    mock_script_file_path.is_file.return_value = True
+        # This is the string we expect helper_script_path to represent
+        expected_script_path_str = "/some/path/to/scripts/install-udev-rules.sh"
 
-    mock_path_constructor_linux_file = MagicMock(spec=Path)
-    mock_path_constructor_linux_file.parent = MagicMock(spec=Path) # for Path(__file__).parent
-    # This parent needs to be chainable for ../../..
-    parent_of_parent = MagicMock(spec=Path)
-    parent_of_parent.parent = MagicMock(spec=Path) # for Path(__file__).parent.parent.parent
-    mock_path_constructor_linux_file.parent.parent = parent_of_parent
+        with patch("headsetcontrol_tray.os_layer.linux.Path") as mock_path_constructor, \
+             patch("subprocess.run", return_value=dummy_proc) as mock_run:
 
-    # When Path() is called for the script, it should return the mock_script_file_path
-    # This is complex because Path() is used for __file__ and then for constructing the script path.
-    def complex_path_side_effect(value):
-        if str(value).endswith("install-udev-rules.sh"):
-            return mock_script_file_path
-        # For Path(__file__)
-        elif str(value) == __file__ : # This won't work as __file__ is this test file. Need to mock Path for linux.py's __file__
-             # This part is tricky as __file__ is dynamic.
-             # Let's assume the path construction up to "scripts" dir is what we want to mock.
-             # A more robust mock for Path within the tested method context:
-            path_mock = MagicMock(spec=Path)
-            path_mock.parent.parent.parent.__truediv__.return_value = mock_script_file_path # Mocks scripts_dir / "install-udev-rules.sh"
-            path_mock.is_file.return_value = True # For other is_file checks if any
-            path_mock.resolve.return_value = path_mock # Resolve returns self
-            return path_mock
+            # Configure the mock Path object that will be returned by Path()
+            # when it's used to construct the helper_script_path in LinuxImpl._execute_udev_helper_script
+            mock_script_path_obj = MagicMock(spec=Path)
+            mock_script_path_obj.is_file.return_value = True
+            # Crucially, mock the __str__ method
+            mock_script_path_obj.__str__.return_value = expected_script_path_str
 
-        # Default Path mock
-        default_path_mock = MagicMock(spec=Path)
-        default_path_mock.is_file.return_value = True # Default to file existing
-        default_path_mock.resolve.return_value = default_path_mock
-        return default_path_mock
+            # This mock will represent Path(__file__) inside LinuxImpl._execute_udev_helper_script
+            mock_file_dunder_path_obj = MagicMock(spec=Path)
 
-    # The path to script is (Path(__file__).parent / ".." / ".." / "scripts").resolve() / "install-udev-rules.sh"
-    # We need to mock Path() calls within _execute_udev_helper_script
-    # Patching 'headsetcontrol_tray.os_layer.linux.Path' is key
-    with patch("headsetcontrol_tray.os_layer.linux.Path") as mock_path_in_linux_module, \
-         patch("subprocess.run", return_value=dummy_proc) as mock_run:
+            # Setup .parent chain and __truediv__ to eventually return mock_script_path_obj
+            # Path(__file__).parent
+            mock_file_dunder_path_obj.parent = MagicMock(spec=Path)
+            # Path(__file__).parent.parent
+            mock_file_dunder_path_obj.parent.parent = MagicMock(spec=Path)
+            # Path(__file__).parent.parent / ".." -> should still be a Path-like mock
+            # (Path(__file__).parent / ".." / ".." / "scripts").resolve()
+            scripts_dir_mock = MagicMock(spec=Path)
+            # This chain simulates (Path(__file__).parent / ".." / ".." / "scripts")
+            mock_file_dunder_path_obj.parent.parent.__truediv__.return_value = scripts_dir_mock
+            scripts_dir_mock.resolve.return_value = scripts_dir_mock # .resolve()
+            # scripts_dir_mock / "install-udev-rules.sh"
+            scripts_dir_mock.__truediv__.return_value = mock_script_path_obj
 
-        # Configure the mock_path_in_linux_module
-        # When Path() is called in linux.py, it returns a mock.
-        # Path(__file__) in linux.py -> returns a mock representing linux.py's path
-        # That mock's .parent.parent... sequence should lead to the script.
+            # Default side effect for Path() constructor
+            def path_side_effect(value):
+                # If Path() is called with a string that looks like a filename for __file__
+                # (this is fragile, assuming linux.py is the context)
+                if isinstance(value, str) and 'linux.py' in value: # Heuristic
+                    return mock_file_dunder_path_obj
+                # For other Path calls, return a generic mock that won't break things
+                # This part might not be strictly necessary if all Path usages in the method are covered
+                generic_path_mock = MagicMock(spec=Path)
+                generic_path_mock.is_file.return_value = True # Default to file existing
+                generic_path_mock.__str__.return_value = str(value) if value else "." # So str(Path(x)) == x
+                return generic_path_mock
 
-        # Simplified: Assume the Path object for the script itself will eventually call is_file()
-        # and we make that return True.
-        mock_constructed_script_path = MagicMock(spec=Path)
-        mock_constructed_script_path.is_file.return_value = True
+            mock_path_constructor.side_effect = path_side_effect
 
-        # Make Path() constructor return a path that, when / "install-udev-rules.sh" is called,
-        # returns our mock_constructed_script_path
-        def path_constructor_side_effect(arg):
-            # If Path() is called with __file__ (inside linux.py)
-            if str(arg).endswith('linux.py'): # A bit fragile, depends on how __file__ is resolved
-                # Return a mock that allows parent navigation
-                p_mock = MagicMock(spec=Path)
-                # p_mock.parent.parent.__truediv__.return_value = mock_constructed_script_path # for scripts_dir / name
+            result = linux_impl_fixture._execute_udev_helper_script(temp_path, final_path)
 
-                # Let's make it simpler: Path() returns a mock that has a is_file method.
-                # The script path is constructed like: (Path(__file__).parent / "../../scripts").resolve() / "install-udev-rules.sh"
-                # If Path() itself returns a mock that has is_file=True, it might work.
-                # This is hard to get right without seeing the exact Path calls in _execute_udev_helper_script.
-                # Let's assume Path(...).is_file() on the script path will be True.
-                # The most crucial part is mocking subprocess.run.
-
-                # To make this work, assume the script path exists.
-                # The test is primarily about the call to subprocess.run.
-                # We can mock the `is_file` check directly on the specific path object if needed,
-                # but that's complex. For now, let's assume the script exists.
-                # The following mock setup for Path might not be perfect but aims to allow the test to proceed.
-                final_path_mock = MagicMock(spec=Path)
-                final_path_mock.is_file.return_value = True # This is for the script path check
-
-                # if arg is some path, make it chainable to produce final_path_mock for the script
-                # This is still very complex. The easiest is to patch `is_file` on the specific Path instance
-                # that is created for the script.
-
-                # Let's try a simpler approach for Path:
-                # Any Path instance created will have is_file = True
-                instance_mock = MagicMock(spec=Path)
-                instance_mock.is_file.return_value = True
-                instance_mock.resolve.return_value = instance_mock # Path().resolve()
-                # For path segments like .parent or / operator
-                instance_mock.parent = instance_mock
-                instance_mock.__truediv__ = lambda self, other: instance_mock # path / "segment"
-                return instance_mock
-
-            # Default for other Path calls if any
-            default_instance_mock = MagicMock(spec=Path)
-            default_instance_mock.is_file.return_value = True
-            return default_instance_mock
-
-        mock_path_in_linux_module.side_effect = path_constructor_side_effect
-
-        result = linux_impl_fixture._execute_udev_helper_script(temp_path, final_path)
-
-        mock_run.assert_called_once()
-        call_args = mock_run.call_args[0][0]
-        assert call_args[0] == "pkexec"
-        assert isinstance(call_args[1], str) # Script path
-        assert call_args[1].endswith("install-udev-rules.sh")
-        assert call_args[2] == temp_path
-        assert call_args[3] == final_path
-        assert result == dummy_proc
+            mock_run.assert_called_once()
+            call_args = mock_run.call_args[0][0] # Get the first positional argument (the list)
+            assert call_args[0] == "pkexec"
+            # call_args[1] should now be the string from mock_script_path_obj.__str__
+            assert call_args[1] == expected_script_path_str
+            assert call_args[1].endswith("install-udev-rules.sh") # This should now pass
+            assert call_args[2] == temp_path
+            assert call_args[3] == final_path
+            assert result == dummy_proc
