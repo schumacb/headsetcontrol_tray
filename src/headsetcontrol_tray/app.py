@@ -2,11 +2,9 @@
 
 import logging
 import os  # Keep for os.environ
-from pathlib import Path
-import platform # To detect OS
+
 # import subprocess # No longer directly used in app.py
 import sys
-from typing import Any
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -14,11 +12,11 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from . import app_config
 from . import config_manager as cfg_mgr
 from . import headset_service as hs_svc
-from .exceptions import TrayAppInitializationError # Keep for error handling
+from .exceptions import TrayAppInitializationError  # Keep for error handling
+from .os_layer import get_os_platform  # Updated import
+from .os_layer.linux import LinuxImpl  # Needed for isinstance check and specific logic
 from .ui import system_tray_icon as sti
-from .os_layer import get_os_platform # Updated import
-from .os_layer.base import OSInterface
-from .os_layer.linux import LinuxImpl # Needed for isinstance check and specific logic
+
 # from .os_layer.windows import WindowsImpl # No longer directly needed
 # from .os_layer.macos import MacOSImpl # No longer directly needed
 # from .udev_manager import UDEVManager # Removed
@@ -84,7 +82,7 @@ class SteelSeriesTrayApp:
         if not app_icon.isNull():
             self.qt_app.setWindowIcon(app_icon)
 
-        self.os_interface = get_os_platform() # Use the new function
+        self.os_interface = get_os_platform()  # Use the new function
         logger.info(f"Initialized OS interface for: {self.os_interface.get_os_name()}")
 
         config_dir = self.os_interface.get_config_dir()
@@ -97,13 +95,11 @@ class SteelSeriesTrayApp:
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on initial check by HeadsetService.")
             if self.os_interface.needs_device_setup():
-                logger.info(
-                    f"OS interface reports that device setup is needed for {self.os_interface.get_os_name()}."
-                )
-                self._perform_os_specific_setup_flow() # Call the new flow
+                logger.info(f"OS interface reports that device setup is needed for {self.os_interface.get_os_name()}.")
+                self._perform_os_specific_setup_flow()  # Call the new flow
             else:
                 logger.info(
-                    f"OS interface reports no specific device setup is needed for {self.os_interface.get_os_name()} or it's already done."
+                    f"OS interface reports no specific device setup is needed for {self.os_interface.get_os_name()} or it's already done.",
                 )
 
         if not self.headset_service.is_device_connected():
@@ -120,6 +116,8 @@ class SteelSeriesTrayApp:
         self.tray_icon.show()
         self.tray_icon.set_initial_headset_settings()
 
+    # Removed _get_os_interface as it's replaced by get_os_platform
+
     def _perform_os_specific_setup_flow(self) -> None:
         """
         Handles the UI flow for OS-specific device setup if indicated by the OSInterface.
@@ -129,15 +127,15 @@ class SteelSeriesTrayApp:
         logger.info(f"Starting OS-specific setup flow for {os_name}.")
 
         if os_name == "linux":
-            dialog = QMessageBox(self.tray_icon)
+            dialog = QMessageBox(None) # Changed parent to None
             dialog.setWindowTitle("Headset Permissions Setup (Linux)")
             dialog.setIcon(QMessageBox.Icon.Information)
             dialog.setText(
-                "Your SteelSeries headset might need additional permissions (udev rules) to be fully functional."
+                "Your SteelSeries headset might need additional permissions (udev rules) to be fully functional.",
             )
             dialog.setInformativeText(
                 "Do you want to attempt to install these rules automatically?\n"
-                "This will require administrator privileges (via pkexec)."
+                "This will require administrator privileges (via pkexec).",
             )
             auto_button = dialog.addButton("Install Automatically", QMessageBox.ButtonRole.AcceptRole)
             manual_button = dialog.addButton("Show Manual Instructions", QMessageBox.ButtonRole.ActionRole)
@@ -147,9 +145,9 @@ class SteelSeriesTrayApp:
 
             if dialog.clickedButton() == auto_button:
                 logger.info("User chose to install udev rules automatically via OSInterface.")
-                success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=self.tray_icon)
+                success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=None) # Changed parent to None
 
-                feedback_dialog = QMessageBox(self.tray_icon)
+                feedback_dialog = QMessageBox(None) # Changed parent to None
                 feedback_dialog.setModal(True)
 
                 if exec_error:
@@ -158,28 +156,34 @@ class SteelSeriesTrayApp:
                     feedback_dialog.setWindowTitle("Setup Error")
                     if isinstance(exec_error, TrayAppInitializationError):
                         if "Helper script not found" in str(exec_error):
-                             feedback_dialog.setText("Installation script not found. Please report this issue.")
+                            feedback_dialog.setText("Installation script not found. Please report this issue.")
                         elif "pkexec command not found" in str(exec_error):
-                             feedback_dialog.setText("pkexec command not found. Please ensure PolicyKit is correctly installed.")
+                            feedback_dialog.setText(
+                                "pkexec command not found. Please ensure PolicyKit is correctly installed.",
+                            )
                         else:
-                             feedback_dialog.setText(f"A setup error occurred: {exec_error}")
+                            feedback_dialog.setText(f"A setup error occurred: {exec_error}")
                     else:
                         feedback_dialog.setText(f"An unexpected error occurred: {exec_error}")
-                elif proc_result is None and not success :
+                elif proc_result is None and not success:
                     logger.error("No process result from setup and no explicit error. This is unexpected.")
                     feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                     feedback_dialog.setWindowTitle("Unknown Error")
                     feedback_dialog.setText("An unknown error occurred during the installation process.")
                 elif proc_result:
                     logger.info("pkexec process completed. Return code: %s", proc_result.returncode)
-                    if proc_result.stdout: logger.info("pkexec stdout:\n%s", proc_result.stdout.strip())
-                    if proc_result.stderr: logger.warning("pkexec stderr:\n%s", proc_result.stderr.strip())
+                    if proc_result.stdout:
+                        logger.info("pkexec stdout:\n%s", proc_result.stdout.strip())
+                    if proc_result.stderr:
+                        logger.warning("pkexec stderr:\n%s", proc_result.stderr.strip())
 
                     if success:
                         feedback_dialog.setIcon(QMessageBox.Icon.Information)
                         feedback_dialog.setWindowTitle("Success")
                         feedback_dialog.setText("Udev rules installed successfully.")
-                        feedback_dialog.setInformativeText("Please replug your headset for the changes to take effect, then restart the application.")
+                        feedback_dialog.setInformativeText(
+                            "Please replug your headset for the changes to take effect, then restart the application.",
+                        )
                     elif proc_result.returncode == PKEXEC_EXIT_USER_CANCELLED:
                         feedback_dialog.setIcon(QMessageBox.Icon.Warning)
                         feedback_dialog.setWindowTitle("Authentication Cancelled")
@@ -193,7 +197,9 @@ class SteelSeriesTrayApp:
                         feedback_dialog.setIcon(QMessageBox.Icon.Critical)
                         feedback_dialog.setWindowTitle("Installation Failed")
                         feedback_dialog.setText("The udev rule installation script failed.")
-                        feedback_dialog.setInformativeText(f"Error (code {proc_result.returncode}): {proc_result.stderr.strip()}")
+                        feedback_dialog.setInformativeText(
+                            f"Error (code {proc_result.returncode}): {proc_result.stderr.strip()}",
+                        )
                 else:
                     feedback_dialog.setIcon(QMessageBox.Icon.Warning)
                     feedback_dialog.setWindowTitle("Setup Incomplete")
@@ -202,16 +208,16 @@ class SteelSeriesTrayApp:
                 feedback_dialog.exec()
 
             elif dialog.clickedButton() == manual_button:
-                manual_instructions_dialog = QMessageBox(self.tray_icon)
+                manual_instructions_dialog = QMessageBox(None) # Changed parent to None
                 manual_instructions_dialog.setWindowTitle("Manual Udev Setup Instructions")
                 manual_instructions_dialog.setIcon(QMessageBox.Icon.Information)
                 manual_instructions_dialog.setText(
                     "The udev rules and manual installation steps have been logged to the console/terminal "
-                    "from which this application was started."
+                    "from which this application was started.",
                 )
                 manual_instructions_dialog.setInformativeText(
                     "Please check the console output for details on how to copy the rule file "
-                    "and reload udev. You might need to restart the application after completing these steps."
+                    "and reload udev. You might need to restart the application after completing these steps.",
                 )
                 manual_instructions_dialog.exec()
 
@@ -219,12 +225,12 @@ class SteelSeriesTrayApp:
                     # TODO: Refactor LinuxImpl to have a method like ensure_udev_details_prepared()
                     # to avoid direct _udev_manager access from app.py
                     if not self.os_interface._udev_manager.get_last_udev_setup_details():
-                         self.os_interface._udev_manager.create_rules_interactive()
+                        self.os_interface._udev_manager.create_rules_interactive()
             else:
                 logger.info("User closed or cancelled the udev rules setup dialog.")
 
         elif os_name in ["windows", "macos"]:
-            self.os_interface.perform_device_setup(ui_parent=self.tray_icon)
+            self.os_interface.perform_device_setup(ui_parent=None) # Changed parent to None
         else:
             logger.info(f"No specific setup flow implemented for OS: {os_name}")
 
@@ -237,3 +243,15 @@ class SteelSeriesTrayApp:
         logger.info("Application quitting.")
         self.headset_service.close()
         self.qt_app.quit()
+
+    # Removed _get_os_interface method
+    # def _get_os_interface(self):
+    # """Detects the OS and returns an instance of the appropriate OS-specific implementation."""
+    # system = platform.system()
+    # if system == "Linux":
+    # return LinuxImpl()
+    # if system == "Windows":
+    # return WindowsImpl()
+    # if system == "Darwin": # Darwin is the system name for macOS
+    # return MacOSImpl()
+    # raise OSError(f"Unsupported OS: {system}")

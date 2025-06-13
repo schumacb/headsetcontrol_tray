@@ -1,25 +1,27 @@
 import logging
-import subprocess # For CompletedProcess type hint
 from pathlib import Path
-from typing import Any, Optional, Tuple
-from PySide6.QtWidgets import QMessageBox # Added import
+import subprocess  # For CompletedProcess type hint
+from typing import Any
+
+from PySide6.QtWidgets import QMessageBox  # Added import
 
 # Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
 HidDevice = Any
 
-from .base import OSInterface, HIDManagerInterface
-from .. import app_config # To get app name for paths
-from ..hid_manager import HIDConnectionManager # The concrete implementation of HIDManagerInterface
+from .. import app_config  # To get app name for paths
+from ..hid_manager import HIDConnectionManager  # The concrete implementation of HIDManagerInterface
+from .base import HIDManagerInterface, OSInterface
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.macos")
 
 # MacOSHIDManager class removed
 
+
 class MacOSImpl(OSInterface):
     """MacOS-specific implementation of OSInterface (placeholder)."""
 
     def __init__(self):
-        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
+        self._hid_manager = HIDConnectionManager()  # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
         # Standard macOS config location
@@ -34,9 +36,11 @@ class MacOSImpl(OSInterface):
 
     def needs_device_setup(self) -> bool:
         logger.info("needs_device_setup: Not implemented for macOS (assuming generic HID works).")
-        return False # Placeholder
+        return False  # Placeholder
 
-    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
+    def perform_device_setup(
+        self, ui_parent: Any = None,
+    ) -> tuple[bool, subprocess.CompletedProcess | None, Exception | None]:
         logger.info("perform_device_setup: No specific device setup implemented for macOS.")
         if ui_parent:
             # QMessageBox is now imported at the module level
@@ -48,7 +52,7 @@ class MacOSImpl(OSInterface):
             # The try-except ImportError can be removed if QMessageBox is essential
             # or kept if it's truly optional and you want to log if PySide6 isn't there.
             # For now, assuming PySide6 is a core dependency for UI parts.
-        return False, None, None # success, process_result, execution_error
+        return False, None, None  # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:
         return self._hid_manager

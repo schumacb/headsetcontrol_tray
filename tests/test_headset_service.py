@@ -1,20 +1,20 @@
 # tests/test_headset_service.py
 
+# Ensure src is in path for imports
+# This path manipulation might not be ideal for all test runners.
+# Consider pytest path features or project structure if issues arise.
+from pathlib import Path  # Path is used here for sys.path modification
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-import hid # Keep for type hinting if hid.Device is used
+import hid  # Keep for type hinting if hid.Device is used
 
-# Ensure src is in path for imports
-# This path manipulation might not be ideal for all test runners.
-# Consider pytest path features or project structure if issues arise.
-from pathlib import Path # Path is used here for sys.path modification
 sys.path.insert(0, str((Path(__file__).parent / ".." / "src").resolve()))
 
 from headsetcontrol_tray import app_config
 from headsetcontrol_tray.headset_service import HeadsetService
-from headsetcontrol_tray.os_layer.base import HIDManagerInterface # Added
+from headsetcontrol_tray.os_layer.base import HIDManagerInterface  # Added
 
 EXPECTED_BATTERY_LEVEL_HIGH = 75
 EXPECTED_CHATMIX_VALUE_MID = 32
@@ -50,15 +50,15 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
 
         # Default mock behaviors
         self.mock_hid_device_instance = MagicMock(spec=hid.Device)
-        self.mock_hid_device_instance.path = b"/dev/hidraw_mock" # hid.Device path is bytes
+        self.mock_hid_device_instance.path = b"/dev/hidraw_mock"  # hid.Device path is bytes
 
         self.mock_hid_manager_instance.ensure_connection.return_value = True
         self.mock_hid_manager_instance.get_hid_device.return_value = self.mock_hid_device_instance
         # Ensure selected_device_info is also mocked if HIDCommunicator relies on it
         self.mock_hid_manager_instance.get_selected_device_info.return_value = {
-            "path": b"/dev/hidraw_mock", "product_string": "Mocked Headset"
+            "path": b"/dev/hidraw_mock",
+            "product_string": "Mocked Headset",
         }
-
 
         self.MockHIDCommunicatorClass.return_value = self.mock_hid_communicator_instance
 
@@ -72,9 +72,9 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
         self.mock_hid_manager_instance.ensure_connection.return_value = True
         self.mock_hid_manager_instance.get_hid_device.return_value = self.mock_hid_device_instance
         self.mock_hid_manager_instance.get_selected_device_info.return_value = {
-             "path": b"/dev/hidraw_mock", "product_string": "Mocked Headset"
+            "path": b"/dev/hidraw_mock",
+            "product_string": "Mocked Headset",
         }
-
 
         self.MockHIDCommunicatorClass.reset_mock()
         self.MockHIDCommunicatorClass.return_value = self.mock_hid_communicator_instance
@@ -83,6 +83,7 @@ class BaseHeadsetServiceTestCase(unittest.TestCase):
         self.mock_status_parser_instance.reset_mock()
         self.mock_command_encoder_instance.reset_mock()
         self.mock_logger.reset_mock()
+
 
 # TestHeadsetServiceUdevInteraction class is REMOVED
 
@@ -95,7 +96,8 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         status_report_bytes = b"\x00" * app_config.HID_INPUT_REPORT_LENGTH_STATUS
         self.mock_hid_communicator_instance.read_report.return_value = status_report_bytes
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": True, "battery_percent": 50,
+            "headset_online": True,
+            "battery_percent": 50,
         }
 
         assert self.service.is_device_connected()
@@ -115,15 +117,17 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
         self.mock_hid_manager_instance.ensure_connection.assert_called()
         self.mock_hid_communicator_instance.write_report.assert_not_called()
 
-
     def test_is_device_connected_parser_returns_offline(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {"headset_online": False}
         assert not self.service.is_device_connected()
 
     def test_get_battery_level_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": True, "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH,
-            "battery_charging": False, "chatmix": 64, "raw_battery_status_byte": 0x02,
+            "headset_online": True,
+            "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH,
+            "battery_charging": False,
+            "chatmix": 64,
+            "raw_battery_status_byte": 0x02,
         }
         assert self.service.get_battery_level() == EXPECTED_BATTERY_LEVEL_HIGH
 
@@ -137,16 +141,21 @@ class TestHeadsetServiceConnectionAndStatus(BaseHeadsetServiceTestCase):
 
     def test_get_chatmix_value_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": True, "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH,
-            "battery_charging": False, "chatmix": EXPECTED_CHATMIX_VALUE_MID,
+            "headset_online": True,
+            "battery_percent": EXPECTED_BATTERY_LEVEL_HIGH,
+            "battery_charging": False,
+            "chatmix": EXPECTED_CHATMIX_VALUE_MID,
             "raw_battery_status_byte": 0x02,
         }
         assert self.service.get_chatmix_value() == EXPECTED_CHATMIX_VALUE_MID
 
     def test_is_charging_success(self) -> None:
         self.mock_status_parser_instance.parse_status_report.return_value = {
-            "headset_online": True, "battery_percent": 75, "battery_charging": True,
-            "chatmix": 64, "raw_battery_status_byte": 0x01,
+            "headset_online": True,
+            "battery_percent": 75,
+            "battery_charging": True,
+            "chatmix": 64,
+            "raw_battery_status_byte": 0x01,
         }
         assert self.service.is_charging()
 
@@ -181,9 +190,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
 
         assert result
         self.mock_command_encoder_instance.encode_set_sidetone.assert_called_once_with(50)
-        self.mock_hid_communicator_instance.write_report.assert_called_once_with(
-            report_id=0, data=encoded_payload
-        )
+        self.mock_hid_communicator_instance.write_report.assert_called_once_with(report_id=0, data=encoded_payload)
 
     def test_set_sidetone_level_encoder_returns_none(self) -> None:
         self.mock_command_encoder_instance.encode_set_sidetone.return_value = None
@@ -221,7 +228,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
 
     def test_set_eq_preset_id_success(self) -> None:
         preset_id = 1
-        payload = [0x0C] + ([0x10] * 10) + [0x00] # Example payload
+        payload = [0x0C] + ([0x10] * 10) + [0x00]  # Example payload
         self.mock_command_encoder_instance.encode_set_eq_preset_id.return_value = payload
         self.mock_hid_communicator_instance.write_report.return_value = True
         assert self.service.set_eq_preset_id(preset_id)
@@ -232,6 +239,7 @@ class TestHeadsetServiceCommands(BaseHeadsetServiceTestCase):
         self.service.close()
         self.mock_hid_manager_instance.close.assert_called_once()
         assert self.service.hid_communicator is None
+
 
 if __name__ == "__main__":
     unittest.main()
