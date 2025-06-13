@@ -3,6 +3,7 @@ import os
 import subprocess # For CompletedProcess type hint
 from pathlib import Path
 from typing import Any, Optional, Tuple
+from PySide6.QtWidgets import QMessageBox # Added import
 
 # Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
 HidDevice = Any
@@ -46,15 +47,15 @@ class WindowsImpl(OSInterface):
     def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         logger.info("perform_device_setup: No specific device setup implemented for Windows.")
         if ui_parent:
-            try:
-                from PySide6.QtWidgets import QMessageBox
-                QMessageBox.information(
-                    ui_parent,
-                    "Device Setup",
-                    "No specific device setup is required for Windows for this application.",
-                )
-            except ImportError:
-                logger.error("PySide6 not available for showing info dialog in perform_device_setup (Windows).")
+            # QMessageBox is now imported at the module level
+            QMessageBox.information(
+                ui_parent,
+                "Device Setup",
+                "No specific device setup is required for Windows for this application.",
+            )
+            # The try-except ImportError can be removed if QMessageBox is essential
+            # or kept if it's truly optional and you want to log if PySide6 isn't there.
+            # For now, assuming PySide6 is a core dependency for UI parts.
         return False, None, None # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:

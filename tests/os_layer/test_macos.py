@@ -3,18 +3,20 @@ from unittest.mock import MagicMock, patch # Ensure patch is imported
 
 import pytest
 
-from headsetcontrol_tray.os_layer.macos import MacOSImpl, MacOSHIDManager
+from headsetcontrol_tray.os_layer.macos import MacOSImpl # Removed MacOSHIDManager
 from headsetcontrol_tray.os_layer.base import HIDManagerInterface
 from headsetcontrol_tray.app_config import APP_NAME
+# Import HIDConnectionManager for mocking
+from headsetcontrol_tray.hid_manager import HIDConnectionManager
 
 
 @pytest.fixture
 def macos_impl_fixture(): # mocker removed
-    with patch("headsetcontrol_tray.os_layer.macos.MacOSHIDManager") as mock_hid_manager_class:
-        mock_hid_manager_instance = MagicMock(spec=MacOSHIDManager)
+    with patch("headsetcontrol_tray.os_layer.macos.HIDConnectionManager") as mock_hid_manager_class: # Patched HIDConnectionManager
+        mock_hid_manager_instance = MagicMock(spec=HIDConnectionManager) # Mock HIDConnectionManager
         mock_hid_manager_class.return_value = mock_hid_manager_instance
         impl = MacOSImpl()
-        impl._hid_manager = mock_hid_manager_instance
+        impl._hid_manager = mock_hid_manager_instance # Assign the correct mock
         yield impl # Use yield for pytest fixtures
 
 def test_macos_impl_get_os_name(macos_impl_fixture):

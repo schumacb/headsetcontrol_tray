@@ -16,10 +16,11 @@ from . import config_manager as cfg_mgr
 from . import headset_service as hs_svc
 from .exceptions import TrayAppInitializationError # Keep for error handling
 from .ui import system_tray_icon as sti
+from .os_layer import get_os_platform # Updated import
 from .os_layer.base import OSInterface
 from .os_layer.linux import LinuxImpl # Needed for isinstance check and specific logic
-from .os_layer.windows import WindowsImpl
-from .os_layer.macos import MacOSImpl
+# from .os_layer.windows import WindowsImpl # No longer directly needed
+# from .os_layer.macos import MacOSImpl # No longer directly needed
 # from .udev_manager import UDEVManager # Removed
 
 # Initialize logging
@@ -83,7 +84,7 @@ class SteelSeriesTrayApp:
         if not app_icon.isNull():
             self.qt_app.setWindowIcon(app_icon)
 
-        self.os_interface = self._get_os_interface()
+        self.os_interface = get_os_platform() # Use the new function
         logger.info(f"Initialized OS interface for: {self.os_interface.get_os_name()}")
 
         config_dir = self.os_interface.get_config_dir()
@@ -118,23 +119,6 @@ class SteelSeriesTrayApp:
         # self.tray_icon.set_dialog_parent(self.tray_icon) # Or a hidden main window
         self.tray_icon.show()
         self.tray_icon.set_initial_headset_settings()
-
-    def _get_os_interface(self) -> OSInterface:
-        os_name_lower = platform.system().lower()
-        if os_name_lower == "linux":
-            logger.info("Detected Linux OS.")
-            return LinuxImpl()
-        elif os_name_lower == "windows":
-            logger.info("Detected Windows OS.")
-            return WindowsImpl()
-        elif os_name_lower == "darwin":  # macOS
-            logger.info("Detected macOS.")
-            return MacOSImpl()
-        else:
-            logger.warning(
-                f"Unsupported OS '{platform.system()}'. Falling back to Linux implementation as a default."
-            )
-            return LinuxImpl()
 
     def _perform_os_specific_setup_flow(self) -> None:
         """

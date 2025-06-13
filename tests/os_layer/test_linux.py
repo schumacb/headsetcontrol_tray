@@ -7,10 +7,12 @@ from unittest.mock import MagicMock, patch # Ensure patch is imported
 import pytest
 
 # Ensure imports for tested classes are correct
-from headsetcontrol_tray.os_layer.linux import LinuxImpl, LinuxHIDManager
+from headsetcontrol_tray.os_layer.linux import LinuxImpl # Removed LinuxHIDManager
 from headsetcontrol_tray.os_layer.base import HIDManagerInterface
 from headsetcontrol_tray.exceptions import TrayAppInitializationError
 from headsetcontrol_tray.app_config import APP_NAME # For path checking
+# Import HIDConnectionManager for mocking
+from headsetcontrol_tray.hid_manager import HIDConnectionManager
 
 # Mock constants for pkexec exit codes (mirroring app.py or LinuxImpl)
 PKEXEC_EXIT_SUCCESS = 0
@@ -23,18 +25,18 @@ PKEXEC_EXIT_OTHER_ERROR = 1 # Example for other script errors
 def linux_impl_fixture(): # mocker removed
     """Fixture to create a LinuxImpl instance with mocked UDEVManager and HIDManager."""
     with patch("headsetcontrol_tray.os_layer.linux.UDEVManager") as mock_udev_manager_class, \
-         patch("headsetcontrol_tray.os_layer.linux.LinuxHIDManager") as mock_linux_hid_manager_class:
+         patch("headsetcontrol_tray.os_layer.linux.HIDConnectionManager") as mock_hid_manager_class: # Patched HIDConnectionManager
 
         mock_udev_manager_instance = MagicMock()
         mock_udev_manager_class.return_value = mock_udev_manager_instance
 
-        mock_linux_hid_manager_instance = MagicMock(spec=LinuxHIDManager)
-        mock_linux_hid_manager_class.return_value = mock_linux_hid_manager_instance
+        mock_hid_manager_instance = MagicMock(spec=HIDConnectionManager) # Mock HIDConnectionManager
+        mock_hid_manager_class.return_value = mock_hid_manager_instance
 
         impl = LinuxImpl()
         # Store mocks directly on the instance for tests to access if needed
         impl._udev_manager = mock_udev_manager_instance
-        impl._hid_manager = mock_linux_hid_manager_instance
+        impl._hid_manager = mock_hid_manager_instance # Assign the correct mock
         yield impl # Use yield for pytest fixtures
 
 def test_linux_impl_get_os_name(linux_impl_fixture):
