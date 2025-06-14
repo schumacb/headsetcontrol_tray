@@ -3,19 +3,20 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from . import app_config # Still needed for APP_NAME (for logger) and defaults
+from . import app_config  # Still needed for APP_NAME (for logger) and defaults
 from .exceptions import ConfigError
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
 NUM_EQ_BANDS = 10  # Number of equalizer bands
 
+
 class ConfigManager:
     """Manages application settings and custom EQ curves persistence."""
 
     def __init__(self, config_dir_path: Path) -> None:
-        """
-        Initializes the ConfigManager.
+        """Initializes the ConfigManager.
+
         Args:
             config_dir_path: The OS-specific path to the application's config directory.
         """
@@ -27,7 +28,7 @@ class ConfigManager:
         try:
             self._config_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error(f"Could not create config directory {self._config_dir}: {e}")
+            logger.exception("Could not create config directory %s", self._config_dir)
             # Depending on desired behavior, could raise an exception here or try to proceed
             # For now, log error and continue; loading will likely fail gracefully.
 
@@ -40,20 +41,17 @@ class ConfigManager:
             self._custom_eq_curves = app_config.DEFAULT_EQ_CURVES.copy()
             # Attempt to save only if directory creation was successful or not attempted
             if self._config_dir.exists():
-                 self._save_json_file(
+                self._save_json_file(
                     self._custom_eq_curves_file_path,
                     self._custom_eq_curves,
                 )
             else:
-                logger.warning(
-                    "Config directory does not exist. Skipping initial save of default EQ curves."
-                )
-
+                logger.warning("Config directory does not exist. Skipping initial save of default EQ curves.")
 
     def _load_json_file(self, file_path: Path) -> dict:
         if file_path.exists():
             try:
-                with file_path.open("r", encoding="utf-8") as f: # Specify encoding
+                with file_path.open("r", encoding="utf-8") as f:  # Specify encoding
                     return json.load(f)
             except json.JSONDecodeError:
                 logger.exception(
@@ -62,10 +60,7 @@ class ConfigManager:
                 )
                 return {}
             except OSError as e:
-                logger.exception(
-                    "OSError while reading file %s. Using empty config for this file: %s",
-                    file_path, e
-                )
+                logger.exception("OSError while reading file %s. Using empty config for this file.", file_path)
                 return {}
         else:
             logger.info("Config file %s not found. Returning empty dict.", file_path)
@@ -73,12 +68,10 @@ class ConfigManager:
 
     def _save_json_file(self, file_path: Path, data: dict) -> None:
         if not self._config_dir.exists():
-            logger.error(
-                f"Cannot save file {file_path} because config directory {self._config_dir} does not exist."
-            )
+            logger.error("Cannot save file %s because config directory %s does not exist.", file_path, self._config_dir)
             return
         try:
-            with file_path.open("w", encoding="utf-8") as f: # Specify encoding
+            with file_path.open("w", encoding="utf-8") as f:  # Specify encoding
                 json.dump(data, f, indent=4)
         except OSError:
             logger.exception("Error saving JSON file %s", file_path)
@@ -105,11 +98,8 @@ class ConfigManager:
     def save_custom_eq_curve(self, name: str, values: list[int]) -> None:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (isinstance(values, list) and len(values) == NUM_EQ_BANDS and all(isinstance(v, int) for v in values)):
-            logger.error(
-                "Invalid EQ curve format for '%s': Must be a list of %d integers.",
-                name, NUM_EQ_BANDS
-            )
-            raise ConfigError(f"Invalid EQ curve format for '{name}'.") # Raise specific error
+            logger.error("Invalid EQ curve format for '%s': Must be a list of %d integers.", name, NUM_EQ_BANDS)
+            raise ConfigError(f"Invalid EQ curve format for '{name}'.")  # Raise specific error
         self._custom_eq_curves[name] = values
         self._save_json_file(self._custom_eq_curves_file_path, self._custom_eq_curves)
 
@@ -129,7 +119,6 @@ class ConfigManager:
                 )
         else:
             logger.warning("Attempted to delete non-existent EQ curve: %s", name)
-
 
     # Specific settings shortcuts (no changes needed below this line for paths)
     def get_last_sidetone_level(self) -> int:
@@ -166,20 +155,22 @@ class ConfigManager:
         if name not in self._custom_eq_curves and app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME in self._custom_eq_curves:
             logger.warning(
                 "Last custom EQ curve '%s' not found, falling back to default '%s'.",
-                name, app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
+                name,
+                app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME,
             )
             return app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
         if name not in self._custom_eq_curves and self._custom_eq_curves:
             fallback_name = next(iter(self._custom_eq_curves))
             logger.warning(
                 "Last custom EQ curve '%s' not found and default also missing, falling back to first available '%s'.",
-                name, fallback_name
+                name,
+                fallback_name,
             )
             return fallback_name
         if name not in self._custom_eq_curves and not self._custom_eq_curves:
-             logger.warning(
+            logger.warning(
                 "Last custom EQ curve '%s' not found and no custom curves exist, returning name as is.",
-                name
+                name,
             )
         return name
 

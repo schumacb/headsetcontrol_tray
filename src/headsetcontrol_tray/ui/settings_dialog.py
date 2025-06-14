@@ -47,8 +47,7 @@ class SettingsDialog(QDialog):
         headset_service: hs_svc.HeadsetService,
         parent: QWidget | None = None,
     ) -> None:
-        """
-        Initializes the SettingsDialog.
+        """Initializes the SettingsDialog.
 
         Args:
             config_manager: The application's ConfigManager instance.

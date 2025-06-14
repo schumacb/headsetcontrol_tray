@@ -1,24 +1,25 @@
 import logging
-import subprocess # For CompletedProcess type hint
 from pathlib import Path
-from typing import Any, Optional, Tuple
+import subprocess  # For CompletedProcess type hint
+from typing import Any
 
 # Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
 HidDevice = Any
 
-from .base import OSInterface, HIDManagerInterface
-from .. import app_config # To get app name for paths
-from ..hid_manager import HIDConnectionManager # The concrete implementation of HIDManagerInterface
+from .. import app_config  # To get app name for paths
+from ..hid_manager import HIDConnectionManager  # The concrete implementation of HIDManagerInterface
+from .base import HIDManagerInterface, OSInterface
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.macos")
 
 # MacOSHIDManager class removed
 
+
 class MacOSImpl(OSInterface):
     """MacOS-specific implementation of OSInterface (placeholder)."""
 
     def __init__(self):
-        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
+        self._hid_manager = HIDConnectionManager()  # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
         # Standard macOS config location
@@ -33,21 +34,25 @@ class MacOSImpl(OSInterface):
 
     def needs_device_setup(self) -> bool:
         logger.info("needs_device_setup: Not implemented for macOS (assuming generic HID works).")
-        return False # Placeholder
+        return False  # Placeholder
 
-    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
+    def perform_device_setup(
+        self,
+        ui_parent: Any = None,
+    ) -> tuple[bool, subprocess.CompletedProcess | None, Exception | None]:
         logger.info("perform_device_setup: No specific device setup implemented for macOS.")
         if ui_parent:
             try:
                 from PySide6.QtWidgets import QMessageBox
+
                 QMessageBox.information(
                     ui_parent,
                     "Device Setup",
                     "No specific device setup is required for macOS for this application.",
                 )
             except ImportError:
-                logger.error("PySide6 not available for showing info dialog in perform_device_setup (macOS).")
-        return False, None, None # success, process_result, execution_error
+                logger.exception("PySide6 not available for showing info dialog in perform_device_setup (macOS).")
+        return False, None, None  # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:
         return self._hid_manager

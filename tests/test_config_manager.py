@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-import tempfile # Added
+import tempfile  # Added
 import unittest
 from unittest import mock
 
@@ -46,18 +46,20 @@ class TestConfigManager(unittest.TestCase):
         self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED = False
         self.CM_DEFAULT_DARK_MODE = "auto"
 
-
     def tearDown(self) -> None:
         self.app_config_patcher.stop()
-        self.temp_dir.cleanup() # Clean up TemporaryDirectory
+        self.temp_dir.cleanup()  # Clean up TemporaryDirectory
 
     @mock.patch.object(ConfigManager, "_load_json_file")
     @mock.patch.object(ConfigManager, "_save_json_file")
-    @mock.patch("headsetcontrol_tray.config_manager.Path.mkdir") # Patch Path.mkdir directly in the module
+    @mock.patch("headsetcontrol_tray.config_manager.Path.mkdir")  # Patch Path.mkdir directly in the module
     def test_init_paths_created_and_loaded(
-        self, mock_path_mkdir: mock.MagicMock, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock,
+        self,
+        mock_path_mkdir: mock.MagicMock,
+        mock_save_json: mock.MagicMock,
+        mock_load_json: mock.MagicMock,
     ) -> None:
-        mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [0] * 10}] # 10 bands
+        mock_load_json.side_effect = [{"some_setting": "value"}, {"MyCurve": [0] * 10}]  # 10 bands
 
         cm = ConfigManager(config_dir_path=self.test_config_path)
 
@@ -81,7 +83,6 @@ class TestConfigManager(unittest.TestCase):
         # This assertion is fine if Path.mkdir is globally mocked.
         mock_path_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
-
         assert mock_load_json.call_count == EXPECTED_LOAD_JSON_CALL_COUNT_INIT
         mock_load_json.assert_any_call(self.expected_settings_file)
         mock_load_json.assert_any_call(self.expected_eq_curves_file)
@@ -91,18 +92,22 @@ class TestConfigManager(unittest.TestCase):
 
     @mock.patch.object(ConfigManager, "_load_json_file")
     @mock.patch.object(ConfigManager, "_save_json_file")
-    @mock.patch("headsetcontrol_tray.config_manager.Path.mkdir") # Patch Path.mkdir globally
-    @mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=True) # Patch Path.exists globally
+    @mock.patch("headsetcontrol_tray.config_manager.Path.mkdir")  # Patch Path.mkdir globally
+    @mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=True)  # Patch Path.exists globally
     def test_init_default_eq_curves_saved_if_empty(
-        self, mock_path_exists: mock.MagicMock, mock_path_mkdir: mock.MagicMock, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock,
+        self,
+        mock_path_exists: mock.MagicMock,
+        mock_path_mkdir: mock.MagicMock,
+        mock_save_json: mock.MagicMock,
+        mock_load_json: mock.MagicMock,
     ) -> None:
-        mock_load_json.side_effect = [{"some_setting": "value"}, {}] # EQ file is empty
+        mock_load_json.side_effect = [{"some_setting": "value"}, {}]  # EQ file is empty
 
         # self.test_config_path.exists() will be caught by mock_path_exists
         cm = ConfigManager(config_dir_path=self.test_config_path)
 
         mock_path_mkdir.assert_called_once_with(parents=True, exist_ok=True)
-        mock_path_exists.assert_any_call() # Path.exists is called
+        mock_path_exists.assert_any_call()  # Path.exists is called
         assert mock_load_json.call_count == EXPECTED_LOAD_JSON_CALL_COUNT_INIT
         assert cm.get_all_custom_eq_curves() == app_config.DEFAULT_EQ_CURVES
         mock_save_json.assert_called_once_with(
@@ -134,8 +139,10 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.exists.return_value = True
         mock_file_path.open = mock.mock_open()
 
-        with mock.patch.object(ConfigManager, "__init__", return_value=None), \
-             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger:
+        with (
+            mock.patch.object(ConfigManager, "__init__", return_value=None),
+            mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
+        ):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             loaded_data = cm._load_json_file(mock_file_path)
         mock_logger.exception.assert_called_once_with(
@@ -169,18 +176,20 @@ class TestConfigManager(unittest.TestCase):
         mock_file_path.open.assert_called_once_with("w", encoding="utf-8")
         mock_json_dump.assert_called_once_with(
             data_to_save,
-            mock_file_path.open.return_value, # Get the mock file handle from mock_open
+            mock_file_path.open.return_value,  # Get the mock file handle from mock_open
             indent=4,
         )
 
-    @mock.patch("json.dump") # Mock dump to prevent it from running if open fails
+    @mock.patch("json.dump")  # Mock dump to prevent it from running if open fails
     def test_save_json_file_io_error_on_open(self, mock_json_dump: mock.MagicMock) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
         mock_file_path.open = mock.Mock(side_effect=OSError("Disk full"))
 
-        with mock.patch.object(ConfigManager, "__init__", return_value=None), \
-             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger:
+        with (
+            mock.patch.object(ConfigManager, "__init__", return_value=None),
+            mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
+        ):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._config_dir = mock.MagicMock(spec=Path)
             cm._config_dir.exists.return_value = True
@@ -190,15 +199,16 @@ class TestConfigManager(unittest.TestCase):
         mock_json_dump.assert_not_called()
         mock_logger.exception.assert_called_once_with("Error saving JSON file %s", mock_file_path)
 
-
     @mock.patch("json.dump", side_effect=OSError("Permission denied"))
     def test_save_json_file_os_error_on_dump(self, mock_json_dump_raises_oserror: mock.MagicMock) -> None:
         mock_file_path = mock.MagicMock(spec=Path)
         data_to_save = {"key": "value"}
         mock_file_path.open = mock.mock_open()
 
-        with mock.patch.object(ConfigManager, "__init__", return_value=None), \
-             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger:
+        with (
+            mock.patch.object(ConfigManager, "__init__", return_value=None),
+            mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
+        ):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._config_dir = mock.MagicMock(spec=Path)
             cm._config_dir.exists.return_value = True
@@ -208,7 +218,6 @@ class TestConfigManager(unittest.TestCase):
         mock_json_dump_raises_oserror.assert_called_once()
         mock_logger.exception.assert_called_once_with("Error saving JSON file %s", mock_file_path)
 
-
     def test_get_setting(self) -> None:
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager(config_dir_path=Path("dummy"))
@@ -217,7 +226,6 @@ class TestConfigManager(unittest.TestCase):
         assert cm.get_setting("existing_key") == "existing_value"
         assert cm.get_setting("non_existing_key", "default_val") == "default_val"
         assert cm.get_setting("non_existing_key") is None
-
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_set_setting(self, mock_save_json: mock.MagicMock) -> None:
@@ -229,40 +237,40 @@ class TestConfigManager(unittest.TestCase):
             cm._config_dir = mock.MagicMock(spec=Path)
             cm._config_dir.exists.return_value = True
 
-
         cm.set_setting("test_key", "test_value")
         assert cm.get_setting("test_key") == "test_value"
         mock_save_json.assert_called_once_with(self.expected_settings_file, {"test_key": "test_value"})
 
-
     def test_get_all_custom_eq_curves(self) -> None:
-        test_curves = {"Curve1": [0]*10}
+        test_curves = {"Curve1": [0] * 10}
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager(config_dir_path=Path("dummy"))
-            cm._custom_eq_curves = test_curves.copy() # Use copy
+            cm._custom_eq_curves = test_curves.copy()  # Use copy
 
         retrieved_curves = cm.get_all_custom_eq_curves()
         assert retrieved_curves == test_curves
-        retrieved_curves["NewKey"] = [1]*10 # Modify returned
-        assert cm.get_all_custom_eq_curves() == test_curves # Original should be unchanged
+        retrieved_curves["NewKey"] = [1] * 10  # Modify returned
+        assert cm.get_all_custom_eq_curves() == test_curves  # Original should be unchanged
 
     def test_get_custom_eq_curve(self) -> None:
-        test_curves = {"Curve1": [0]*10}
+        test_curves = {"Curve1": [0] * 10}
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._custom_eq_curves = test_curves
-        assert cm.get_custom_eq_curve("Curve1") == [0]*10
+        assert cm.get_custom_eq_curve("Curve1") == [0] * 10
         assert cm.get_custom_eq_curve("NonExistent") is None
-
 
     def test_save_custom_eq_curve_validation(self) -> None:
         with mock.patch.object(ConfigManager, "__init__", return_value=None):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._custom_eq_curves = {}
-        with pytest.raises(ConfigError, match="Invalid EQ curve format for 'InvalidCurveShort'."): # Adding single quotes
+        with pytest.raises(
+            ConfigError,
+            match="Invalid EQ curve format for 'InvalidCurveShort'.",
+        ):  # Adding single quotes
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
         with pytest.raises(ConfigError, match="Invalid EQ curve format for 'InvalidCurveType'."):
-            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10) # type: ignore
+            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock) -> None:
@@ -270,15 +278,15 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._custom_eq_curves_file_path = self.expected_eq_curves_file
             cm._custom_eq_curves = {"ExistingCurve": [0] * 10}
-            cm._config_dir = mock.MagicMock(spec=Path); cm._config_dir.exists.return_value = True
-
+            cm._config_dir = mock.MagicMock(spec=Path)
+            cm._config_dir.exists.return_value = True
 
         new_curve_name = "NewCurve"
         new_curve_values = [1] * 10
         cm.save_custom_eq_curve(new_curve_name, new_curve_values)
         assert cm.get_custom_eq_curve(new_curve_name) == new_curve_values
         expected_curves_after_save = {"ExistingCurve": [0] * 10, new_curve_name: new_curve_values}
-        mock_save_json.assert_called_with( # Use assert_called_with for last call or specific call
+        mock_save_json.assert_called_with(  # Use assert_called_with for last call or specific call
             self.expected_eq_curves_file,
             expected_curves_after_save,
         )
@@ -289,7 +297,8 @@ class TestConfigManager(unittest.TestCase):
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm._settings_file_path = self.expected_settings_file
             cm._custom_eq_curves_file_path = self.expected_eq_curves_file
-            cm._config_dir = mock.MagicMock(spec=Path); cm._config_dir.exists.return_value = True
+            cm._config_dir = mock.MagicMock(spec=Path)
+            cm._config_dir.exists.return_value = True
 
             cm._custom_eq_curves = {
                 "ToDelete": [0] * 10,
@@ -298,7 +307,6 @@ class TestConfigManager(unittest.TestCase):
             }
             # Simulate set_setting being part of the same ConfigManager instance
             cm._settings = {"last_custom_eq_curve_name": "ToDelete", "active_eq_type": "Custom"}
-
 
         cm.delete_custom_eq_curve("ToDelete")
         assert cm.get_custom_eq_curve("ToDelete") is None
@@ -311,7 +319,7 @@ class TestConfigManager(unittest.TestCase):
         # The settings dict would be updated by the set_setting call inside delete_custom_eq_curve
         expected_settings_after_delete = {
             "last_custom_eq_curve_name": app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME,
-            "active_eq_type": "Custom" # Assuming set_setting doesn't change this unless explicitly told
+            "active_eq_type": "Custom",  # Assuming set_setting doesn't change this unless explicitly told
         }
         mock_save_json.assert_any_call(self.expected_settings_file, expected_settings_after_delete)
 
@@ -323,7 +331,7 @@ class TestConfigManager(unittest.TestCase):
 
         cm.delete_custom_eq_curve("ToKeep")
         assert cm.get_custom_eq_curve("ToKeep") is None
-        assert cm.get_setting("last_custom_eq_curve_name") == "OtherCurve" # Should not change if not "ToKeep"
+        assert cm.get_setting("last_custom_eq_curve_name") == "OtherCurve"  # Should not change if not "ToKeep"
         expected_curves_after_delete2 = {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [0] * 10}
         mock_save_json.assert_called_once_with(
             self.expected_eq_curves_file,
@@ -368,17 +376,17 @@ class TestConfigManager(unittest.TestCase):
         mock_set_setting.assert_any_call("active_eq_type", "hardware")
         assert mock_set_setting.call_count == 2
 
-
     def test_get_last_custom_eq_curve_name_fallbacks(self) -> None:
         # Test with __init__ not mocked to allow _custom_eq_curves to be initialized
         # but mock _load_json_file to control what's "loaded"
-        with mock.patch.object(ConfigManager, "_load_json_file") as mock_load_json, \
-             mock.patch.object(ConfigManager, "_save_json_file"): # Mock save to prevent writes
-
+        with (
+            mock.patch.object(ConfigManager, "_load_json_file") as mock_load_json,
+            mock.patch.object(ConfigManager, "_save_json_file"),
+        ):  # Mock save to prevent writes
             # Scenario 1: Last saved name exists in curves
             mock_load_json.side_effect = [
-                {"last_custom_eq_curve_name": "ExistingCurve"}, # settings
-                {"ExistingCurve": [0]*10, app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [1]*10}
+                {"last_custom_eq_curve_name": "ExistingCurve"},  # settings
+                {"ExistingCurve": [0] * 10, app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [1] * 10},
             ]
             cm = ConfigManager(config_dir_path=self.test_config_path)
             assert cm.get_last_custom_eq_curve_name() == "ExistingCurve"
@@ -386,8 +394,8 @@ class TestConfigManager(unittest.TestCase):
             # Scenario 2: Last saved name does NOT exist, default exists
             mock_load_json.reset_mock(side_effect=True)
             mock_load_json.side_effect = [
-                {"last_custom_eq_curve_name": "MissingCurve"}, # settings
-                {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [1]*10, "AnotherCurve": [2]*10}
+                {"last_custom_eq_curve_name": "MissingCurve"},  # settings
+                {app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME: [1] * 10, "AnotherCurve": [2] * 10},
             ]
             cm = ConfigManager(config_dir_path=self.test_config_path)
             assert cm.get_last_custom_eq_curve_name() == app_config.DEFAULT_CUSTOM_EQ_CURVE_NAME
@@ -395,8 +403,8 @@ class TestConfigManager(unittest.TestCase):
             # Scenario 3: Last saved name does NOT exist, default also MISSING, fallback to first available
             mock_load_json.reset_mock(side_effect=True)
             mock_load_json.side_effect = [
-                {"last_custom_eq_curve_name": "MissingCurve"}, # settings
-                {"FirstAvailable": [0]*10, "AnotherCurve": [2]*10} # curves (default is missing)
+                {"last_custom_eq_curve_name": "MissingCurve"},  # settings
+                {"FirstAvailable": [0] * 10, "AnotherCurve": [2] * 10},  # curves (default is missing)
             ]
             cm = ConfigManager(config_dir_path=self.test_config_path)
             assert cm.get_last_custom_eq_curve_name() == "FirstAvailable"
@@ -404,40 +412,62 @@ class TestConfigManager(unittest.TestCase):
             # Scenario 4: No curves exist at all (e.g. fresh init, save failed)
             mock_load_json.reset_mock(side_effect=True)
             mock_load_json.side_effect = [
-                {"last_custom_eq_curve_name": "AnyName"}, # settings
-                {} # No curves
+                {"last_custom_eq_curve_name": "AnyName"},  # settings
+                {},  # No curves
             ]
             # For this, we also need to ensure DEFAULT_EQ_CURVES is empty to simulate no defaults being populated
-            with mock.patch.object(app_config, "DEFAULT_EQ_CURVES", {}): # Patched app_config directly
-                 cm = ConfigManager(config_dir_path=self.test_config_path)
-                 assert cm.get_last_custom_eq_curve_name() == "AnyName" # Returns the name as is
+            with mock.patch.object(app_config, "DEFAULT_EQ_CURVES", {}):  # Patched app_config directly
+                cm = ConfigManager(config_dir_path=self.test_config_path)
+                assert cm.get_last_custom_eq_curve_name() == "AnyName"  # Returns the name as is
         # Removed cm.set_last_custom_eq_curve_name and subsequent mock_set_setting assertions from this test method.
 
     def test_get_active_eq_type(self) -> None:
         with mock.patch.object(ConfigManager, "get_setting") as mock_get_setting:
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm.get_active_eq_type()
-        mock_get_setting.assert_called_once_with("active_eq_type", self.CM_DEFAULT_ACTIVE_EQ_TYPE) # Reverted to self.CM_DEFAULT
+        mock_get_setting.assert_called_once_with(
+            "active_eq_type",
+            self.CM_DEFAULT_ACTIVE_EQ_TYPE,
+        )  # Reverted to self.CM_DEFAULT
 
     # Test default values for other specific settings
     def test_default_chatmix_enabled(self) -> None:
         with mock.patch.object(ConfigManager, "get_setting") as mock_get_setting:
             cm = ConfigManager(config_dir_path=Path("dummy"))
-            cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) # Reverted to self.CM_DEFAULT
-        mock_get_setting.assert_called_once_with("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) # Reverted to self.CM_DEFAULT
+            cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED)  # Reverted to self.CM_DEFAULT
+        mock_get_setting.assert_called_once_with(
+            "chatmix_enabled",
+            self.CM_DEFAULT_CHATMIX_ENABLED,
+        )  # Reverted to self.CM_DEFAULT
 
     # ... (similar tests for other defaults can be added if they have specific getters/setters) ...
 
     def test_config_dir_creation_failure(self) -> None:
         # Test that an error during directory creation is logged
-        with mock.patch("headsetcontrol_tray.config_manager.Path.mkdir", side_effect=OSError("Cannot create dir")), \
-             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger, \
-             mock.patch.object(ConfigManager, "_load_json_file", return_value={}), \
-             mock.patch.object(ConfigManager, "_save_json_file"): # Mock save to prevent issues if load fails
-
-            _ = ConfigManager(config_dir_path=self.test_config_path)
-            mock_logger.error.assert_called_once_with(
-                f"Could not create config directory {self.test_config_path}: Cannot create dir"
+        with (
+            mock.patch(
+                "headsetcontrol_tray.config_manager.Path.mkdir",
+                side_effect=OSError("Cannot create dir"),
+            ) as mock_mkdir,
+            mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
+            mock.patch.object(ConfigManager, "_load_json_file", return_value={}),
+            mock.patch.object(ConfigManager, "_save_json_file"),
+        ):  # Mock save to prevent issues if load fails
+            config_manager = ConfigManager(config_dir_path=self.test_config_path)
+            # Check that the mock_mkdir was called
+            mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+            # Check that logger.exception was called with the correct message format and arguments
+            mock_logger.exception.assert_called_once_with(
+                "Could not create config directory %s", self.test_config_path
+                # This is how you match the exception instance when it's part of the log message
+                # The original code logs `f"... {e}"`, so we expect the exception instance as the last arg to logger.exception
+                # However, logger.exception(message, *args, exc_info=...) - if exc_info is True (default for .exception)
+                # the exception is handled automatically. If we pass the exception as an arg in the message,
+                # it should be `logger.exception("message with %s", e)`
+                # The code is `logger.exception(f"Could not create config directory {self._config_dir}: {e}")`
+                # This means the exception `e` is formatted into the message string itself.
+                # So, we don't need to pass `unittest.mock.ANY` as a separate argument here.
+                # The f-string formatting in the assert_called_once_with should match the logged string.
             )
             # Also check that save is not called for defaults if dir doesn't exist
             # This needs _config_dir.exists() to return False after mkdir fails.
@@ -461,27 +491,33 @@ class TestConfigManager(unittest.TestCase):
     # @mock.patch("headsetcontrol_tray.config_manager.Path.mkdir", side_effect=OSError("Cannot create dir")) # Restored global Path.mkdir patch
     # @mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=False) # Mock Path.exists globally for this test
     def test_init_default_eq_curves_not_saved_if_dir_creation_fails(
-        self #, mock_path_exists_global: mock.MagicMock, mock_path_mkdir_global: mock.MagicMock, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock
+        self,  # , mock_path_exists_global: mock.MagicMock, mock_path_mkdir_global: mock.MagicMock, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock
     ):
-        with mock.patch.object(ConfigManager, "_load_json_file", return_value={}) as mock_load_json, \
-             mock.patch.object(ConfigManager, "_save_json_file") as mock_save_json, \
-             mock.patch("headsetcontrol_tray.config_manager.Path.mkdir", side_effect=OSError("Cannot create dir")) as mock_path_mkdir_global, \
-             mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=False) as mock_path_exists_global, \
-             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger:
-
-            cm = ConfigManager(config_dir_path=self.test_config_path) # Instantiate only once
+        with (
+            mock.patch.object(ConfigManager, "_load_json_file", return_value={}) as mock_load_json,
+            mock.patch.object(ConfigManager, "_save_json_file") as mock_save_json,
+            mock.patch(
+                "headsetcontrol_tray.config_manager.Path.mkdir",
+                side_effect=OSError("Cannot create dir"),
+            ) as mock_path_mkdir_global,
+            mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=False) as mock_path_exists_global,
+            mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
+        ):
+            cm = ConfigManager(config_dir_path=self.test_config_path)  # Instantiate only once
 
             # 1. Check that Path.mkdir was called (and raised an error)
             mock_path_mkdir_global.assert_called_once_with(parents=True, exist_ok=True)
 
             # 2. Check that logger.exception was called due to mkdir failure
+            # The f-string in the main code is: f"Could not create config directory {self._config_dir}: {e}"
+            # The test should match the literal string logged, including the string representation of the exception.
             mock_logger.exception.assert_called_once_with(
-                "Could not create config directory %s: %s", self.test_config_path, unittest.mock.ANY
+                "Could not create config directory %s", self.test_config_path
             )
             # 3. Check that logger.warning was called because dir doesn't exist for saving defaults
             # This is called because self._config_dir.exists() (mocked by mock_path_exists_global) returns False.
             mock_logger.warning.assert_called_once_with(
-                "Config directory does not exist. Skipping initial save of default EQ curves."
+                "Config directory does not exist. Skipping initial save of default EQ curves.",
             )
 
             # 4. Ensure _save_json_file was NOT called for the default EQ curves file
@@ -491,13 +527,15 @@ class TestConfigManager(unittest.TestCase):
                 if call_args_tuple[0][0] == self.expected_eq_curves_file:
                     found_eq_curves_save_call = True
                     break
-            assert not found_eq_curves_save_call, \
+            assert not found_eq_curves_save_call, (
                 "_save_json_file should not have been called for default EQ curves if directory does not exist."
+            )
 
             # 5. The _custom_eq_curves attribute should still be populated with app_config defaults
             #    because this happens before the save attempt.
-            assert cm._custom_eq_curves == app_config.DEFAULT_EQ_CURVES, \
+            assert cm._custom_eq_curves == app_config.DEFAULT_EQ_CURVES, (
                 "cm._custom_eq_curves should be populated from app_config defaults even if save is skipped."
+            )
 
         # Crucially, _save_json_file for default EQs should not be called
         # if the directory doesn't exist after the attempt.

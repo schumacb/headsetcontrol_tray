@@ -3,7 +3,7 @@
 # Standard library imports
 from pathlib import Path
 import sys
-import tempfile # Ensure tempfile is imported
+import tempfile  # Ensure tempfile is imported
 import unittest
 from unittest.mock import MagicMock, call, patch
 
@@ -84,9 +84,9 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             delete=False,
             prefix="headsetcontrol_tray_",
             suffix=".rules",
-            dir=tempfile.gettempdir() # Use tempfile.gettempdir()
+            dir=tempfile.gettempdir(),  # Use tempfile.gettempdir()
         )
-        mock_temp_file_context.write.assert_called_once_with(UDEV_RULE_CONTENT) # Removed extra \n
+        mock_temp_file_context.write.assert_called_once_with(UDEV_RULE_CONTENT)  # Removed extra \n
 
         expected_details = {
             "temp_file_path": "fake_headsetcontrol_abcdef.rules",
@@ -105,11 +105,17 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
             call("Successfully wrote udev rule content to temporary file: %s", temp_file_name_str),
             call("--------------------------------------------------------------------------------"),
             call("MANUAL UDEV SETUP (if automatic setup is not used or fails):"),
-            call(' 1. Copy the rule file: sudo cp "%s" "%s"', temp_file_name_str, final_rules_path_str), # Added leading space
-            call(" 2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger"), # Added leading space
-            call(" 3. Replug your SteelSeries headset if it was connected."), # Removed temp_file_name_str
+            call(
+                ' 1. Copy the rule file: sudo cp "%s" "%s"',
+                temp_file_name_str,
+                final_rules_path_str,
+            ),  # Added leading space
+            call(
+                " 2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger",
+            ),  # Added leading space
+            call(" 3. Replug your SteelSeries headset if it was connected."),  # Removed temp_file_name_str
             call(" (The temporary file %s can be deleted after copying.)", temp_file_name_str),
-            call("--------------------------------------------------------------------------------")
+            call("--------------------------------------------------------------------------------"),
         ]
         self.mock_logger.info.assert_has_calls(expected_log_calls)
 
@@ -130,7 +136,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "Could not write temporary udev rule file: %s", unittest.mock.ANY
+            "Could not write temporary udev rule file: %s",
+            unittest.mock.ANY,
         )
 
     @patch("tempfile.NamedTemporaryFile")
@@ -148,7 +155,8 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "An unexpected error occurred during temporary udev rule file creation: %s", unittest.mock.ANY
+            "An unexpected error occurred during temporary udev rule file creation: %s",
+            unittest.mock.ANY,
         )
 
     def test_get_last_udev_setup_details_initially_none(

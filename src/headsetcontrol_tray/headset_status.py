@@ -1,5 +1,4 @@
-"""
-Parses status reports from the headset and encodes commands to be sent.
+"""Parses status reports from the headset and encodes commands to be sent.
 
 This module contains classes responsible for interpreting raw data from the
 headset (like battery level, ChatMix status) and for constructing the raw

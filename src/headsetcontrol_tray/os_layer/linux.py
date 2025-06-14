@@ -2,34 +2,35 @@ import logging
 import os
 from pathlib import Path
 import subprocess
-from typing import Any, Optional, Tuple
+from typing import Any
 
 # Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
 # For now, using 'Any' as a placeholder for hid.Device.
 HidDevice = Any
 
-from .base import OSInterface, HIDManagerInterface
-from .. import app_config # To get app name for paths, and later udev related constants
-from ..udev_manager import UDEVManager # Will be used for needs_device_setup and perform_device_setup
-from ..hid_manager import HIDConnectionManager # The concrete implementation of HIDManagerInterface
-from ..exceptions import TrayAppInitializationError # For error handling in perform_device_setup
+from .. import app_config  # To get app name for paths, and later udev related constants
+from ..exceptions import TrayAppInitializationError  # For error handling in perform_device_setup
+from ..hid_manager import HIDConnectionManager  # The concrete implementation of HIDManagerInterface
+from ..udev_manager import UDEVManager  # Will be used for needs_device_setup and perform_device_setup
+from .base import HIDManagerInterface, OSInterface
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.linux")
 
 # pkexec exit codes (copied from app.py)
 PKEXEC_EXIT_SUCCESS = 0
-PKEXEC_EXIT_USER_CANCELLED = 126 # User cancelled authentication
-PKEXEC_EXIT_AUTH_FAILED = 127 # Authentication failed or other error (e.g. no agent)
+PKEXEC_EXIT_USER_CANCELLED = 126  # User cancelled authentication
+PKEXEC_EXIT_AUTH_FAILED = 127  # Authentication failed or other error (e.g. no agent)
 
 
 # LinuxHIDManager class removed
+
 
 class LinuxImpl(OSInterface):
     """Linux-specific implementation of OSInterface."""
 
     def __init__(self):
         self._udev_manager = UDEVManager()
-        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
+        self._hid_manager = HIDConnectionManager()  # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
         config_home = os.getenv("XDG_CONFIG_HOME")
@@ -80,11 +81,8 @@ class LinuxImpl(OSInterface):
         # Use the new method in UDEVManager
         return not self._udev_manager.are_rules_installed()
 
-
     def _execute_udev_helper_script(self, temp_file_path: str, final_file_path: str) -> subprocess.CompletedProcess:
-        """
-        Executes the udev helper script using pkexec. (Copied from app.py)
-        """
+        """Executes the udev helper script using pkexec. (Copied from app.py)"""
         # Determine path to script relative to this file or a known location
         # Assuming this file is at src/headsetcontrol_tray/os_layer/linux.py
         current_script_dir = Path(__file__).parent
@@ -93,7 +91,7 @@ class LinuxImpl(OSInterface):
         scripts_dir = (current_script_dir / ".." / ".." / "scripts").resolve()
         helper_script_path = scripts_dir / "install-udev-rules.sh"
 
-        if not helper_script_path.is_file(): # Use is_file for better check
+        if not helper_script_path.is_file():  # Use is_file for better check
             logger.error("Helper script not found at %s", str(helper_script_path))
             # This exception type might need to be defined in a common place or use a generic one
             raise TrayAppInitializationError(f"Helper script not found at {helper_script_path}")
@@ -107,19 +105,21 @@ class LinuxImpl(OSInterface):
                 cmd,
                 capture_output=True,
                 text=True,
-                check=False, # We check returncode manually
+                check=False,  # We check returncode manually
             )
         except FileNotFoundError:  # pkexec itself not found
             logger.exception("pkexec command not found. Ensure PolicyKit is installed.")
             raise TrayAppInitializationError("pkexec command not found.")
         except subprocess.SubprocessError as e:
-            logger.exception("Subprocess error during pkexec execution: %s", e)
-            raise TrayAppInitializationError(f"Subprocess error: {e}")
+            logger.exception("Subprocess error during pkexec execution:")
+            msg = f"Subprocess error: {e}"
+            raise TrayAppInitializationError(msg)
 
-
-    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
-        """
-        Guides the user through installing udev rules for Linux.
+    def perform_device_setup(
+        self,
+        ui_parent: Any = None,
+    ) -> tuple[bool, subprocess.CompletedProcess | None, Exception | None]:
+        """Guides the user through installing udev rules for Linux.
         This adapts logic from app.py's _handle_udev_permissions_flow.
         Returns a tuple: (success: bool, process_result: Optional[CompletedProcess], error: Optional[Exception])
         Actual success of pkexec script is communicated via UI by app.py.
@@ -136,6 +136,7 @@ class LinuxImpl(OSInterface):
             if ui_parent:
                 try:
                     from PySide6.QtWidgets import QMessageBox
+
                     QMessageBox.critical(
                         ui_parent,
                         "Device Setup Error",
@@ -147,17 +148,17 @@ class LinuxImpl(OSInterface):
             return False, None, TrayAppInitializationError("Failed to prepare udev rule details.")
 
         udev_details = self._udev_manager.get_last_udev_setup_details()
-        if not udev_details: # Should not happen if prepare_udev_rule_details succeeded
+        if not udev_details:  # Should not happen if prepare_udev_rule_details succeeded
             logger.error("UDEVManager prepared rules but details are missing.")
             return False, None, TrayAppInitializationError("UDEVManager details missing after preparation.")
 
         temp_file = udev_details["temp_file_path"]
         final_file = udev_details["final_file_path"]
 
-        logger.info(f"Executing udev helper script. Temp: {temp_file}, Final: {final_file}")
+        logger.info("Executing udev helper script. Temp: %s, Final: %s", temp_file, final_file)
 
-        execution_error: Optional[Exception] = None
-        process_result: Optional[subprocess.CompletedProcess] = None
+        execution_error: Exception | None = None
+        process_result: subprocess.CompletedProcess | None = None
         success = False
         try:
             process_result = self._execute_udev_helper_script(temp_file, final_file)
@@ -172,18 +173,17 @@ class LinuxImpl(OSInterface):
                 logger.info("Udev rules installed successfully via pkexec.")
                 success = True
             else:
-                logger.warning(f"pkexec helper script failed with code {process_result.returncode}.")
+                logger.warning("pkexec helper script failed with code %s.", process_result.returncode)
                 # The error is implicitly in process_result, no separate exception here unless pkexec itself failed to run.
 
-        except TrayAppInitializationError as e: # Errors from _execute_udev_helper_script itself
-            logger.error(f"Device setup failed before or during pkexec execution: {e}")
+        except TrayAppInitializationError as e:  # Errors from _execute_udev_helper_script itself
+            logger.exception("Device setup failed before or during pkexec execution:")
             execution_error = e
-        except Exception as e: # Catch any other unexpected error
-            logger.exception(f"An unexpected error occurred during perform_device_setup: {e}")
-            execution_error = e # General exception
+        except Exception as e:  # Catch any other unexpected error
+            logger.exception("An unexpected error occurred during perform_device_setup:")
+            execution_error = e  # General exception
 
         return success, process_result, execution_error
-
 
     def get_hid_manager(self) -> HIDManagerInterface:
         return self._hid_manager

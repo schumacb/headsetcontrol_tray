@@ -52,8 +52,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         application_quit_fn: Callable[[], None],
         parent: QWidget | None = None,
     ) -> None:
-        """
-        Initializes the SystemTrayIcon.
+        """Initializes the SystemTrayIcon.
 
         Args:
             headset_service: The application's HeadsetService instance.

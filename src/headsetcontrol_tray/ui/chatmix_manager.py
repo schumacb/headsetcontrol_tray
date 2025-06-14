@@ -27,8 +27,7 @@ class ChatMixManager:
     """Handles automatic volume adjustment of applications based on ChatMix values."""
 
     def __init__(self, config_manager: ConfigManager) -> None:  # cfg_mgr.ConfigManager
-        """
-        Initializes the ChatMixManager.
+        """Initializes the ChatMixManager.
 
         Args:
             config_manager: The application's ConfigManager instance.

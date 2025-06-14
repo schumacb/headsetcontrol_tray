@@ -18,8 +18,7 @@ class HIDCommunicator:
     """Facilitates direct HID communication with a headset device."""
 
     def __init__(self, hid_device: hid.Device, device_info: dict[str, Any]) -> None:
-        """
-        Initializes the HIDCommunicator.
+        """Initializes the HIDCommunicator.
 
         Args:
             hid_device: An open hid.Device object.

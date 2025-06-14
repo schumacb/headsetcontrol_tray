@@ -45,8 +45,7 @@ class EqualizerEditorWidget(QWidget):
         headset_service: hs_svc.HeadsetService,
         parent: QWidget | None = None,
     ) -> None:
-        """
-        Initializes the EqualizerEditorWidget.
+        """Initializes the EqualizerEditorWidget.
 
         Args:
             config_manager: The application's ConfigManager instance.
