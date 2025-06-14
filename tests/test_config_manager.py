@@ -35,16 +35,7 @@ class TestConfigManager(unittest.TestCase):
             DEFAULT_EQ_PRESET_ID=0,
             DEFAULT_INACTIVE_TIMEOUT=15,
         )
-        self.mocked_app_config = self.app_config_patcher.start()
-
-        self.CM_DEFAULT_ACTIVE_EQ_TYPE = "custom"
-        self.CM_DEFAULT_CHATMIX_ENABLED = True
-        self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED = False
-        self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED = True
-        self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED = True
-        self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED = True
-        self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED = False
-        self.CM_DEFAULT_DARK_MODE = "auto"
+        self.app_config_patcher.start() # Was self.mocked_app_config
 
     def tearDown(self) -> None:
         self.app_config_patcher.stop()
@@ -453,7 +444,7 @@ class TestConfigManager(unittest.TestCase):
             mock.patch.object(ConfigManager, "_load_json_file", return_value={}),
             mock.patch.object(ConfigManager, "_save_json_file"),
         ):  # Mock save to prevent issues if load fails
-            config_manager = ConfigManager(config_dir_path=self.test_config_path)
+            _ = ConfigManager(config_dir_path=self.test_config_path)  # noqa: F841
             # Check that the mock_mkdir was called
             mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
             # Check that logger.exception was called with the correct message format and arguments
@@ -494,13 +485,13 @@ class TestConfigManager(unittest.TestCase):
         self,  # , mock_path_exists_global: mock.MagicMock, mock_path_mkdir_global: mock.MagicMock, mock_save_json: mock.MagicMock, mock_load_json: mock.MagicMock
     ):
         with (
-            mock.patch.object(ConfigManager, "_load_json_file", return_value={}) as mock_load_json,
+            mock.patch.object(ConfigManager, "_load_json_file", return_value={}) as _mock_load_json, # Renamed
             mock.patch.object(ConfigManager, "_save_json_file") as mock_save_json,
             mock.patch(
                 "headsetcontrol_tray.config_manager.Path.mkdir",
                 side_effect=OSError("Cannot create dir"),
             ) as mock_path_mkdir_global,
-            mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=False) as mock_path_exists_global,
+            mock.patch("headsetcontrol_tray.config_manager.Path.exists", return_value=False) as _mock_path_exists_global, # Renamed
             mock.patch("headsetcontrol_tray.config_manager.logger") as mock_logger,
         ):
             cm = ConfigManager(config_dir_path=self.test_config_path)  # Instantiate only once
@@ -521,9 +512,8 @@ class TestConfigManager(unittest.TestCase):
             )
 
             # 4. Ensure _save_json_file was NOT called for the default EQ curves file
-            save_json_calls = mock_save_json.call_args_list
             found_eq_curves_save_call = False
-            for call_args_tuple in save_json_calls:
+            for call_args_tuple in mock_save_json.call_args_list: # Use directly
                 if call_args_tuple[0][0] == self.expected_eq_curves_file:
                     found_eq_curves_save_call = True
                     break
@@ -548,7 +538,7 @@ class TestConfigManager(unittest.TestCase):
         # But if dir creation fails, it should skip this save.
 
         # Get all calls to mock_save_json
-        save_calls = mock_save_json.call_args_list
+        # save_calls = mock_save_json.call_args_list # Vulture: unused variable
         # Check that none of these calls were for the EQ curves file
         # This assumes that if save was called for EQ curves, it would be with self.expected_eq_curves_file
         # A simpler check: mock_save_json.assert_not_called() if NO saves are expected.

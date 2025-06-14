@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 from typing import Any
+import unittest # Import unittest
 from unittest.mock import MagicMock, Mock, patch
 
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -27,16 +28,12 @@ sys.path.insert(
 try:
     from headsetcontrol_tray.app import SteelSeriesTrayApp
 except ImportError:
-    logger.exception("ImportError in test_app.py")  # Removed redundant exception object e
+    logger.exception("ImportError in test_app.py")
     raise
 
-    # @pytest.mark.usefixtures("qapp")
-    # class TestSteelSeriesTrayAppUdevDialog(unittest.TestCase):
-    #     """Tests UDEV dialog interactions in the SteelSeriesTrayApp."""
-    #
-    #     # qapp_for_class is no longer needed as qapp fixture handles instance per test.
-    # setUpClass is no longer needed as qapp fixture handles setup per test.
-    # tearDownClass is no longer needed as qapp fixture handles teardown per test.
+
+class TestAppDialogs(unittest.TestCase):
+    # Indent setUp and test methods under this class
 
     def setUp(self) -> None:
         """Set up test environment before each test."""
@@ -52,10 +49,8 @@ except ImportError:
         self.qapplication_patch.start()
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file_obj:
-            self.temp_file = temp_file_obj  # Still assign to self for teardown
-            temp_file_path = temp_file_obj.name
-        # temp_file_obj is now closed. self.temp_file.name can be used for cleanup.
-
+            _ = temp_file_obj.name # Read to satisfy context, but not store
+        # temp_file_obj is now closed.
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
@@ -137,5 +132,5 @@ except ImportError:
         SteelSeriesTrayApp()  # Constructor called for side effects
         mock_qmessage_box_class.assert_not_called()
 
-    # tearDown is no longer strictly needed to stop the QApplication patch,
-    # but can be kept for other cleanup if necessary.
+    # tearDown is no longer strictly needed to stop the QApplication patch.
+    # Removed commented out tearDown method.

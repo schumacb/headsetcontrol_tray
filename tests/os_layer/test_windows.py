@@ -35,16 +35,15 @@ def test_windows_impl_get_hid_manager(windows_impl_fixture):  # mocker removed
 
 
 @pytest.mark.parametrize(
-    "appdata_val, expected_parent_name_segment, expected_app_name_folder",
+    "appdata_val, expected_app_name_folder",
     [
-        ("C:\\Users\\TestUser\\AppData\\Roaming", "Roaming", APP_NAME.replace(" ", "")),
-        (None, ".config", APP_NAME.lower().replace(" ", "_")),
+        ("C:\\Users\\TestUser\\AppData\\Roaming", APP_NAME.replace(" ", "")),
+        (None, APP_NAME.lower().replace(" ", "_")),
     ],
 )
 def test_windows_impl_get_config_dir(
     windows_impl_fixture,
     appdata_val,
-    expected_parent_name_segment,
     expected_app_name_folder,
 ):
     env_vars = {}

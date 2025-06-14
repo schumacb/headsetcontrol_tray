@@ -68,7 +68,11 @@ class ConfigManager:
 
     def _save_json_file(self, file_path: Path, data: dict) -> None:
         if not self._config_dir.exists():
-            logger.error("Cannot save file %s because config directory %s does not exist.", file_path, self._config_dir)
+            logger.exception(
+                "Cannot save file %s because config directory %s does not exist.",
+                file_path,
+                self._config_dir,
+            )
             return
         try:
             with file_path.open("w", encoding="utf-8") as f:  # Specify encoding
