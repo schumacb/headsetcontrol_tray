@@ -76,7 +76,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
             },  # Different VID
         ]
 
-        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
+        devices = self.manager.find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 1
         assert devices[0]["product_id"] == mock_dev1_pid
         mock_hid_enumerate.assert_called_once_with(app_config.STEELSERIES_VID, 0)
@@ -90,9 +90,9 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
     ) -> None:
         """Test find_potential_hid_devices handles hid.enumerate errors."""
         mock_hid_enumerate.side_effect = hid.HIDException("Enumeration failed")
-        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
+        devices = self.manager.find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 0
-        mock_logger.exception.assert_called_with("Error enumerating HID devices")
+        mock_logger.exception.assert_called_with("Error enumerating HID devices: %s", mock.ANY)
 
     @patch("headsetcontrol_tray.hid_manager.hid.enumerate")
     @patch("headsetcontrol_tray.hid_manager.logger")  # Restored
@@ -110,7 +110,7 @@ class TestHIDConnectionManagerDiscovery(unittest.TestCase):
                 "path": b"other_path",
             },  # Different VID
         ]
-        devices = self.manager._find_potential_hid_devices()  # noqa: SLF001
+        devices = self.manager.find_potential_hid_devices()  # noqa: SLF001
         assert len(devices) == 0
 
 
@@ -182,7 +182,7 @@ class TestHIDConnectionManagerSorting(unittest.TestCase):
         devices_unsorted = [dev_e, dev_c, dev_a, dev_d, dev_b]
         expected_order = [dev_a, dev_b, dev_c, dev_d, dev_e]  # Based on sort keys
 
-        sorted_devices = self.manager._sort_hid_devices(devices_unsorted)  # noqa: SLF001
+        sorted_devices = self.manager.sort_hid_devices(devices_unsorted)  # noqa: SLF001
         assert [d["path"] for d in sorted_devices] == [e["path"] for e in expected_order]
 
         # No explicit cleanup here needed due to tearDown,
@@ -210,7 +210,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         self.manager = HIDConnectionManager()
 
     @patch("headsetcontrol_tray.hid_manager.hid.Device")
-    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
+    @patch.object(HIDConnectionManager, "find_potential_hid_devices") # Patched public method
     def test_connect_device_success(
         self,
         mock_find_devices: MagicMock,
@@ -228,9 +228,10 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_hid_instance = MagicMock(spec=hid.Device)
         mock_hid_device_constructor.return_value = mock_hid_instance
 
-        result = self.manager._connect_device()  # noqa: SLF001
+        result_dev, result_info = self.manager.connect_device()  # noqa: SLF001, changed to public
 
-        assert result
+        assert result_dev is not None # connect_device returns a tuple
+        assert result_info is not None
         assert self.manager.hid_device is not None
         assert self.manager.hid_device == mock_hid_instance
         assert self.manager.selected_device_info == mock_device_info
@@ -240,7 +241,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         )
 
     @patch("headsetcontrol_tray.hid_manager.hid.Device")
-    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
+    @patch.object(HIDConnectionManager, "find_potential_hid_devices") # Patched public method
     def test_connect_device_no_devices_found(
         self,
         mock_find_devices: MagicMock,
@@ -249,15 +250,16 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         """Test _connect_device handles no devices found by _find_potential_hid_devices."""
         mock_find_devices.return_value = []
 
-        result = self.manager._connect_device()  # noqa: SLF001
+        result_dev, result_info = self.manager.connect_device()  # noqa: SLF001, changed to public
 
-        assert not result
+        assert result_dev is None # connect_device returns a tuple
+        assert result_info is None
         assert self.manager.hid_device is None
         mock_hid_device_constructor.assert_not_called()
 
     @patch("headsetcontrol_tray.hid_manager.logger")
     @patch("headsetcontrol_tray.hid_manager.hid.Device")
-    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")
+    @patch.object(HIDConnectionManager, "find_potential_hid_devices") # Patched public method
     def test_connect_device_open_fails_for_all(
         self,
         mock_find_devices: MagicMock,  # Innermost
@@ -282,19 +284,22 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
             "Failed to open HID device",
         )
 
-        result = self.manager._connect_device()  # noqa: SLF001
+        result_dev, result_info = self.manager.connect_device()  # noqa: SLF001, changed to public
 
-        assert not result
+        assert result_dev is None # connect_device returns a tuple
+        assert result_info is None
         assert self.manager.hid_device is None
         assert mock_hid_device_constructor.call_count == EXPECTED_HID_OPEN_ATTEMPTS_ON_FAILURE  # Tried both devices
-        mock_logger.exception.assert_any_call(
-            "    Failed to open HID device path %s",
+        # Source uses logger.warning, not exception, for this specific case
+        mock_logger.warning.assert_any_call(
+            "    Failed to open HID device path %s: %s", # Expecting message and exception instance
+            mock.ANY,
             mock.ANY,
         )
 
-    @patch.object(HIDConnectionManager, "_connect_device")  # provides mock_internal_connect_device
+    @patch.object(HIDConnectionManager, "connect_device")  # provides mock_internal_connect_device
     @patch("headsetcontrol_tray.hid_manager.hid.Device")  # provides _mock_hid_device_constructor_unused
-    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")  # provides _mock_find_devices_unused
+    @patch.object(HIDConnectionManager, "find_potential_hid_devices")  # provides _mock_find_devices_unused
     def test_ensure_connection_already_connected(
         self,
         _mock_find_devices_unused: MagicMock,  # noqa: PT019
@@ -309,9 +314,9 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         assert result
         mock_internal_connect_device.assert_not_called()
 
-    @patch.object(HIDConnectionManager, "_connect_device")  # provides mock_internal_connect_device
+    @patch.object(HIDConnectionManager, "connect_device")  # provides mock_internal_connect_device
     @patch("headsetcontrol_tray.hid_manager.hid.Device")  # provides _mock_hid_device_constructor_unused
-    @patch.object(HIDConnectionManager, "_find_potential_hid_devices")  # provides _mock_find_devices_unused
+    @patch.object(HIDConnectionManager, "find_potential_hid_devices")  # provides _mock_find_devices_unused
     def test_ensure_connection_needs_connection(
         self,
         _mock_find_devices_unused: MagicMock,  # noqa: PT019
@@ -320,11 +325,12 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
     ) -> None:
         """Test ensure_connection when a new connection attempt is needed."""
         self.manager.hid_device = None  # Not connected
-        mock_internal_connect_device.return_value = True  # Simulate successful connection by _connect_device
+        # Simulate successful connection by connect_device by returning a mock HID device and info
+        mock_internal_connect_device.return_value = (MagicMock(spec=hid.Device), {"path": b"mock_path"})
 
         result = self.manager.ensure_connection()
 
-        assert result
+        assert result is True # ensure_connection returns a boolean
         mock_internal_connect_device.assert_called_once()
 
 

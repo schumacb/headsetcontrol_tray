@@ -3,6 +3,7 @@
 # Standard library imports
 from pathlib import Path
 import sys
+import tempfile # Ensure tempfile is imported
 import unittest
 from unittest.mock import MagicMock, call, patch
 
@@ -81,10 +82,11 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         mock_named_temp_file.assert_called_once_with(
             mode="w",
             delete=False,
-            prefix="headsetcontrol_",
+            prefix="headsetcontrol_tray_",
             suffix=".rules",
+            dir=tempfile.gettempdir() # Use tempfile.gettempdir()
         )
-        mock_temp_file_context.write.assert_called_once_with(UDEV_RULE_CONTENT + "\n")
+        mock_temp_file_context.write.assert_called_once_with(UDEV_RULE_CONTENT) # Removed extra \n
 
         expected_details = {
             "temp_file_path": "fake_headsetcontrol_abcdef.rules",
@@ -94,34 +96,22 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         }
         assert self.manager.last_udev_setup_details == expected_details
 
-        # Check for specific log messages
-        self.mock_logger.info.assert_any_call(
-            "Successfully wrote udev rule content to temporary file: %s",
-            expected_details["temp_file_path"],
-        )
+        # Verify all expected log messages in order
+        final_rules_path_str = str(Path("/etc/udev/rules.d/") / UDEV_RULE_FILENAME)
+        temp_file_name_str = "fake_headsetcontrol_abcdef.rules"
 
-        # Verify key log messages using call objects
-        expected_action_required_log = call(
-            "ACTION REQUIRED: To complete headset setup, please run the following commands:",
-        )
-        assert expected_action_required_log in self.mock_logger.info.call_args_list
-
-        expected_cp_log = call(
-            '1. Copy the rule file: sudo cp "%s" "%s"',
-            expected_details["temp_file_path"],
-            expected_details["final_file_path"],
-        )
-        assert expected_cp_log in self.mock_logger.info.call_args_list
-
-        expected_reload_log = call(
-            "2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger",
-        )
-        assert expected_reload_log in self.mock_logger.info.call_args_list
-
-        expected_replug_log = call(
-            "3. Replug your SteelSeries headset if it was connected.",
-        )
-        assert expected_replug_log in self.mock_logger.info.call_args_list
+        expected_log_calls = [
+            call("Preparing udev rule details for potential installation to %s", final_rules_path_str),
+            call("Successfully wrote udev rule content to temporary file: %s", temp_file_name_str),
+            call("--------------------------------------------------------------------------------"),
+            call("MANUAL UDEV SETUP (if automatic setup is not used or fails):"),
+            call(' 1. Copy the rule file: sudo cp "%s" "%s"', temp_file_name_str, final_rules_path_str), # Added leading space
+            call(" 2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger"), # Added leading space
+            call(" 3. Replug your SteelSeries headset if it was connected."), # Removed temp_file_name_str
+            call(" (The temporary file %s can be deleted after copying.)", temp_file_name_str),
+            call("--------------------------------------------------------------------------------")
+        ]
+        self.mock_logger.info.assert_has_calls(expected_log_calls)
 
     @patch("tempfile.NamedTemporaryFile")
     def test_create_rules_interactive_os_error_on_write(
@@ -140,8 +130,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "Could not write temporary udev rule file",
-            # The original code logs the exception object as part of the message if using %s, e
+            "Could not write temporary udev rule file: %s", unittest.mock.ANY
         )
 
     @patch("tempfile.NamedTemporaryFile")
@@ -159,7 +148,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "An unexpected error occurred during temporary udev rule file creation",
+            "An unexpected error occurred during temporary udev rule file creation: %s", unittest.mock.ANY
         )
 
     def test_get_last_udev_setup_details_initially_none(
