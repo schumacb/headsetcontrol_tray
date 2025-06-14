@@ -1,4 +1,5 @@
 import logging
+import os # For os.access, though direct file content check is harder
 from pathlib import Path
 import tempfile
 
@@ -12,7 +13,7 @@ RULE_LINES: list[str] = [
     (f'SUBSYSTEM=="hidraw", ATTRS{{idVendor}}=="{VID_HEX}", ATTRS{{idProduct}}=="{pid:04x}", TAG+="uaccess"')
     for pid in app_config.TARGET_PIDS
 ]
-UDEV_RULE_CONTENT: str = "\n".join(RULE_LINES) + "\n"  # Ensure trailing newline
+UDEV_RULE_CONTENT: str = "\n".join(RULE_LINES) + "\n" # Ensure trailing newline
 UDEV_RULE_FILENAME: str = "99-steelseries-headsets.rules"
 UDEV_RULES_DIR: Path = Path("/etc/udev/rules.d/")
 
@@ -37,7 +38,7 @@ class UDEVManager:
         """Returns the final absolute path for the udev rule file."""
         return UDEV_RULES_DIR / UDEV_RULE_FILENAME
 
-    def create_rules_interactive(self) -> bool:  # Renamed from prepare_udev_rule_details
+    def create_rules_interactive(self) -> bool: # Renamed from prepare_udev_rule_details
         """
         Creates a temporary udev rule file and stores its details.
         This method is intended to be called when setup is needed.
@@ -50,14 +51,14 @@ class UDEVManager:
             str(final_rules_path),
         )
 
-        self.last_udev_setup_details = None  # Reset previous details
+        self.last_udev_setup_details = None # Reset previous details
         try:
             with tempfile.NamedTemporaryFile(
                 mode="w",
-                delete=False,  # File is not deleted when closed, so it can be copied
-                prefix="headsetcontrol_tray_",  # Add app name for clarity
+                delete=False, # File is not deleted when closed, so it can be copied
+                prefix="headsetcontrol_tray_", # Add app name for clarity
                 suffix=".rules",
-                dir=tempfile.gettempdir(),  # Use system temp dir
+                dir=tempfile.gettempdir(), # Use system temp dir
             ) as tmp_file:
                 temp_file_name = tmp_file.name
                 tmp_file.write(self.get_rule_content())
@@ -85,7 +86,7 @@ class UDEVManager:
             logger.exception("Could not write temporary udev rule file: %s", e)
             self.last_udev_setup_details = None
             return False
-        except Exception as e:  # Catch any other unexpected error
+        except Exception as e: # Catch any other unexpected error
             logger.exception("An unexpected error occurred during temporary udev rule file creation: %s", e)
             self.last_udev_setup_details = None
             return False

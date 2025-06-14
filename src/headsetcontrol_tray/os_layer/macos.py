@@ -1,65 +1,53 @@
-"""macOS specific OS-level interface implementation."""
-
 import logging
+import subprocess # For CompletedProcess type hint
 from pathlib import Path
-import subprocess  # For CompletedProcess type hint
-from typing import Any
-
-from PySide6.QtWidgets import QMessageBox  # Added import
+from typing import Any, Optional, Tuple
 
 # Assuming 'hid' will be importable in the context where HIDManagerInterface is implemented.
 HidDevice = Any
 
-# Application-specific imports
-from headsetcontrol_tray import app_config
-from headsetcontrol_tray.hid_manager import HIDConnectionManager
-from headsetcontrol_tray.os_layer.base import HIDManagerInterface, OSInterface
-# PySide6 import is already absolute and correctly placed among third-party if it were there
-# For now, it's fine here as it's used by this module.
+from .base import OSInterface, HIDManagerInterface
+from .. import app_config # To get app name for paths
+from ..hid_manager import HIDConnectionManager # The concrete implementation of HIDManagerInterface
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.os_layer.macos")
 
 # MacOSHIDManager class removed
 
-
 class MacOSImpl(OSInterface):
     """MacOS-specific implementation of OSInterface (placeholder)."""
 
-    def __init__(self) -> None:
-        """Initializes MacOSImpl, setting up the HID manager."""
-        self._hid_manager = HIDConnectionManager()  # Changed to HIDConnectionManager
+    def __init__(self):
+        self._hid_manager = HIDConnectionManager() # Changed to HIDConnectionManager
 
     def get_config_dir(self) -> Path:
-        """Returns the macOS-specific configuration directory path for the application."""
         # Standard macOS config location
         return Path.home() / "Library" / "Application Support" / app_config.APP_NAME.replace(" ", "")
 
+    def get_data_dir(self) -> Path:
+        # Can be same as config dir for macOS or a subfolder
+        return Path.home() / "Library" / "Application Support" / app_config.APP_NAME.replace(" ", "")
+
     def get_os_name(self) -> str:
-        """Returns the OS name as 'macos'."""
         return "macos"
 
     def needs_device_setup(self) -> bool:
-        """Checks if OS-specific device setup is needed (always False for macOS)."""
         logger.info("needs_device_setup: Not implemented for macOS (assuming generic HID works).")
-        return False  # Placeholder
+        return False # Placeholder
 
-    def perform_device_setup(
-        self, ui_parent: Any = None,
-    ) -> tuple[bool, subprocess.CompletedProcess | None, Exception | None]:
-        """Performs device setup for macOS (currently a no-op that informs the user)."""
+    def perform_device_setup(self, ui_parent: Any = None) -> Tuple[bool, Optional[subprocess.CompletedProcess], Optional[Exception]]:
         logger.info("perform_device_setup: No specific device setup implemented for macOS.")
         if ui_parent:
-            # QMessageBox is now imported at the module level
-            QMessageBox.information(
-                ui_parent,
-                "Device Setup",
-                "No specific device setup is required for macOS for this application.",
-            )
-            # The try-except ImportError can be removed if QMessageBox is essential
-            # or kept if it's truly optional and you want to log if PySide6 isn't there.
-            # For now, assuming PySide6 is a core dependency for UI parts.
-        return False, None, None  # success, process_result, execution_error
+            try:
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    ui_parent,
+                    "Device Setup",
+                    "No specific device setup is required for macOS for this application.",
+                )
+            except ImportError:
+                logger.error("PySide6 not available for showing info dialog in perform_device_setup (macOS).")
+        return False, None, None # success, process_result, execution_error
 
     def get_hid_manager(self) -> HIDManagerInterface:
-        """Returns the HID manager instance for macOS."""
         return self._hid_manager

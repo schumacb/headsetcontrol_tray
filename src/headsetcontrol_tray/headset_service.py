@@ -1,13 +1,11 @@
-"""Service layer for interacting with headset hardware via HID communication."""
-
 import logging
+from pathlib import Path # Keep for now, though STEELSERIES_UDEV_FILENAME is removed
 from typing import Any
 
 from . import app_config
 from .headset_status import HeadsetCommandEncoder, HeadsetStatusParser
 from .hid_communicator import HIDCommunicator
-from .os_layer.base import HIDManagerInterface  # Added
-
+from .os_layer.base import HIDManagerInterface # Added
 # UDEVManager and STEELSERIES_UDEV_FILENAME removed
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
@@ -16,9 +14,9 @@ logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 class HeadsetService:
     """Provides an interface to interact with the headset."""
 
-    def __init__(self, hid_manager: HIDManagerInterface) -> None:  # Modified signature
+    def __init__(self, hid_manager: HIDManagerInterface) -> None: # Modified signature
         """Initializes the HeadsetService."""
-        self.hid_manager = hid_manager  # Use passed-in hid_manager
+        self.hid_manager = hid_manager # Use passed-in hid_manager
         self.hid_communicator: HIDCommunicator | None = None
         # self.udev_manager removed
         self.status_parser = HeadsetStatusParser()
@@ -39,7 +37,7 @@ class HeadsetService:
     def _ensure_hid_communicator(self) -> bool:
         if (
             self.hid_communicator
-            and self.hid_manager.get_hid_device()  # Use getter method
+            and self.hid_manager.get_hid_device() # Use getter method
             and self.hid_communicator.hid_device == self.hid_manager.get_hid_device()
         ):
             return True
@@ -64,7 +62,9 @@ class HeadsetService:
                 else:
                     device_info_for_comm = device_info
 
-                if self.hid_communicator is None or self.hid_communicator.hid_device != active_hid_device:
+                if (
+                    self.hid_communicator is None or self.hid_communicator.hid_device != active_hid_device
+                ):
                     self.hid_communicator = HIDCommunicator(
                         hid_device=active_hid_device,
                         device_info=device_info_for_comm,
@@ -89,7 +89,7 @@ class HeadsetService:
 
     def close(self) -> None:
         """Closes the HID connection and clears the communicator."""
-        self.hid_manager.close()  # Use self.hid_manager
+        self.hid_manager.close() # Use self.hid_manager
         self.hid_communicator = None
         logger.debug(
             "HeadsetService: HID connection closed via manager, local communicator cleared.",
@@ -98,7 +98,7 @@ class HeadsetService:
     def _clear_last_hid_status(self, reason: str) -> None:
         if self._last_hid_parsed_status is not None or self._last_hid_raw_read_data is not None:
             logger.info(
-                "_get_parsed_status_hid: %s, clearing last known status.",  # Corrected method name in log
+                "_get_parsed_status_hid: %s, clearing last known status.", # Corrected method name in log
                 reason,
             )
         self._last_hid_raw_read_data = None
@@ -114,7 +114,7 @@ class HeadsetService:
             logger.warning(
                 "_read_raw_hid_status: Failed to write HID status request. Closing connection.",
             )
-            self.hid_manager.close()  # Use self.hid_manager
+            self.hid_manager.close() # Use self.hid_manager
             self.hid_communicator = None
             self._clear_last_hid_status("Write failed")
             return None
@@ -190,15 +190,6 @@ class HeadsetService:
         return parsed_status
 
     def is_device_connected(self) -> bool:
-        """
-        Checks if the headset is connected and functionally online.
-
-        Ensures the HID communicator is active, then queries the headset's status.
-        Logs changes in connectivity or functional online status.
-
-        Returns:
-            True if the headset is connected and reports as online, False otherwise.
-        """
         self._ensure_hid_communicator()
         if not self.hid_communicator:
             if self._last_hid_only_connection_logged_status is not False:
@@ -216,14 +207,12 @@ class HeadsetService:
                 logger.info("is_device_connected: HID connection is active and headset reports as online.")
             else:
                 logger.info(
-                    "is_device_connected: HID path may be active, but headset reported as offline "
-                    "or status query failed. Reporting as NOT connected.",
+                    "is_device_connected: HID path may be active, but headset reported as offline or status query failed. Reporting as NOT connected.",
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online
         return is_functionally_online
 
     def get_battery_level(self) -> int | None:
-        """Retrieves the battery percentage from the headset."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_percent") is not None:
             current_value = status["battery_percent"]
@@ -237,7 +226,6 @@ class HeadsetService:
         return None
 
     def get_chatmix_value(self) -> int | None:
-        """Retrieves the ChatMix value from the headset."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("chatmix") is not None:
             current_value = status["chatmix"]
@@ -251,7 +239,6 @@ class HeadsetService:
         return None
 
     def is_charging(self) -> bool | None:
-        """Checks if the headset is currently charging."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_charging") is not None:
             current_value = status["battery_charging"]
@@ -283,28 +270,24 @@ class HeadsetService:
             logger.info("%s: Successfully sent command.", command_name_log)
         else:
             logger.warning("%s: Failed to send command. Closing HID connection.", command_name_log)
-            self.hid_manager.close()  # Use self.hid_manager
+            self.hid_manager.close() # Use self.hid_manager
             self.hid_communicator = None
         return success
 
     def set_sidetone_level(self, level: int) -> bool:
-        """Sets the sidetone level on the headset."""
         clamped_level = max(0, min(128, level))
         payload = self.command_encoder.encode_set_sidetone(clamped_level)
         return self._generic_set_command(f"Set Sidetone (UI level {clamped_level})", payload, report_id=0)
 
     def set_inactive_timeout(self, minutes: int) -> bool:
-        """Sets the inactive timeout on the headset."""
         clamped_minutes = max(0, min(90, minutes))
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(f"Set Inactive Timeout ({clamped_minutes}min)", payload, report_id=0)
 
     def set_eq_values(self, values: list[float]) -> bool:
-        """Sets custom EQ values on the headset."""
         payload = self.command_encoder.encode_set_eq_values(values)
         return self._generic_set_command(f"Set EQ Values ({values})", payload, report_id=0)
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
-        """Sets a hardware EQ preset on the headset by its ID."""
         payload = self.command_encoder.encode_set_eq_preset_id(preset_id)
         return self._generic_set_command(f"Set EQ Preset ID ({preset_id})", payload, report_id=0)
