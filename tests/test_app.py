@@ -49,36 +49,40 @@ class TestAppDialogs: # No longer inherits from unittest.TestCase
         # This patch is now inside the test method
         with patch("headsetcontrol_tray.app.QApplication", return_value=qapp):
             mock_service_instance = mock_headset_service.return_value
-        # is_device_connected would likely be false if udev_setup_details is populated due to connection failure
+            # Explicitly set udev_setup_details for this test case
+            mock_service_instance.udev_setup_details = {
+                "temp_file_path": "dummy/temp/path",
+                "final_file_path": "dummy/final/path",
+            }
             mock_service_instance.is_device_connected = Mock(return_value=False)
             mock_service_instance.close = Mock()
 
             mock_dialog_instance = mock_qmessage_box_class.return_value
 
-        # close_button_mock was unused
-        added_buttons_initial = []
+            # close_button_mock was unused
+            added_buttons_initial = []
 
-        def side_effect_add_button_initial(
-            text_or_button: str | QMessageBox.StandardButton,
-            role: QMessageBox.ButtonRole | None = None,
-        ) -> MagicMock:  # Added return type
-            button = MagicMock(spec=QMessageBox.StandardButton)
-            added_buttons_initial.append(
-                {"button": button, "role": role, "text_or_enum": text_or_button},
-            )
-            return button
+            def side_effect_add_button_initial(
+                text_or_button: str | QMessageBox.StandardButton,
+                role: QMessageBox.ButtonRole | None = None,
+            ) -> MagicMock:  # Added return type
+                button = MagicMock(spec=QMessageBox.StandardButton)
+                added_buttons_initial.append(
+                    {"button": button, "role": role, "text_or_enum": text_or_button},
+                )
+                return button
 
-        mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
+            mock_dialog_instance.addButton.side_effect = side_effect_add_button_initial
 
-        def set_clicked_button_to_close_equivalent(*_args: Any, **_kwargs: Any) -> None:  # Added arg and return types
-            found_close_button = None
-            for b_info in added_buttons_initial:
-                if b_info.get("text_or_enum") == QMessageBox.StandardButton.Close:  # Corrected Enum
-                    found_close_button = b_info["button"]
-                    break
-            if not found_close_button:
-                found_close_button = MagicMock(spec=QMessageBox.StandardButton)
-            mock_dialog_instance.clickedButton.return_value = found_close_button
+            def set_clicked_button_to_close_equivalent(*_args: Any, **_kwargs: Any) -> None:  # Added arg and return types
+                found_close_button = None
+                for b_info in added_buttons_initial:
+                    if b_info.get("text_or_enum") == QMessageBox.StandardButton.Close:  # Corrected Enum
+                        found_close_button = b_info["button"]
+                        break
+                if not found_close_button:
+                    found_close_button = MagicMock(spec=QMessageBox.StandardButton)
+                mock_dialog_instance.clickedButton.return_value = found_close_button
 
             mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
 
@@ -86,17 +90,18 @@ class TestAppDialogs: # No longer inherits from unittest.TestCase
 
             mock_qmessage_box_class.assert_called_once()
             mock_dialog_instance.exec.assert_called_once()
-        mock_dialog_instance.setWindowTitle.assert_called_with(
-            "Headset Permissions Setup Required",
-        )
-        # Updated assertion for the main text
-        mock_dialog_instance.setText.assert_called_with(
-            "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
-        )
+            # Assertions moved inside the 'with' block
+            mock_dialog_instance.setWindowTitle.assert_called_with(
+                "Headset Permissions Setup Required",
+            )
+            # Updated assertion for the main text
+            mock_dialog_instance.setText.assert_called_with(
+                "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
+            )
 
-        informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
-        assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
-        assert "Show Manual Instructions Only" not in informative_text_call_args
+            informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
+            assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
+            assert "Show Manual Instructions Only" not in informative_text_call_args
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
@@ -113,9 +118,9 @@ class TestAppDialogs: # No longer inherits from unittest.TestCase
         with patch("headsetcontrol_tray.app.QApplication", return_value=qapp):
             mock_service_instance = mock_headset_service.return_value
             mock_service_instance.udev_setup_details = None
-            mock_service_instance.is_device_connected = Mock(
-                return_value=True,
-            )  # Or False, shouldn't matter if details are None
+            mock_service_instance.is_device_connected = Mock(return_value=True)
+            # Ensure all relevant HeadsetService methods are mocked if they might be called
+            mock_service_instance.is_running_as_root_or_admin = Mock(return_value=False)
             mock_service_instance.close = Mock()
 
             SteelSeriesTrayApp()  # Constructor called for side effects
