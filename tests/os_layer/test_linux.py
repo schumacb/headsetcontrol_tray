@@ -214,7 +214,7 @@ def test_linux_impl_perform_device_setup_exceptions(
             scripts_dir_mock.is_file = MagicMock() # Ensure is_file is also a mock on this instance
             # This chain simulates (Path(__file__).parent / ".." / ".." / "scripts")
             mock_file_dunder_path_obj.parent.parent.__truediv__.return_value = scripts_dir_mock
-            scripts_dir_mock.resolve.return_value = scripts_dir_mock  # .resolve() # type: ignore[attr-defined]
+            scripts_dir_mock.resolve.return_value = scripts_dir_mock  # .resolve() # type: ignore
             # scripts_dir_mock / "install-udev-rules.sh"
             scripts_dir_mock.__truediv__.return_value = mock_script_path_obj
 
@@ -227,7 +227,7 @@ def test_linux_impl_perform_device_setup_exceptions(
                 # For other Path calls, return a generic mock that won't break things
                 # This part might not be strictly necessary if all Path usages in the method are covered
                 generic_path_mock = MagicMock() # Removed spec=Path
-                generic_path_mock.is_file = MagicMock(return_value=True)  # Ensure is_file is a mock # type: ignore[attr-defined]
+                generic_path_mock.is_file = MagicMock(return_value=True)  # Ensure is_file is a mock # type: ignore
                 generic_path_mock.__str__.return_value = str(value) if value else "."  # So str(Path(x)) == x
                 return generic_path_mock
 

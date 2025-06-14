@@ -418,18 +418,18 @@ class TestConfigManager(unittest.TestCase):
             cm.get_active_eq_type()
         mock_get_setting.assert_called_once_with(
             "active_eq_type",
-            self.CM_DEFAULT_ACTIVE_EQ_TYPE,
-        )  # Reverted to self.CM_DEFAULT
+            "custom",
+        )
 
     # Test default values for other specific settings
     def test_default_chatmix_enabled(self) -> None:
         with mock.patch.object(ConfigManager, "get_setting") as mock_get_setting:
             cm = ConfigManager(config_dir_path=Path("dummy"))
-            cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED)  # Reverted to self.CM_DEFAULT
+            cm.get_setting("chatmix_enabled", True)
         mock_get_setting.assert_called_once_with(
             "chatmix_enabled",
-            self.CM_DEFAULT_CHATMIX_ENABLED,
-        )  # Reverted to self.CM_DEFAULT
+            True,
+        )
 
     # ... (similar tests for other defaults can be added if they have specific getters/setters) ...
 

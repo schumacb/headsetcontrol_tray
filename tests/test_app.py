@@ -6,8 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 from typing import Any
-import unittest # Import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch # unittest import removed
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
@@ -32,42 +31,29 @@ except ImportError:
     raise
 
 
-class TestAppDialogs(unittest.TestCase):
-    # Indent setUp and test methods under this class
-
-    def setUp(self) -> None:
-        """Set up test environment before each test."""
-        # qapp fixture ensures QApplication.instance() is available here.
-        self.qapp_instance = QApplication.instance()
-        assert self.qapp_instance is not None, "qapp fixture did not provide a QApplication instance for setUp."
-
-        # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
-        self.qapplication_patch = patch(
-            "headsetcontrol_tray.app.QApplication",
-            return_value=self.qapp_instance,
-        )
-        self.qapplication_patch.start()
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file_obj:
-            _ = temp_file_obj.name # Read to satisfy context, but not store
-        # temp_file_obj is now closed.
+class TestAppDialogs: # No longer inherits from unittest.TestCase
+    # setUp method removed
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
     def test_initial_dialog_shown_when_details_present(
         self,
-        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
-        mock_headset_service: MagicMock,  # Corrected order, renamed
-        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
+        mock_qmessage_box_class: MagicMock, # Order of mock arguments changed due to patch order
+        mock_headset_service: MagicMock,
+        _mock_system_tray_icon: MagicMock, # noqa: PT019
+        qapp: QApplication, # Added qapp fixture
     ) -> None:
         """Test that the initial udev help dialog is shown if udev details are present."""
-        mock_service_instance = mock_headset_service.return_value
+        # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
+        # This patch is now inside the test method
+        with patch("headsetcontrol_tray.app.QApplication", return_value=qapp):
+            mock_service_instance = mock_headset_service.return_value
         # is_device_connected would likely be false if udev_setup_details is populated due to connection failure
-        mock_service_instance.is_device_connected = Mock(return_value=False)
-        mock_service_instance.close = Mock()
+            mock_service_instance.is_device_connected = Mock(return_value=False)
+            mock_service_instance.close = Mock()
 
-        mock_dialog_instance = mock_qmessage_box_class.return_value
+            mock_dialog_instance = mock_qmessage_box_class.return_value
 
         # close_button_mock was unused
         added_buttons_initial = []
@@ -94,12 +80,12 @@ class TestAppDialogs(unittest.TestCase):
                 found_close_button = MagicMock(spec=QMessageBox.StandardButton)
             mock_dialog_instance.clickedButton.return_value = found_close_button
 
-        mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
+            mock_dialog_instance.exec.side_effect = set_clicked_button_to_close_equivalent
 
-        SteelSeriesTrayApp()  # Constructor called for side effects
+            SteelSeriesTrayApp()  # Constructor called for side effects
 
-        mock_qmessage_box_class.assert_called_once()
-        mock_dialog_instance.exec.assert_called_once()
+            mock_qmessage_box_class.assert_called_once()
+            mock_dialog_instance.exec.assert_called_once()
         mock_dialog_instance.setWindowTitle.assert_called_with(
             "Headset Permissions Setup Required",
         )
@@ -114,23 +100,26 @@ class TestAppDialogs(unittest.TestCase):
 
     @patch("headsetcontrol_tray.app.QMessageBox")
     @patch("headsetcontrol_tray.app.hs_svc.HeadsetService")
-    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
+    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")
     def test_initial_dialog_not_shown_when_details_absent(
         self,
-        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
-        mock_headset_service: MagicMock,  # Corrected order, renamed
-        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
+        mock_qmessage_box_class: MagicMock, # Order of mock arguments changed
+        mock_headset_service: MagicMock,
+        _mock_system_tray_icon: MagicMock, # noqa: PT019
+        qapp: QApplication, # Added qapp fixture
     ) -> None:
         """Test that the initial udev help dialog is not shown if udev details are absent."""
-        mock_service_instance = mock_headset_service.return_value
-        mock_service_instance.udev_setup_details = None
-        mock_service_instance.is_device_connected = Mock(
-            return_value=True,
-        )  # Or False, shouldn't matter if details are None
-        mock_service_instance.close = Mock()
+        # Patch 'headsetcontrol_tray.app.QApplication' to return the qapp fixture's instance
+        with patch("headsetcontrol_tray.app.QApplication", return_value=qapp):
+            mock_service_instance = mock_headset_service.return_value
+            mock_service_instance.udev_setup_details = None
+            mock_service_instance.is_device_connected = Mock(
+                return_value=True,
+            )  # Or False, shouldn't matter if details are None
+            mock_service_instance.close = Mock()
 
-        SteelSeriesTrayApp()  # Constructor called for side effects
-        mock_qmessage_box_class.assert_not_called()
+            SteelSeriesTrayApp()  # Constructor called for side effects
+            mock_qmessage_box_class.assert_not_called()
 
-    # tearDown is no longer strictly needed to stop the QApplication patch.
-    # Removed commented out tearDown method.
+    # tearDown method removed as it's not part of pytest-style classes by default
+    # and qapplication_patch is now managed by 'with' statement or per-test.
