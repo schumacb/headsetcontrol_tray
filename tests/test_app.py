@@ -5,14 +5,12 @@ import logging
 from pathlib import Path
 import sys
 import tempfile
-from typing import Any
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QMessageBox # QApplication removed
 
 # Third-party imports
-import pytest
 
 # Logger instance
 logger = logging.getLogger(__name__)
@@ -27,9 +25,9 @@ sys.path.insert(
 # Application-specific imports
 # Modules to be tested or mocked
 try:
+    # from headsetcontrol_tray import app_config  # No longer needed for PKEXEC codes here
     from headsetcontrol_tray.app import SteelSeriesTrayApp
-    from headsetcontrol_tray.os_layer.base import OSInterface # Import for spec
-    from headsetcontrol_tray import app_config # For PKEXEC codes
+    from headsetcontrol_tray.os_layer.base import OSInterface  # Import for spec
 except ImportError:
     logger.exception("ImportError in test_app.py")
     raise
@@ -67,7 +65,7 @@ except ImportError:
 #    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
 #    def test_initial_dialog_shown_when_details_present(
 #        self,
-#        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
+#        _mock_system_tray_icon: MagicMock,  # Corrected order, renamed
 #        mock_headset_service: MagicMock,  # Corrected order, renamed
 #        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
 #    ) -> None:
@@ -130,7 +128,7 @@ except ImportError:
 #    @patch("headsetcontrol_tray.app.sti.SystemTrayIcon")  # Restored
 #    def test_initial_dialog_not_shown_when_details_absent(
 #        self,
-#        _mock_system_tray_icon: MagicMock,  # noqa: PT019 # Corrected order, renamed
+#        _mock_system_tray_icon: MagicMock,  # Corrected order, renamed
 #        mock_headset_service: MagicMock,  # Corrected order, renamed
 #        mock_qmessage_box_class: MagicMock,  # Corrected order, renamed
 #    ) -> None:
@@ -159,7 +157,7 @@ except ImportError:
 #        # pass # Removed duplicate pass, only one tearDown needed.
 
 # Refactored test as pytest-style
-def test_initial_dialog_shown_when_details_present_pytest(qapp, mocker): # qapp fixture is used
+def test_initial_dialog_shown_when_details_present_pytest(qapp, mocker):  # noqa: F841 # qapp re-added
     """Test that the initial udev help dialog is shown if udev details are present (pytest-style)."""
     # Mock dependencies using mocker
     mock_qmessage_box_class = mocker.patch("headsetcontrol_tray.app.QMessageBox")
@@ -179,22 +177,21 @@ def test_initial_dialog_shown_when_details_present_pytest(qapp, mocker): # qapp 
     # os_interface_mock.perform_device_setup.return_value = (True, MagicMock(returncode=0, stdout="success", stderr=""), None)
     mock_get_os_platform.return_value = os_interface_mock
 
-    # Sample details for the test
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file_obj:
-        temp_file_path = temp_file_obj.name
-
-    sample_details = {
-        "temp_file_path": temp_file_path,
-        "final_file_path": "/etc/udev/rules.d/99-sample.rules",
-        "rule_filename": "99-sample.rules",
-    }
+    # Sample details and temp_file_path are no longer used
+    # with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file_obj:
+    #     temp_file_path = temp_file_obj.name
+    #
+    # sample_details = {
+    #     "temp_file_path": temp_file_path,
+    #     "final_file_path": "/etc/udev/rules.d/99-sample.rules",
+    #     "rule_filename": "99-sample.rules",
+    # }
 
     # Configure HeadsetService mock
     mock_service_instance = mock_headset_service_class.return_value
-    mock_service_instance.udev_setup_details = sample_details # This is from the original test, but app.py doesn't use it.
-                                                              # app.py calls os_interface.needs_device_setup()
+    # mock_service_instance.udev_setup_details = sample_details # Not used by app.py in this flow
     mock_service_instance.is_device_connected.return_value = False # This will trigger needs_device_setup path
-    mock_service_instance.close = Mock()
+    # mock_service_instance.close = Mock() # Close not directly relevant to this dialog test
 
     # Configure QMessageBox mock
     mock_dialog_instance = mock_qmessage_box_class.return_value
@@ -205,7 +202,7 @@ def test_initial_dialog_shown_when_details_present_pytest(qapp, mocker): # qapp 
         role: QMessageBox.ButtonRole | None = None,
     ) -> MagicMock:
         button = MagicMock(spec=QMessageBox.StandardButton)
-        button.text = lambda: text_or_button # Store text for later check if needed
+        # button.text = lambda: text_or_button # This assignment was unused
         added_buttons_initial.append(
             {"button": button, "role": role, "text_or_enum": text_or_button},
         )
@@ -232,8 +229,8 @@ def test_initial_dialog_shown_when_details_present_pytest(qapp, mocker): # qapp 
     # For Linux, it's "Headset Permissions Setup (Linux)"
     mock_dialog_instance.setWindowTitle.assert_called_with("Headset Permissions Setup (Linux)")
 
-    # Clean up temp file
-    Path(temp_file_path).unlink(missing_ok=True)
+    # Clean up temp file - temp_file_path is no longer defined
+    # Path(temp_file_path).unlink(missing_ok=True)
 
 if __name__ == "__main__":
     unittest.main()

@@ -35,16 +35,9 @@ class TestConfigManager(unittest.TestCase):
             DEFAULT_EQ_PRESET_ID=0,
             DEFAULT_INACTIVE_TIMEOUT=15,
         )
-        self.mocked_app_config = self.app_config_patcher.start()
+        self.app_config_patcher.start() # Removed assignment to self.mocked_app_config
 
-        self.CM_DEFAULT_ACTIVE_EQ_TYPE = "custom"
-        self.CM_DEFAULT_CHATMIX_ENABLED = True
-        self.CM_DEFAULT_AUTO_MUTE_MIC_ENABLED = False
-        self.CM_DEFAULT_RUN_ON_STARTUP_ENABLED = True
-        self.CM_DEFAULT_MINIMIZE_TO_TRAY_ENABLED = True
-        self.CM_DEFAULT_CHECK_FOR_UPDATES_ENABLED = True
-        self.CM_DEFAULT_INCLUDE_PRERELEASES_ENABLED = False
-        self.CM_DEFAULT_DARK_MODE = "auto"
+        # CM_DEFAULT_ values removed as they were unused
 
     def tearDown(self) -> None:
         self.app_config_patcher.stop()
@@ -515,12 +508,12 @@ class TestConfigManager(unittest.TestCase):
 
             # 2. Check that logger.error was called due to mkdir failure
             mock_logger.error.assert_called_once_with(
-                f"Could not create config directory {self.test_config_path}: Cannot create dir"
+                f"Could not create config directory {self.test_config_path}: Cannot create dir",
             )
 
             # 3. Check that logger.warning was called because dir doesn't exist for saving defaults
             mock_logger.warning.assert_called_once_with(
-                "Config directory does not exist. Skipping initial save of default EQ curves."
+                "Config directory does not exist. Skipping initial save of default EQ curves.",
             )
 
             # 4. Ensure _save_json_file was NOT called for the default EQ curves file

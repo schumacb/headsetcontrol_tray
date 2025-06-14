@@ -3,7 +3,6 @@
 import logging
 import os  # Keep for os.environ
 
-# import subprocess # No longer directly used in app.py
 import sys
 
 from PySide6.QtGui import QIcon
@@ -17,9 +16,6 @@ from .os_layer import get_os_platform  # Updated import
 from .os_layer.linux import LinuxImpl  # Needed for isinstance check and specific logic
 from .ui import system_tray_icon as sti
 
-# from .os_layer.windows import WindowsImpl # No longer directly needed
-# from .os_layer.macos import MacOSImpl # No longer directly needed
-# from .udev_manager import UDEVManager # Removed
 
 # Initialize logging
 log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -83,10 +79,10 @@ class SteelSeriesTrayApp:
             self.qt_app.setWindowIcon(app_icon)
 
         self.os_interface = get_os_platform()  # Use the new function
-        logger.info(f"Initialized OS interface for: {self.os_interface.get_os_name()}")
+        logger.info("Initialized OS interface for: %s", self.os_interface.get_os_name())
 
         config_dir = self.os_interface.get_config_dir()
-        logger.info(f"Using configuration directory: {config_dir}")
+        logger.info("Using configuration directory: %s", config_dir)
         self.config_manager = cfg_mgr.ConfigManager(config_dir_path=config_dir)
 
         hid_manager_instance = self.os_interface.get_hid_manager()
@@ -95,11 +91,12 @@ class SteelSeriesTrayApp:
         if not self.headset_service.is_device_connected():
             logger.warning("Headset not detected on initial check by HeadsetService.")
             if self.os_interface.needs_device_setup():
-                logger.info(f"OS interface reports that device setup is needed for {self.os_interface.get_os_name()}.")
+                logger.info("OS interface reports that device setup is needed for %s.", self.os_interface.get_os_name())
                 self._perform_os_specific_setup_flow()  # Call the new flow
             else:
                 logger.info(
-                    f"OS interface reports no specific device setup is needed for {self.os_interface.get_os_name()} or it's already done.",
+                    "OS interface reports no specific device setup is needed for %s "
+                    "or it's already done.", self.os_interface.get_os_name(),
                 )
 
         if not self.headset_service.is_device_connected():
@@ -110,21 +107,18 @@ class SteelSeriesTrayApp:
             self.config_manager,
             self.quit_application,
         )
-        # Pass self.tray_icon as a QWidget parent for dialogs if needed by tray_icon methods
-        # For example, if tray_icon itself needs to show dialogs directly.
-        # self.tray_icon.set_dialog_parent(self.tray_icon) # Or a hidden main window
         self.tray_icon.show()
         self.tray_icon.set_initial_headset_settings()
 
     # Removed _get_os_interface as it's replaced by get_os_platform
 
     def _perform_os_specific_setup_flow(self) -> None:
-        """
-        Handles the UI flow for OS-specific device setup if indicated by the OSInterface.
+        """Handles the UI flow for OS-specific device setup if indicated by the OSInterface.
+
         This may involve showing dialogs and triggering the setup process via OSInterface.
         """
         os_name = self.os_interface.get_os_name()
-        logger.info(f"Starting OS-specific setup flow for {os_name}.")
+        logger.info("Starting OS-specific setup flow for %s.", os_name)
 
         if os_name == "linux":
             dialog = QMessageBox(None) # Changed parent to None
@@ -145,7 +139,8 @@ class SteelSeriesTrayApp:
 
             if dialog.clickedButton() == auto_button:
                 logger.info("User chose to install udev rules automatically via OSInterface.")
-                success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=None) # Changed parent to None
+                # Changed parent to None for perform_device_setup
+                success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=None)
 
                 feedback_dialog = QMessageBox(None) # Changed parent to None
                 feedback_dialog.setModal(True)
@@ -221,18 +216,18 @@ class SteelSeriesTrayApp:
                 )
                 manual_instructions_dialog.exec()
 
-                if isinstance(self.os_interface, LinuxImpl):
-                    # TODO: Refactor LinuxImpl to have a method like ensure_udev_details_prepared()
-                    # to avoid direct _udev_manager access from app.py
-                    if not self.os_interface._udev_manager.get_last_udev_setup_details():
-                        self.os_interface._udev_manager.create_rules_interactive()
+                # TODO: Refactor LinuxImpl to have a method like ensure_udev_details_prepared()
+                # to avoid direct _udev_manager access from app.py
+                if isinstance(self.os_interface, LinuxImpl) and \
+                   not self.os_interface._udev_manager.get_last_udev_setup_details():
+                    self.os_interface._udev_manager.create_rules_interactive()
             else:
                 logger.info("User closed or cancelled the udev rules setup dialog.")
 
         elif os_name in ["windows", "macos"]:
             self.os_interface.perform_device_setup(ui_parent=None) # Changed parent to None
         else:
-            logger.info(f"No specific setup flow implemented for OS: {os_name}")
+            logger.info("No specific setup flow implemented for OS: %s", os_name)
 
     def run(self) -> int:
         """Starts the Qt application event loop."""
@@ -243,15 +238,3 @@ class SteelSeriesTrayApp:
         logger.info("Application quitting.")
         self.headset_service.close()
         self.qt_app.quit()
-
-    # Removed _get_os_interface method
-    # def _get_os_interface(self):
-    # """Detects the OS and returns an instance of the appropriate OS-specific implementation."""
-    # system = platform.system()
-    # if system == "Linux":
-    # return LinuxImpl()
-    # if system == "Windows":
-    # return WindowsImpl()
-    # if system == "Darwin": # Darwin is the system name for macOS
-    # return MacOSImpl()
-    # raise OSError(f"Unsupported OS: {system}")

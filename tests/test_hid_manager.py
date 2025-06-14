@@ -5,8 +5,8 @@ from pathlib import Path
 import sys
 from typing import Any
 import unittest
-from unittest import mock # Python 3.3+
-from unittest.mock import MagicMock, patch, ANY # Ensure ANY is imported
+from unittest import mock  # Python 3.3+
+from unittest.mock import ANY, MagicMock, patch  # Ensure ANY is imported
 
 # Third-party imports
 import hid
@@ -298,7 +298,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_logger.warning.assert_any_call(
             "    Failed to open HID device path %s: %s", # Log format string
             mock.ANY,  # For path_str
-            mock.ANY   # For the exception instance e
+            mock.ANY,   # For the exception instance e
         )
 
     @patch.object(HIDConnectionManager, "connect_device")  # Patch the public connect_device

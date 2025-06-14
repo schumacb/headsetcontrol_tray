@@ -1,3 +1,5 @@
+"""Manages HID device discovery, connection, sorting, and lifecycle for SteelSeries headsets."""
+
 import logging
 from typing import Any  # Ensure Tuple is imported
 
@@ -8,9 +10,6 @@ from .os_layer.base import HIDManagerInterface  # Added import
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
-# Specific interface numbers for sorting preference (already defined in app_config)
-# STEELSERIES_INTERFACE_0 = 0 # app_config.ARCTIS_NOVA_7_USER_INTERFACE
-# STEELSERIES_INTERFACE_3 = 3 # app_config.HID_REPORT_INTERFACE
 
 # Define HidDevice type alias for clarity, using hid.Device
 HidDevice = Any  # Changed to Any due to mypy issues with hid.Device
@@ -25,7 +24,8 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         self.selected_device_info: dict[str, Any] | None = None
         logger.debug("HIDConnectionManager initialized.")
 
-    def find_potential_hid_devices(self) -> list[dict[str, Any]]:  # Renamed and matches plan
+    def find_potential_hid_devices(self) -> list[dict[str, Any]]:
+        """Enumerates and returns a list of potential SteelSeries HID devices based on VID and PID."""
         logger.debug(
             "Enumerating HID devices for VID 0x%04x, Target PIDs: %s",
             app_config.STEELSERIES_VID,
@@ -40,8 +40,8 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 len(devices_enum),
                 app_config.STEELSERIES_VID,
             )
-        except hid.HIDException as e:
-            logger.exception("Error enumerating HID devices: %s", e)
+        except hid.HIDException: # Removed 'as e' and e from log call for TRY401
+            logger.exception("Error enumerating HID devices.")
             return []
 
         potential_devices = []
@@ -75,7 +75,8 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         logger.info("Found %d potential devices matching VID and Target PIDs.", len(potential_devices))
         return potential_devices
 
-    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:  # Renamed and matches plan
+    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Sorts a list of HID device info dictionaries based on pre-defined criteria."""
         # Sort key based on interface number, usage page, and specific PIDs.
         # Higher preference (lower sort key value) for more specific matches.
         def sort_key(d_info: dict[str, Any]) -> int:
@@ -91,7 +92,7 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 and usage == app_config.HID_REPORT_USAGE_ID  # Check usage ID as well
             ):
                 logger.debug(
-                    "  SortKey: Prioritizing exact match (interface %s, usage page 0x%04x, usage 0x%04x) for PID 0x%04x -> -3",
+                    "  SortKey: Exact match (iface %s, usage_page 0x%04x, usage 0x%04x) for PID 0x%04x -> -3",
                     interface,
                     usage_page,
                     usage,
@@ -154,6 +155,7 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
 
     # This method signature now matches HIDManagerInterface
     def connect_device(self) -> tuple[HidDevice | None, dict[str, Any] | None]:
+        """Connects to the best available SteelSeries HID device from the enumerated list."""
         if self.hid_device:
             logger.debug("connect_device: Already connected. Returning existing device.")
             return self.hid_device, self.selected_device_info
@@ -188,11 +190,11 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 # hidapi library usually handles bytes path correctly.
                 h_temp = hid.Device(path=path_bytes)
                 # If hid.Device is correctly typed as hid.device, type: ignore might not be needed.
-            except hid.HIDException as e:
+            except hid.HIDException as e: # Keep e for logging here, but not in logger.exception
                 logger.warning("    Failed to open HID device path %s: %s", path_str, e)
                 continue
-            except Exception as e:  # Catch other potential errors like OSError
-                logger.exception("    An unexpected error occurred opening HID device path %s: %s", path_str, e)
+            except Exception:  # Catch other potential errors like OSError, removed 'as e' for TRY401
+                logger.exception("    An unexpected error occurred opening HID device path %s.", path_str)
                 continue
             else:
                 self.hid_device = h_temp
@@ -211,7 +213,8 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         logger.warning("Failed to connect to any suitable HID interface after trying all potential devices.")
         return None, None
 
-    def ensure_connection(self) -> bool:  # Name matches plan
+    def ensure_connection(self) -> bool:
+        """Ensures an active connection to a headset, attempting to connect if necessary."""
         if self.hid_device:
             # Could add a check here to see if the device is still responsive,
             # e.g., by trying a benign read or checking if path is still valid.
@@ -222,18 +225,16 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         hid_dev, _ = self.connect_device()  # connect_device now returns the tuple
         return hid_dev is not None
 
-    def get_hid_device(self) -> HidDevice | None:  # Name matches plan
-        # ensure_connection will try to connect if not already.
-        # if self.ensure_connection():
-        #    return self.hid_device
-        # return None
-        # Simpler: just return current state, connect_device or ensure_connection should be called explicitly if needed by service layer
+    def get_hid_device(self) -> HidDevice | None:
+        """Returns the currently connected hid.Device object, or None."""
         return self.hid_device
 
-    def get_selected_device_info(self) -> dict[str, Any] | None:  # Name matches plan
+    def get_selected_device_info(self) -> dict[str, Any] | None:
+        """Returns the device info dictionary of the currently connected headset."""
         return self.selected_device_info
 
-    def close(self) -> None:  # Name matches plan
+    def close(self) -> None:
+        """Closes the connection to the HID device, if one is active."""
         if self.hid_device:
             device_path_str = "unknown path"
             if self.selected_device_info and isinstance(self.selected_device_info.get("path"), bytes):
@@ -242,10 +243,10 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
             logger.info("Closing HID device: %s", device_path_str)
             try:
                 self.hid_device.close()
-            except hid.HIDException as e:  # Catch hid.HIDException specifically
-                logger.exception("HIDException while closing HID device %s: %s", device_path_str, e)
-            except Exception as e:  # Catch any other error during close
-                logger.exception("Unexpected error while closing HID device %s: %s", device_path_str, e)
+            except hid.HIDException:  # Removed 'as e' and e from log call for TRY401
+                logger.exception("HIDException while closing HID device %s.", device_path_str)
+            except Exception:  # Catch any other error during close, removed 'as e' for TRY401
+                logger.exception("Unexpected error while closing HID device %s.", device_path_str)
             finally:
                 self.hid_device = None
                 self.selected_device_info = None

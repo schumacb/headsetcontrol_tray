@@ -16,7 +16,8 @@ sys.path.insert(
 # Application-specific imports
 # NUM_EQ_BANDS is not used here, but if other constants from headset_status were needed,
 # they could be imported. For now, only app_config for logger name.
-from unittest.mock import ANY # Import ANY
+from unittest.mock import ANY  # Import ANY
+
 from headsetcontrol_tray.udev_manager import (
     UDEV_RULE_CONTENT,
     UDEV_RULE_FILENAME,
@@ -131,24 +132,24 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         # Existing assert_any_call checks (ensure all are present as per user request)
         self.mock_logger.info.assert_any_call(
             "Preparing udev rule details for potential installation to %s",
-            expected_details["final_file_path"]
+            expected_details["final_file_path"],
         )
         self.mock_logger.info.assert_any_call(
             "Successfully wrote udev rule content to temporary file: %s",
             expected_details["temp_file_path"],
         )
         self.mock_logger.info.assert_any_call(
-            "--------------------------------------------------------------------------------"
+            "--------------------------------------------------------------------------------",
         ) # This will be called twice. assert_any_call handles this.
         self.mock_logger.info.assert_any_call(
-            "MANUAL UDEV SETUP (if automatic setup is not used or fails):"
+            "MANUAL UDEV SETUP (if automatic setup is not used or fails):",
         )
 
         # Construct the specific call we are looking for
         the_call_to_find = call(
             ' 1. Copy the rule file: sudo cp "%s" "%s"', # Added leading space
             expected_details["temp_file_path"], # Use actual expected values
-            expected_details["final_file_path"]
+            expected_details["final_file_path"],
         )
 
         # For debugging, let's try to print the call_args_list representation
@@ -156,13 +157,13 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         # print("Actual calls:", repr(self.mock_logger.info.call_args_list))
 
         assert the_call_to_find in self.mock_logger.info.call_args_list, \
-            f"Call not found: {repr(the_call_to_find)}. Actual calls: {repr(self.mock_logger.info.call_args_list)}"
+            f"Call not found: {the_call_to_find!r}. Actual calls: {self.mock_logger.info.call_args_list!r}"
 
         self.mock_logger.info.assert_any_call(
-            " 2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger" # Added leading space
+            " 2. Reload udev rules: sudo udevadm control --reload-rules && sudo udevadm trigger", # Added leading space
         )
         self.mock_logger.info.assert_any_call(
-            " 3. Replug your SteelSeries headset if it was connected." # Added leading space
+            " 3. Replug your SteelSeries headset if it was connected.", # Added leading space
         )
         self.mock_logger.info.assert_any_call(
             " (The temporary file %s can be deleted after copying.)", # This one already had a leading space
@@ -188,7 +189,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
             "Could not write temporary udev rule file: %s", # Corrected format string
-            ANY # For the exception instance
+            ANY, # For the exception instance
         )
 
     @patch("tempfile.NamedTemporaryFile")
@@ -207,7 +208,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
             "An unexpected error occurred during temporary udev rule file creation: %s", # Corrected format string
-            ANY # For the exception instance
+            ANY, # For the exception instance
         )
 
     def test_get_last_udev_setup_details_initially_none(

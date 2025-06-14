@@ -1,3 +1,5 @@
+"""Service layer for interacting with headset hardware via HID communication."""
+
 import logging
 from typing import Any
 
@@ -188,6 +190,15 @@ class HeadsetService:
         return parsed_status
 
     def is_device_connected(self) -> bool:
+        """
+        Checks if the headset is connected and functionally online.
+
+        Ensures the HID communicator is active, then queries the headset's status.
+        Logs changes in connectivity or functional online status.
+
+        Returns:
+            True if the headset is connected and reports as online, False otherwise.
+        """
         self._ensure_hid_communicator()
         if not self.hid_communicator:
             if self._last_hid_only_connection_logged_status is not False:
@@ -205,12 +216,14 @@ class HeadsetService:
                 logger.info("is_device_connected: HID connection is active and headset reports as online.")
             else:
                 logger.info(
-                    "is_device_connected: HID path may be active, but headset reported as offline or status query failed. Reporting as NOT connected.",
+                    "is_device_connected: HID path may be active, but headset reported as offline "
+                    "or status query failed. Reporting as NOT connected.",
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online
         return is_functionally_online
 
     def get_battery_level(self) -> int | None:
+        """Retrieves the battery percentage from the headset."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_percent") is not None:
             current_value = status["battery_percent"]
@@ -224,6 +237,7 @@ class HeadsetService:
         return None
 
     def get_chatmix_value(self) -> int | None:
+        """Retrieves the ChatMix value from the headset."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("chatmix") is not None:
             current_value = status["chatmix"]
@@ -237,6 +251,7 @@ class HeadsetService:
         return None
 
     def is_charging(self) -> bool | None:
+        """Checks if the headset is currently charging."""
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_charging") is not None:
             current_value = status["battery_charging"]
@@ -273,19 +288,23 @@ class HeadsetService:
         return success
 
     def set_sidetone_level(self, level: int) -> bool:
+        """Sets the sidetone level on the headset."""
         clamped_level = max(0, min(128, level))
         payload = self.command_encoder.encode_set_sidetone(clamped_level)
         return self._generic_set_command(f"Set Sidetone (UI level {clamped_level})", payload, report_id=0)
 
     def set_inactive_timeout(self, minutes: int) -> bool:
+        """Sets the inactive timeout on the headset."""
         clamped_minutes = max(0, min(90, minutes))
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(f"Set Inactive Timeout ({clamped_minutes}min)", payload, report_id=0)
 
     def set_eq_values(self, values: list[float]) -> bool:
+        """Sets custom EQ values on the headset."""
         payload = self.command_encoder.encode_set_eq_values(values)
         return self._generic_set_command(f"Set EQ Values ({values})", payload, report_id=0)
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
+        """Sets a hardware EQ preset on the headset by its ID."""
         payload = self.command_encoder.encode_set_eq_preset_id(preset_id)
         return self._generic_set_command(f"Set EQ Preset ID ({preset_id})", payload, report_id=0)

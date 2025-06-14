@@ -15,7 +15,7 @@ from headsetcontrol_tray.os_layer.windows import WindowsImpl  # Removed WindowsH
 @pytest.fixture
 def windows_impl_fixture():  # mocker removed
     with patch(
-        "headsetcontrol_tray.os_layer.windows.HIDConnectionManager", autospec=True  # Reverted to target name in module
+        "headsetcontrol_tray.os_layer.windows.HIDConnectionManager", autospec=True,  # Reverted to target name in module
     ) as mock_hid_manager_class:
         mock_hid_manager_instance = mock_hid_manager_class.return_value
         impl = WindowsImpl()
@@ -34,14 +34,14 @@ def test_windows_impl_get_hid_manager(windows_impl_fixture):  # mocker removed
 
 
 @pytest.mark.parametrize(
-    "appdata_val, expected_parent_name_segment, expected_app_name_folder",
+    "appdata_val, expected_app_name_folder",  # Removed expected_parent_name_segment
     [
-        ("C:\\Users\\TestUser\\AppData\\Roaming", "Roaming", APP_NAME.replace(" ", "")),
-        (None, ".config", APP_NAME.lower().replace(" ", "_")),
+        ("C:\\Users\\TestUser\\AppData\\Roaming", APP_NAME.replace(" ", "")),
+        (None, APP_NAME.lower().replace(" ", "_")),  # Fallback case
     ],
 )
 def test_windows_impl_get_config_dir(
-    windows_impl_fixture, appdata_val, expected_parent_name_segment, expected_app_name_folder,
+    windows_impl_fixture, appdata_val, expected_app_name_folder,  # Removed expected_parent_name_segment
 ):
     env_vars = {}
     if appdata_val:
@@ -57,14 +57,14 @@ def test_windows_impl_get_config_dir(
 
 
 @pytest.mark.parametrize(
-    "local_appdata_val, expected_parent_name_segment, expected_app_name_folder",
+    "local_appdata_val, expected_app_name_folder",  # Removed expected_parent_name_segment
     [
-        ("C:\\Users\\TestUser\\AppData\\Local", "Local", APP_NAME.replace(" ", "")),
-        (None, Path.home() / ".local" / "share", APP_NAME.lower().replace(" ", "_")),
+        ("C:\\Users\\TestUser\\AppData\\Local", APP_NAME.replace(" ", "")),
+        (None, APP_NAME.lower().replace(" ", "_")),  # Fallback case
     ],
 )
 def test_windows_impl_get_data_dir(
-    windows_impl_fixture, local_appdata_val, expected_parent_name_segment, expected_app_name_folder,
+    windows_impl_fixture, local_appdata_val, expected_app_name_folder,  # Removed expected_parent_name_segment
 ):
     env_vars = {}
     if local_appdata_val:

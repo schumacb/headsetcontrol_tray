@@ -1,3 +1,5 @@
+"""Abstract base classes for OS-specific interactions and HID device management."""
+
 import abc
 from pathlib import Path
 import subprocess
@@ -23,15 +25,16 @@ class HIDManagerInterface(abc.ABC):
 
     @abc.abstractmethod
     def connect_device(self) -> tuple[HidDevice | None, dict[str, Any] | None]:
-        """
-        Attempts to connect to a suitable HID device from the sorted list.
-        Returns a tuple containing the hid.Device object and its info dictionary, or (None, None) if connection fails.
+        """Attempts to connect to a suitable HID device from the sorted list.
+
+        Returns a tuple containing the hid.Device object and its info dictionary,
+        or (None, None) if connection fails.
         """
 
     @abc.abstractmethod
     def ensure_connection(self) -> bool:
-        """
-        Ensures that a connection to a suitable HID device is active.
+        """Ensures that a connection to a suitable HID device is active.
+
         Returns True if connected, False otherwise.
         """
 
@@ -56,20 +59,14 @@ class OSInterface(abc.ABC):
         """Returns the OS-specific configuration directory path for the application."""
 
     @abc.abstractmethod
-    def get_data_dir(self) -> Path:
-        """
-        Returns the OS-specific data directory path for the application
-        (e.g., for icons, non-config data).
-        """
-
-    @abc.abstractmethod
     def get_os_name(self) -> str:
         """Returns a string identifying the operating system (e.g., 'linux', 'windows', 'macos')."""
 
     @abc.abstractmethod
     def needs_device_setup(self) -> bool:
-        """
-        Checks if any OS-specific device setup (e.g., udev rules on Linux, driver checks on Windows)
+        """Checks if any OS-specific device setup is required.
+
+        (e.g., udev rules on Linux, driver checks on Windows)
         is required for the application to function correctly.
         """
 
@@ -77,8 +74,8 @@ class OSInterface(abc.ABC):
     def perform_device_setup(
         self, ui_parent: Any = None,
     ) -> tuple[bool, subprocess.CompletedProcess | None, Exception | None]:
-        """
-        Initiates the OS-specific device setup process.
+        """Initiates the OS-specific device setup process.
+
         This might involve running scripts with elevated privileges or guiding the user.
 
         Args:
@@ -90,7 +87,7 @@ class OSInterface(abc.ABC):
 
     @abc.abstractmethod
     def get_hid_manager(self) -> HIDManagerInterface:
-        """
-        Returns an instance of a class implementing HIDManagerInterface,
-        configured for the current OS.
+        """Returns an instance of a class implementing HIDManagerInterface.
+
+        The instance should be configured for the current OS.
         """

@@ -14,7 +14,7 @@ from headsetcontrol_tray.os_layer.macos import MacOSImpl  # Removed MacOSHIDMana
 @pytest.fixture
 def macos_impl_fixture():  # mocker removed
     with patch(
-        "headsetcontrol_tray.os_layer.macos.HIDConnectionManager", autospec=True  # Reverted to target name in module
+        "headsetcontrol_tray.os_layer.macos.HIDConnectionManager", autospec=True,  # Reverted to target name in module
     ) as mock_hid_manager_class:
         mock_hid_manager_instance = mock_hid_manager_class.return_value
         impl = MacOSImpl()

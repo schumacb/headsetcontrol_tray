@@ -6,12 +6,13 @@ the operating system at runtime and loads the appropriate implementation.
 """
 import platform
 
+from .base import OSInterface  # Import the interface
 from .linux import LinuxImpl
 from .macos import MacOSImpl
 from .windows import WindowsImpl
 
 
-def get_os_platform():
+def get_os_platform() -> OSInterface:  # Add return type annotation
     """
     Detect the current operating system and return an appropriate OS-specific implementation.
 
@@ -27,9 +28,8 @@ def get_os_platform():
     system = platform.system()
     if system == "Linux":
         return LinuxImpl()
-    elif system == "Windows":
+    if system == "Windows":
         return WindowsImpl()
-    elif system == "Darwin":  # Darwin is the system name for macOS
+    if system == "Darwin":  # Darwin is the system name for macOS
         return MacOSImpl()
-    else:
-        raise NotImplementedError(f"Unsupported OS: {system}")
+    raise NotImplementedError(f"Unsupported OS: {system}")

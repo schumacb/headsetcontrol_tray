@@ -1,3 +1,5 @@
+"""Manages application settings and custom EQ curves, including loading and saving them."""
+
 import json
 import logging
 from pathlib import Path
@@ -29,7 +31,7 @@ class ConfigManager:
         try:
             self._config_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error(f"Could not create config directory {self._config_dir}: {e}")
+            logger.exception("Could not create config directory %s: %s", self._config_dir, e)
             # Depending on desired behavior, could raise an exception here or try to proceed
             # For now, log error and continue; loading will likely fail gracefully.
 
@@ -60,8 +62,8 @@ class ConfigManager:
                     file_path,
                 )
                 return {}
-            except OSError as e:
-                logger.exception("OSError while reading file %s. Using empty config for this file: %s", file_path, e)
+            except OSError: # Removed 'as e' and e from log call for TRY401
+                logger.exception("OSError while reading file %s. Using empty config for this file.", file_path)
                 return {}
         else:
             logger.info("Config file %s not found. Returning empty dict.", file_path)
@@ -69,7 +71,7 @@ class ConfigManager:
 
     def _save_json_file(self, file_path: Path, data: dict) -> None:
         if not self._config_dir.exists():
-            logger.error(f"Cannot save file {file_path} because config directory {self._config_dir} does not exist.")
+            logger.error("Cannot save file %s because config directory %s does not exist.", file_path, self._config_dir)
             return
         try:
             with file_path.open("w", encoding="utf-8") as f:  # Specify encoding
@@ -100,7 +102,7 @@ class ConfigManager:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (isinstance(values, list) and len(values) == NUM_EQ_BANDS and all(isinstance(v, int) for v in values)):
             logger.error("Invalid EQ curve format for '%s': Must be a list of %d integers.", name, NUM_EQ_BANDS)
-            raise ConfigError(f"Invalid EQ curve format for '{name}'.")  # Raise specific error
+            raise ConfigError(f"Invalid EQ curve format: {name}")  # Simplified message for TRY003
         self._custom_eq_curves[name] = values
         self._save_json_file(self._custom_eq_curves_file_path, self._custom_eq_curves)
 
