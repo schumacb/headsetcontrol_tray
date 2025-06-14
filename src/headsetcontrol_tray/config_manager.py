@@ -27,7 +27,7 @@ class ConfigManager:
         try:
             self._config_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error(f"Could not create config directory {self._config_dir}: {e}")
+            logger.exception(f"Could not create config directory {self._config_dir}: {e}")
             # Depending on desired behavior, could raise an exception here or try to proceed
             # For now, log error and continue; loading will likely fail gracefully.
 

@@ -417,14 +417,14 @@ class TestConfigManager(unittest.TestCase):
         with mock.patch.object(ConfigManager, "get_setting") as mock_get_setting:
             cm = ConfigManager(config_dir_path=Path("dummy"))
             cm.get_active_eq_type()
-        mock_get_setting.assert_called_once_with("active_eq_type", self.CM_DEFAULT_ACTIVE_EQ_TYPE) # Reverted to self.CM_DEFAULT
+        mock_get_setting.assert_called_once_with("active_eq_type", self.CM_DEFAULT_ACTIVE_EQ_TYPE)
 
     # Test default values for other specific settings
     def test_default_chatmix_enabled(self) -> None:
         with mock.patch.object(ConfigManager, "get_setting") as mock_get_setting:
             cm = ConfigManager(config_dir_path=Path("dummy"))
-            cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) # Reverted to self.CM_DEFAULT
-        mock_get_setting.assert_called_once_with("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED) # Reverted to self.CM_DEFAULT
+            cm.get_setting("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED)
+        mock_get_setting.assert_called_once_with("chatmix_enabled", self.CM_DEFAULT_CHATMIX_ENABLED)
 
     # ... (similar tests for other defaults can be added if they have specific getters/setters) ...
 
@@ -436,8 +436,8 @@ class TestConfigManager(unittest.TestCase):
              mock.patch.object(ConfigManager, "_save_json_file"): # Mock save to prevent issues if load fails
 
             _ = ConfigManager(config_dir_path=self.test_config_path)
-            mock_logger.error.assert_called_once_with(
-                f"Could not create config directory {self.test_config_path}: Cannot create dir"
+            mock_logger.exception.assert_called_once_with( # Changed from error to exception
+                "Could not create config directory %s: %s", self.test_config_path, unittest.mock.ANY
             )
             # Also check that save is not called for defaults if dir doesn't exist
             # This needs _config_dir.exists() to return False after mkdir fails.
