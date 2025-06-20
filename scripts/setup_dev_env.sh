@@ -42,10 +42,10 @@ uv pip install -e ".[dev]"
 echo "Installing system dependencies (requires sudo)..."
 if command -v sudo &> /dev/null
 then
-    sudo apt-get update && sudo apt-get install -y python3.10-dev xvfb x11-utils libhidapi-dev
+    sudo apt-get update && sudo apt-get install -y python3-dev xvfb x11-utils libhidapi-dev
 else
     echo "sudo command not found. Please install system dependencies manually:"
-    echo "  apt-get install -y python3.10-dev xvfb x11-utils libhidapi-dev"
+    echo "  apt-get install -y python3-dev xvfb x11-utils libhidapi-dev"
 fi
 
 echo ""

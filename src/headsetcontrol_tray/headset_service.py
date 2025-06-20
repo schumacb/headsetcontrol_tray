@@ -1,3 +1,9 @@
+"""This module provides the HeadsetService class to interact with the headset.
+
+It handles HID communication, status parsing, command encoding, and provides
+methods to get headset status (like battery, chatmix) and set parameters
+(like sidetone, EQ).
+"""
 import logging
 from typing import Any
 
@@ -188,6 +194,14 @@ class HeadsetService:
         return parsed_status
 
     def is_device_connected(self) -> bool:
+        """Checks if the headset is connected and functionally online.
+
+        This involves ensuring the HID communicator is active and then querying
+        the headset's status to confirm it's responsive and reports as online.
+
+        Returns:
+            True if the device is connected and online, False otherwise.
+        """
         self._ensure_hid_communicator()
         if not self.hid_communicator:
             if self._last_hid_only_connection_logged_status is not False:
@@ -205,12 +219,19 @@ class HeadsetService:
                 logger.info("is_device_connected: HID connection is active and headset reports as online.")
             else:
                 logger.info(
-                    "is_device_connected: HID path may be active, but headset reported as offline or status query failed. Reporting as NOT connected.",
+                    "is_device_connected: HID path may be active, but headset reported "
+                    "as offline or status query failed. Reporting as NOT connected.",
                 )
             self._last_hid_only_connection_logged_status = is_functionally_online
         return is_functionally_online
 
     def get_battery_level(self) -> int | None:
+        """Retrieves the battery level of the headset.
+
+        Returns:
+            The battery percentage (0-100) if available and headset is online,
+            otherwise None.
+        """
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_percent") is not None:
             current_value = status["battery_percent"]
@@ -224,6 +245,12 @@ class HeadsetService:
         return None
 
     def get_chatmix_value(self) -> int | None:
+        """Retrieves the ChatMix value from the headset.
+
+        Returns:
+            The ChatMix value (typically 0-128 or similar range) if available
+            and headset is online, otherwise None.
+        """
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("chatmix") is not None:
             current_value = status["chatmix"]
@@ -237,6 +264,12 @@ class HeadsetService:
         return None
 
     def is_charging(self) -> bool | None:
+        """Checks if the headset is currently charging.
+
+        Returns:
+            True if the headset is charging, False if not charging,
+            None if status is unavailable or headset is offline.
+        """
         status = self._get_parsed_status_hid()
         if status and status.get("headset_online") and status.get("battery_charging") is not None:
             current_value = status["battery_charging"]
@@ -273,19 +306,54 @@ class HeadsetService:
         return success
 
     def set_sidetone_level(self, level: int) -> bool:
+        """Sets the sidetone level on the headset.
+
+        Args:
+            level: The desired sidetone level (0-128).
+                   Values outside this range will be clamped.
+
+        Returns:
+            True if the command was sent successfully, False otherwise.
+        """
         clamped_level = max(0, min(128, level))
         payload = self.command_encoder.encode_set_sidetone(clamped_level)
         return self._generic_set_command(f"Set Sidetone (UI level {clamped_level})", payload, report_id=0)
 
     def set_inactive_timeout(self, minutes: int) -> bool:
+        """Sets the inactive timeout for the headset.
+
+        Args:
+            minutes: The desired timeout in minutes (e.g., 0-90).
+                     Values outside a device-specific range may be clamped by the device or encoder.
+
+        Returns:
+            True if the command was sent successfully, False otherwise.
+        """
         clamped_minutes = max(0, min(90, minutes))
         payload = self.command_encoder.encode_set_inactive_timeout(clamped_minutes)
         return self._generic_set_command(f"Set Inactive Timeout ({clamped_minutes}min)", payload, report_id=0)
 
     def set_eq_values(self, values: list[float]) -> bool:
+        """Sets custom EQ values on the headset.
+
+        Args:
+            values: A list of float values representing the EQ curve.
+                    The exact number and range depend on the headset model.
+
+        Returns:
+            True if the command was sent successfully, False otherwise.
+        """
         payload = self.command_encoder.encode_set_eq_values(values)
         return self._generic_set_command(f"Set EQ Values ({values})", payload, report_id=0)
 
     def set_eq_preset_id(self, preset_id: int) -> bool:
+        """Sets a hardware EQ preset by its ID on the headset.
+
+        Args:
+            preset_id: The ID of the hardware EQ preset to activate.
+
+        Returns:
+            True if the command was sent successfully, False otherwise.
+        """
         payload = self.command_encoder.encode_set_eq_preset_id(preset_id)
         return self._generic_set_command(f"Set EQ Preset ID ({preset_id})", payload, report_id=0)

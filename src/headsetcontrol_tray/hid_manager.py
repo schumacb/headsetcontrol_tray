@@ -1,3 +1,10 @@
+"""Manages HID device discovery, connection, and lifecycle for SteelSeries headsets.
+
+This module provides the HIDConnectionManager class, which implements the
+HIDManagerInterface. It is responsible for finding potential headset devices,
+sorting them based on preference (e.g., specific interface numbers, usage pages),
+establishing a connection, and providing access to the connected HID device.
+"""
 import logging
 from typing import Any  # Ensure Tuple is imported
 
@@ -9,13 +16,6 @@ from .os_layer.base import HIDManagerInterface  # Added import
 
 logger = logging.getLogger(f"{app_config.APP_NAME}.{__name__}")
 
-# Specific interface numbers for sorting preference (already defined in app_config)
-# STEELSERIES_INTERFACE_0 = 0 # app_config.ARCTIS_NOVA_7_USER_INTERFACE
-# STEELSERIES_INTERFACE_3 = 3 # app_config.HID_REPORT_INTERFACE
-
-# Define HidDevice type alias for clarity, using hid.Device
-# HidDevice = hid.Device  # Correctly use hid.Device (from hidapi library) # Replaced by import alias
-
 
 class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInterface
     """Handles the discovery, connection, sorting, and lifecycle for SteelSeries HID devices."""
@@ -26,7 +26,17 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         self.selected_device_info: dict[str, Any] | None = None
         logger.debug("HIDConnectionManager initialized.")
 
-    def find_potential_hid_devices(self) -> list[dict[str, Any]]:  # Renamed and matches plan
+    def find_potential_hid_devices(self) -> list[dict[str, Any]]:
+        """Finds all potentially relevant SteelSeries HID devices connected to the system.
+
+        It enumerates devices matching the SteelSeries Vendor ID (VID) and then filters
+        them against a list of known target Product IDs (PIDs).
+
+        Returns:
+            A list of dictionaries, where each dictionary contains information
+            about a potential HID device (e.g., path, product_id, interface_number).
+            Returns an empty list if no devices are found or an error occurs.
+        """
         logger.debug(
             "Enumerating HID devices for VID 0x%04x, Target PIDs: %s",
             app_config.STEELSERIES_VID,
@@ -41,7 +51,7 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 len(devices_enum),
                 app_config.STEELSERIES_VID,
             )
-        except hid.HIDException as e:
+        except hid.HIDException:
             logger.exception("Error enumerating HID devices:")
             return []
 
@@ -76,7 +86,19 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         logger.info("Found %d potential devices matching VID and Target PIDs.", len(potential_devices))
         return potential_devices
 
-    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:  # Renamed and matches plan
+    def sort_hid_devices(self, devices: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Sorts a list of HID device information dictionaries.
+
+        The sorting aims to prioritize devices that are most likely to be the
+        correct interface for headset communication (e.g., specific interface numbers,
+        usage pages defined in app_config).
+
+        Args:
+            devices: A list of HID device information dictionaries.
+
+        Returns:
+            A new list containing the sorted HID device information dictionaries.
+        """
         # Sort key based on interface number, usage page, and specific PIDs.
         # Higher preference (lower sort key value) for more specific matches.
         def sort_key(d_info: dict[str, Any]) -> int:
@@ -92,7 +114,8 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 and usage == app_config.HID_REPORT_USAGE_ID  # Check usage ID as well
             ):
                 logger.debug(
-                    "  SortKey: Prioritizing exact match (interface %s, usage page 0x%04x, usage 0x%04x) for PID 0x%04x -> -3",
+                    "  SortKey: Prioritizing exact match (interface %s, usage page 0x%04x, "
+                    "usage 0x%04x) for PID 0x%04x -> -3",
                     interface,
                     usage_page,
                     usage,
@@ -100,8 +123,10 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
                 )
                 return -3  # Highest priority
 
-            # Next priority: Specific known PIDs with their common primary interface (e.g., Arctis Nova 7 specific interface if different)
-            # Example: if ARCTIS_NOVA_7_USER_PID has a preferred interface that's not the generic one above
+            # Next priority: Specific known PIDs with their common primary interface
+            # (e.g., Arctis Nova 7 specific interface if different)
+            # Example: if ARCTIS_NOVA_7_USER_PID has a preferred interface
+            # that's not the generic one above
             if (
                 pid == app_config.ARCTIS_NOVA_7_USER_PID
                 and interface == app_config.ARCTIS_NOVA_7_USER_INTERFACE  # Assuming this constant exists or is 0
@@ -155,6 +180,15 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
 
     # This method signature now matches HIDManagerInterface
     def connect_device(self) -> tuple[HidDevice | None, dict[str, Any] | None]:
+        """Attempts to connect to a suitable HID device.
+
+        It finds potential devices, sorts them, and then tries to connect to them
+        in order of preference. The first successful connection is used.
+
+        Returns:
+            A tuple containing the connected hid.Device object (or None if connection
+            failed) and the information dictionary of the selected device (or None).
+        """
         if self.hid_device:
             logger.debug("connect_device: Already connected. Returning existing device.")
             return self.hid_device, self.selected_device_info
@@ -192,7 +226,7 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
             except hid.HIDException as e:
                 logger.warning("    Failed to open HID device path %s: %s", path_str, e)
                 continue
-            except Exception as e:  # Catch other potential errors like OSError
+            except Exception:  # Catch other potential errors like OSError
                 logger.exception("    An unexpected error occurred opening HID device path %s", path_str)
                 continue
             else:
@@ -212,7 +246,16 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         logger.warning("Failed to connect to any suitable HID interface after trying all potential devices.")
         return None, None
 
-    def ensure_connection(self) -> bool:  # Name matches plan
+    def ensure_connection(self) -> bool:
+        """Ensures that an HID device connection is active.
+
+        If no device is currently connected, it attempts to establish a new
+        connection by calling `connect_device()`.
+
+        Returns:
+            True if a connection is active or was successfully established,
+            False otherwise.
+        """
         if self.hid_device:
             # Could add a check here to see if the device is still responsive,
             # e.g., by trying a benign read or checking if path is still valid.
@@ -223,18 +266,33 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         hid_dev, _ = self.connect_device()  # connect_device now returns the tuple
         return hid_dev is not None
 
-    def get_hid_device(self) -> HidDevice | None:  # Name matches plan
-        # ensure_connection will try to connect if not already.
-        # if self.ensure_connection():
-        #    return self.hid_device
-        # return None
-        # Simpler: just return current state, connect_device or ensure_connection should be called explicitly if needed by service layer
+    def get_hid_device(self) -> HidDevice | None:
+        """Returns the currently connected HID device object.
+
+        Note: This method does not attempt to connect if no device is active.
+        Use `ensure_connection()` or `connect_device()` for that purpose.
+
+        Returns:
+            The `hid.Device` object if connected, otherwise None.
+        """
+        # Simpler: just return current state. connect_device or ensure_connection
+        # should be called explicitly if needed by the service layer.
         return self.hid_device
 
-    def get_selected_device_info(self) -> dict[str, Any] | None:  # Name matches plan
+    def get_selected_device_info(self) -> dict[str, Any] | None:
+        """Returns the information dictionary of the currently selected/connected HID device.
+
+        Returns:
+            A dictionary containing device info if a device is selected, otherwise None.
+        """
         return self.selected_device_info
 
-    def close(self) -> None:  # Name matches plan
+    def close(self) -> None:
+        """Closes the connection to the currently active HID device.
+
+        If a device is connected, its `close()` method is called, and local
+        references to the device and its info are cleared.
+        """
         if self.hid_device:
             device_path_str = "unknown path"
             if self.selected_device_info and isinstance(self.selected_device_info.get("path"), bytes):
@@ -243,9 +301,9 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
             logger.info("Closing HID device: %s", device_path_str)
             try:
                 self.hid_device.close()
-            except hid.HIDException as e:  # Catch hid.HIDException specifically
+            except hid.HIDException:  # Catch hid.HIDException specifically
                 logger.exception("HIDException while closing HID device %s", device_path_str)
-            except Exception as e:  # Catch any other error during close
+            except Exception:  # Catch any other error during close
                 logger.exception("Unexpected error while closing HID device %s", device_path_str)
             finally:
                 self.hid_device = None

@@ -1,3 +1,9 @@
+"""Manages application configuration, including settings and custom EQ curves.
+
+This module provides the ConfigManager class, which handles loading and saving
+configuration data from JSON files. It supports general application settings
+and management of custom equalizer (EQ) curves.
+"""
 import json
 import logging
 from pathlib import Path
@@ -27,7 +33,7 @@ class ConfigManager:
         # Ensure the configuration directory exists
         try:
             self._config_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
+        except OSError:
             logger.exception("Could not create config directory %s", self._config_dir)
             # Depending on desired behavior, could raise an exception here or try to proceed
             # For now, log error and continue; loading will likely fail gracefully.
@@ -59,7 +65,7 @@ class ConfigManager:
                     file_path,
                 )
                 return {}
-            except OSError as e:
+            except OSError:
                 logger.exception("OSError while reading file %s. Using empty config for this file.", file_path)
                 return {}
         else:
@@ -99,7 +105,7 @@ class ConfigManager:
         """Saves or updates a custom EQ curve and persists to file."""
         if not (isinstance(values, list) and len(values) == NUM_EQ_BANDS and all(isinstance(v, int) for v in values)):
             logger.error("Invalid EQ curve format for '%s': Must be a list of %d integers.", name, NUM_EQ_BANDS)
-            raise ConfigError(f"Invalid EQ curve format for '{name}'.")  # Raise specific error
+            raise ConfigError  # Raise specific error, relying on default message or prior log
         self._custom_eq_curves[name] = values
         self._save_json_file(self._custom_eq_curves_file_path, self._custom_eq_curves)
 

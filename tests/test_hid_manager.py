@@ -209,7 +209,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         """Set up for HID device connection tests."""
         self.manager = HIDConnectionManager()
 
-    @patch("headsetcontrol_tray.hid_manager.HidDevice") # Target the alias used in module
+    @patch("headsetcontrol_tray.hid_manager.HidDevice")  # Target the alias used in module
     @patch.object(HIDConnectionManager, "sort_hid_devices")  # Mock sort_hid_devices
     @patch.object(HIDConnectionManager, "find_potential_hid_devices")  # Patched public method
     def test_connect_device_success(
@@ -219,7 +219,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_hid_device_constructor: MagicMock,
     ) -> None:
         """Test successful connection to a HID device."""
-        mock_sort_devices.side_effect = lambda devices: devices # Pass through
+        mock_sort_devices.side_effect = lambda devices: devices  # Pass through
         mock_device_info = create_mock_device_info(
             app_config.TARGET_PIDS[0],
             interface_number=app_config.HID_REPORT_INTERFACE,
@@ -261,7 +261,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_hid_device_constructor.assert_not_called()
 
     @patch("headsetcontrol_tray.hid_manager.logger")
-    @patch("headsetcontrol_tray.hid_manager.HidDevice") # Target the alias used in module
+    @patch("headsetcontrol_tray.hid_manager.HidDevice")  # Target the alias used in module
     @patch.object(HIDConnectionManager, "sort_hid_devices")  # Mock sort_hid_devices
     @patch.object(HIDConnectionManager, "find_potential_hid_devices")  # Patched public method
     def test_connect_device_open_fails_for_all(
@@ -272,7 +272,7 @@ class TestHIDConnectionManagerConnection(unittest.TestCase):
         mock_logger: MagicMock,  # Outermost
     ) -> None:
         """Test _connect_device handles hid.Device.open failures for all candidates."""
-        mock_sort_devices.side_effect = lambda devices: devices # Pass through
+        mock_sort_devices.side_effect = lambda devices: devices  # Pass through
         mock_dev_info1 = create_mock_device_info(
             app_config.TARGET_PIDS[0],
             path_suffix="fail1",

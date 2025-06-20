@@ -1,3 +1,10 @@
+"""Manages Linux udev rules for SteelSeries headset device permissions.
+
+This module provides the `UDEVManager` class, responsible for generating
+the content of udev rules, defining their target installation path,
+and checking if the rules seem to be installed. It also handles the
+creation of temporary rule files for manual or scripted installation.
+"""
 import logging
 from pathlib import Path
 import tempfile
@@ -39,6 +46,7 @@ class UDEVManager:
 
     def create_rules_interactive(self) -> bool:  # Renamed from prepare_udev_rule_details
         """Creates a temporary udev rule file and stores its details.
+
         This method is intended to be called when setup is needed.
         It also logs manual installation instructions to the console.
         Returns True if details were prepared successfully, False otherwise.
@@ -79,24 +87,27 @@ class UDEVManager:
             logger.info(" 3. Replug your SteelSeries headset if it was connected.")
             logger.info(" (The temporary file %s can be deleted after copying.)", temp_file_name)
             logger.info("--------------------------------------------------------------------------------")
+        except OSError:
+            logger.exception("Could not write temporary udev rule file")
+            self.last_udev_setup_details = None
+            return False
+        except Exception:  # Catch any other unexpected error
+            logger.exception("An unexpected error occurred during temporary udev rule file creation")
+            self.last_udev_setup_details = None
+            return False
+        else:
             return True
-        except OSError as e:
-            logger.exception("Could not write temporary udev rule file: %s", e)
-            self.last_udev_setup_details = None
-            return False
-        except Exception as e:  # Catch any other unexpected error
-            logger.exception("An unexpected error occurred during temporary udev rule file creation: %s", e)
-            self.last_udev_setup_details = None
-            return False
 
     def get_last_udev_setup_details(self) -> dict[str, str] | None:
         """Returns details of the last udev setup preparation attempt made in this session.
+
         This includes paths to temporary and final rule files, and the rule content.
         """
         return self.last_udev_setup_details
 
     def are_rules_installed(self) -> bool:
         """Checks if the udev rule file appears to be installed.
+
         Note: This is a basic check for file existence. It does not verify
         content or full functionality without appropriate permissions.
         """

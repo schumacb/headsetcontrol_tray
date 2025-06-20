@@ -1,0 +1,6540 @@
+[
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 40,
+      "row": 130
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 130
+    },
+    "message": "`_perform_os_specific_setup_flow` is too complex (18 > 10)",
+    "noqa_row": 130,
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 40,
+      "row": 130
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 130
+    },
+    "message": "Too many branches (23 > 12)",
+    "noqa_row": 130,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 40,
+      "row": 130
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 130
+    },
+    "message": "Too many statements (83 > 50)",
+    "noqa_row": 130,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 133
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 131
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 133,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "SIM102",
+    "end_location": {
+      "column": 90,
+      "row": 235
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 232
+    },
+    "message": "Use a single `if` statement instead of nested `if` statements",
+    "noqa_row": 232,
+    "url": "https://docs.astral.sh/ruff/rules/collapsible-if"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 59,
+      "row": 235
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 28,
+      "row": 235
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 235,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 56,
+      "row": 236
+    },
+    "filename": "/app/src/headsetcontrol_tray/app.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 236
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 236,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "TRY003",
+    "end_location": {
+      "column": 72,
+      "row": 102
+    },
+    "filename": "/app/src/headsetcontrol_tray/config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 19,
+      "row": 102
+    },
+    "message": "Avoid specifying long messages outside the exception class",
+    "noqa_row": 102,
+    "url": "https://docs.astral.sh/ruff/rules/raise-vanilla-args"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 28,
+      "row": 190
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 190
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 190,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 152,
+      "row": 208
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 208
+    },
+    "message": "Line too long (151 > 120)",
+    "noqa_row": 208,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 26,
+      "row": 213
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 213
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 213,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 26,
+      "row": 226
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 226
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 226,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 20,
+      "row": 239
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 239
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 239,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 27,
+      "row": 275
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 275
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 275,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 29,
+      "row": 280
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 280
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 280,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 22,
+      "row": 285
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 285
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 285,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 25,
+      "row": 289
+    },
+    "filename": "/app/src/headsetcontrol_tray/headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 289
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 289,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 72,
+      "row": 13
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 14
+          },
+          "location": {
+            "column": 1,
+            "row": 13
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 1,
+      "row": 13
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 64,
+      "row": 14
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 15
+          },
+          "location": {
+            "column": 1,
+            "row": 14
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 1,
+      "row": 14
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 102,
+      "row": 17
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 18
+          },
+          "location": {
+            "column": 1,
+            "row": 17
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 1,
+      "row": 17
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 17,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 35,
+      "row": 29
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 29
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 29,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 25,
+      "row": 79
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 79
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 79,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 128,
+      "row": 95
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 95
+    },
+    "message": "Line too long (127 > 120)",
+    "noqa_row": 95,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 139,
+      "row": 103
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 103
+    },
+    "message": "Line too long (138 > 120)",
+    "noqa_row": 103,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 23,
+      "row": 157
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 157
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 157,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 26,
+      "row": 215
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 215
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 215,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 23,
+      "row": 226
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 226
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 226,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 36,
+      "row": 229
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 230
+          },
+          "location": {
+            "column": 1,
+            "row": 229
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 9,
+      "row": 229
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 229,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 22,
+      "row": 230
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 231
+          },
+          "location": {
+            "column": 1,
+            "row": 230
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 9,
+      "row": 230
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 230,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 137,
+      "row": 231
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 231
+    },
+    "message": "Line too long (136 > 120)",
+    "noqa_row": 231,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 33,
+      "row": 234
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 234
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 234,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 14,
+      "row": 237
+    },
+    "filename": "/app/src/headsetcontrol_tray/hid_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 237
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 237,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D104",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/__init__.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public package",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-package"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 28
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 26
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 28,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 34
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 32
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 34,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 60
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 58
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 60,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 70
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 68
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 70,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 85
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 77
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 85,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 91
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/base.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 89
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 91,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 26,
+      "row": 11
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 11
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 26,
+      "row": 11
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray import app_config",
+          "end_location": {
+            "column": 26,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 11
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 11
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 52,
+      "row": 12
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 12
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 52,
+      "row": 12
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray.exceptions import TrayAppInitializationError",
+          "end_location": {
+            "column": 52,
+            "row": 12
+          },
+          "location": {
+            "column": 1,
+            "row": 12
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 12
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 47,
+      "row": 13
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 13
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 47,
+      "row": 13
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray.hid_manager import HIDConnectionManager",
+          "end_location": {
+            "column": 47,
+            "row": 13
+          },
+          "location": {
+            "column": 1,
+            "row": 13
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 13
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 39,
+      "row": 14
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 14
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 39,
+      "row": 14
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray.udev_manager import UDEVManager",
+          "end_location": {
+            "column": 39,
+            "row": 14
+          },
+          "location": {
+            "column": 1,
+            "row": 14
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 14
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 51,
+      "row": 15
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 15
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 15,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "ANN204",
+    "end_location": {
+      "column": 17,
+      "row": 31
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 23,
+            "row": 31
+          },
+          "location": {
+            "column": 23,
+            "row": 31
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 9,
+      "row": 31
+    },
+    "message": "Missing return type annotation for special method `__init__`",
+    "noqa_row": 31,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-special-method"
+  },
+  {
+    "cell": null,
+    "code": "D107",
+    "end_location": {
+      "column": 17,
+      "row": 31
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 31
+    },
+    "message": "Missing docstring in `__init__`",
+    "noqa_row": 31,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-init"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 23,
+      "row": 35
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 35
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 35,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 21,
+      "row": 41
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 41
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 20,
+      "row": 47
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 47
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 151,
+      "row": 80
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 81
+          },
+          "location": {
+            "column": 1,
+            "row": 80
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 9,
+      "row": 80
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 80,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 151,
+      "row": 80
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 80
+    },
+    "message": "Line too long (150 > 120)",
+    "noqa_row": 80,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "TRY003",
+    "end_location": {
+      "column": 97,
+      "row": 97
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 19,
+      "row": 97
+    },
+    "message": "Avoid specifying long messages outside the exception class",
+    "noqa_row": 97,
+    "url": "https://docs.astral.sh/ruff/rules/raise-vanilla-args"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 34,
+      "row": 104
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 104
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "noqa_row": 104,
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "B904",
+    "end_location": {
+      "column": 74,
+      "row": 112
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 112
+    },
+    "message": "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+    "noqa_row": 112,
+    "url": "https://docs.astral.sh/ruff/rules/raise-without-from-inside-except"
+  },
+  {
+    "cell": null,
+    "code": "TRY003",
+    "end_location": {
+      "column": 74,
+      "row": 112
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 19,
+      "row": 112
+    },
+    "message": "Avoid specifying long messages outside the exception class",
+    "noqa_row": 112,
+    "url": "https://docs.astral.sh/ruff/rules/raise-vanilla-args"
+  },
+  {
+    "cell": null,
+    "code": "B904",
+    "end_location": {
+      "column": 50,
+      "row": 116
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 116
+    },
+    "message": "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+    "noqa_row": 116,
+    "url": "https://docs.astral.sh/ruff/rules/raise-without-from-inside-except"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 127
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 122
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 127,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "TRY400",
+    "end_location": {
+      "column": 108,
+      "row": 146
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "exception",
+          "end_location": {
+            "column": 33,
+            "row": 146
+          },
+          "location": {
+            "column": 28,
+            "row": 146
+          }
+        }
+      ],
+      "message": "Replace with `exception`"
+    },
+    "location": {
+      "column": 21,
+      "row": 146
+    },
+    "message": "Use `logging.exception` instead of `logging.error`",
+    "noqa_row": 146,
+    "url": "https://docs.astral.sh/ruff/rules/error-instead-of-exception"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 124,
+      "row": 177
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 177
+    },
+    "message": "Line too long (123 > 120)",
+    "noqa_row": 177,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 24,
+      "row": 188
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 188
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 188,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 26,
+      "row": 9
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 9
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 9,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 26,
+      "row": 9
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray import app_config",
+          "end_location": {
+            "column": 26,
+            "row": 9
+          },
+          "location": {
+            "column": 1,
+            "row": 9
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 9
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 9,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 47,
+      "row": 10
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 10
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 47,
+      "row": 10
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray.hid_manager import HIDConnectionManager",
+          "end_location": {
+            "column": 47,
+            "row": 10
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 10
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 51,
+      "row": 11
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 11
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "ANN204",
+    "end_location": {
+      "column": 17,
+      "row": 21
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 23,
+            "row": 21
+          },
+          "location": {
+            "column": 23,
+            "row": 21
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 9,
+      "row": 21
+    },
+    "message": "Missing return type annotation for special method `__init__`",
+    "noqa_row": 21,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-special-method"
+  },
+  {
+    "cell": null,
+    "code": "D107",
+    "end_location": {
+      "column": 17,
+      "row": 21
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 21
+    },
+    "message": "Missing docstring in `__init__`",
+    "noqa_row": 21,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-init"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 23,
+      "row": 24
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 24
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 24,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 21,
+      "row": 28
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 28
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 28,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 20,
+      "row": 32
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 32
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 32,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 27,
+      "row": 35
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 35
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 35,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 29,
+      "row": 39
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 39
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 39,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 24,
+      "row": 57
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 57
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 57,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 26,
+      "row": 10
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 10
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 26,
+      "row": 10
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray import app_config",
+          "end_location": {
+            "column": 26,
+            "row": 10
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 10
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 47,
+      "row": 11
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 11
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "TID252",
+    "end_location": {
+      "column": 47,
+      "row": 11
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "from headsetcontrol_tray.hid_manager import HIDConnectionManager",
+          "end_location": {
+            "column": 47,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 11
+          }
+        }
+      ],
+      "message": "Replace relative imports from parent modules with absolute imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 11
+    },
+    "message": "Prefer absolute imports over relative imports from parent modules",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/relative-imports"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 51,
+      "row": 12
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 12
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "ANN204",
+    "end_location": {
+      "column": 17,
+      "row": 22
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 23,
+            "row": 22
+          },
+          "location": {
+            "column": 23,
+            "row": 22
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 9,
+      "row": 22
+    },
+    "message": "Missing return type annotation for special method `__init__`",
+    "noqa_row": 22,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-special-method"
+  },
+  {
+    "cell": null,
+    "code": "D107",
+    "end_location": {
+      "column": 17,
+      "row": 22
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 22
+    },
+    "message": "Missing docstring in `__init__`",
+    "noqa_row": 22,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-init"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 23,
+      "row": 25
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 25
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 21,
+      "row": 32
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 32
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 32,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 20,
+      "row": 39
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 39
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 39,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 27,
+      "row": 42
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 42
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 42,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 29,
+      "row": 46
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 46
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 46,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 24,
+      "row": 64
+    },
+    "filename": "/app/src/headsetcontrol_tray/os_layer/windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 64
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 64,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 45
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 41
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "TRY300",
+    "end_location": {
+      "column": 24,
+      "row": 82
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 82
+    },
+    "message": "Consider moving this statement to an `else` block",
+    "noqa_row": 82,
+    "url": "https://docs.astral.sh/ruff/rules/try-consider-else"
+  },
+  {
+    "cell": null,
+    "code": "TRY401",
+    "end_location": {
+      "column": 79,
+      "row": 84
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 78,
+      "row": 84
+    },
+    "message": "Redundant exception object included in `logging.exception` call",
+    "noqa_row": 84,
+    "url": "https://docs.astral.sh/ruff/rules/verbose-log-message"
+  },
+  {
+    "cell": null,
+    "code": "TRY401",
+    "end_location": {
+      "column": 108,
+      "row": 88
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 107,
+      "row": 88
+    },
+    "message": "Redundant exception object included in `logging.exception` call",
+    "noqa_row": 88,
+    "url": "https://docs.astral.sh/ruff/rules/verbose-log-message"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 95
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 93
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 95,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D205",
+    "end_location": {
+      "column": 12,
+      "row": 102
+    },
+    "filename": "/app/src/headsetcontrol_tray/udev_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 99
+    },
+    "message": "1 blank line required between summary line and description",
+    "noqa_row": 102,
+    "url": "https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary"
+  },
+  {
+    "cell": null,
+    "code": "D104",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/os_layer/__init__.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public package",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-package"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 23,
+      "row": 25
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 25
+    },
+    "message": "Missing return type annotation for public function `linux_impl_fixture`",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 38
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 38
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 38,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 26,
+      "row": 39
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 39
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 39,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 32,
+      "row": 43
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 52,
+            "row": 43
+          },
+          "location": {
+            "column": 52,
+            "row": 43
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 43
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_get_os_name`",
+    "noqa_row": 43,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 32,
+      "row": 43
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 43
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 43,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 51,
+      "row": 43
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 33,
+      "row": 43
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 43,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 36,
+      "row": 47
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 56,
+            "row": 47
+          },
+          "location": {
+            "column": 56,
+            "row": 47
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_get_hid_manager`",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 36,
+      "row": 47
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 55,
+      "row": 47
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 37,
+      "row": 47
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 54,
+      "row": 51
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 23,
+      "row": 51
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 51,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "PT006",
+    "end_location": {
+      "column": 52,
+      "row": 55
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "(\"xdg_home\", \"expected_parent\", \"expected_name_part\")",
+          "end_location": {
+            "column": 52,
+            "row": 55
+          },
+          "location": {
+            "column": 5,
+            "row": 55
+          }
+        }
+      ],
+      "message": "Use a `tuple` for the first argument"
+    },
+    "location": {
+      "column": 5,
+      "row": 55
+    },
+    "message": "Wrong type passed to first argument of `pytest.mark.parametrize`; expected `tuple`",
+    "noqa_row": 55,
+    "url": "https://docs.astral.sh/ruff/rules/pytest-parametrize-names-wrong-type"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 35,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 102,
+            "row": 61
+          },
+          "location": {
+            "column": 102,
+            "row": 61
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 61
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_get_config_dir`",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 35,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 61
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 54,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 36,
+      "row": 61
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 64,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 56,
+      "row": 61
+    },
+    "message": "Missing type annotation for function argument `xdg_home`",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 81,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 66,
+      "row": 61
+    },
+    "message": "Missing type annotation for function argument `expected_parent`",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 101,
+      "row": 61
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 83,
+      "row": 61
+    },
+    "message": "Missing type annotation for function argument `expected_name_part`",
+    "noqa_row": 61,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 59,
+      "row": 72
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 79,
+            "row": 72
+          },
+          "location": {
+            "column": 79,
+            "row": 72
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 72
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_needs_device_setup_rules_not_installed`",
+    "noqa_row": 72,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 59,
+      "row": 72
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 72
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 72,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 78,
+      "row": 72
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 60,
+      "row": 72
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 72,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 73
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 73
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 73,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 55,
+      "row": 77
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 75,
+            "row": 77
+          },
+          "location": {
+            "column": 75,
+            "row": 77
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 77
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_needs_device_setup_rules_installed`",
+    "noqa_row": 77,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 55,
+      "row": 77
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 77
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 77,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 74,
+      "row": 77
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 56,
+      "row": 77
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 77,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 78
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 78
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 78,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 55,
+      "row": 85
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 75,
+            "row": 85
+          },
+          "location": {
+            "column": 75,
+            "row": 85
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 85
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_perform_device_setup_prepare_fails`",
+    "noqa_row": 85,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 55,
+      "row": 85
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 85
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 85,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 74,
+      "row": 85
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 56,
+      "row": 85
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 85,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 86
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 86
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 86,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 56,
+      "row": 94
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 76,
+            "row": 94
+          },
+          "location": {
+            "column": 76,
+            "row": 94
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 94
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_perform_device_setup_pkexec_success`",
+    "noqa_row": 94,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 56,
+      "row": 94
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 94
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 94,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 75,
+      "row": 94
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 57,
+      "row": 94
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 94,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 95
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 95
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 95,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 61,
+      "row": 96
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 44,
+      "row": 96
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp/temp.rules\"",
+    "noqa_row": 96,
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 97
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 97
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 97,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 64,
+      "row": 100
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 47,
+      "row": 100
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp/temp.rules\"",
+    "noqa_row": 100,
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "PT006",
+    "end_location": {
+      "column": 42,
+      "row": 119
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "(\"pkexec_returncode\", \"expected_success\")",
+          "end_location": {
+            "column": 42,
+            "row": 119
+          },
+          "location": {
+            "column": 5,
+            "row": 119
+          }
+        }
+      ],
+      "message": "Use a `tuple` for the first argument"
+    },
+    "location": {
+      "column": 5,
+      "row": 119
+    },
+    "message": "Wrong type passed to first argument of `pytest.mark.parametrize`; expected `tuple`",
+    "noqa_row": 119,
+    "url": "https://docs.astral.sh/ruff/rules/pytest-parametrize-names-wrong-type"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 64,
+      "row": 126
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 2,
+            "row": 130
+          },
+          "location": {
+            "column": 2,
+            "row": 130
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 126
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_perform_device_setup_pkexec_script_failures`",
+    "noqa_row": 126,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 64,
+      "row": 126
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 126
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 126,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 23,
+      "row": 127
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 127
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 127,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 22,
+      "row": 128
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 128
+    },
+    "message": "Missing type annotation for function argument `pkexec_returncode`",
+    "noqa_row": 128,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 21,
+      "row": 129
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 129
+    },
+    "message": "Missing type annotation for function argument `expected_success`",
+    "noqa_row": 129,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 131
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 131
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 131,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 61,
+      "row": 132
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 44,
+      "row": 132
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp/temp.rules\"",
+    "noqa_row": 132,
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 133
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 133
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 133,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "PT006",
+    "end_location": {
+      "column": 50,
+      "row": 155
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "(\"exception_to_raise\", \"expected_exception_type\")",
+          "end_location": {
+            "column": 50,
+            "row": 155
+          },
+          "location": {
+            "column": 5,
+            "row": 155
+          }
+        }
+      ],
+      "message": "Use a `tuple` for the first argument"
+    },
+    "location": {
+      "column": 5,
+      "row": 155
+    },
+    "message": "Wrong type passed to first argument of `pytest.mark.parametrize`; expected `tuple`",
+    "noqa_row": 155,
+    "url": "https://docs.astral.sh/ruff/rules/pytest-parametrize-names-wrong-type"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 52,
+      "row": 161
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 2,
+            "row": 165
+          },
+          "location": {
+            "column": 2,
+            "row": 165
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 161
+    },
+    "message": "Missing return type annotation for public function `test_linux_impl_perform_device_setup_exceptions`",
+    "noqa_row": 161,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 52,
+      "row": 161
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 161
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 161,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 23,
+      "row": 162
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 162
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 162,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 23,
+      "row": 163
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 163
+    },
+    "message": "Missing type annotation for function argument `exception_to_raise`",
+    "noqa_row": 163,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 28,
+      "row": 164
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 164
+    },
+    "message": "Missing type annotation for function argument `expected_exception_type`",
+    "noqa_row": 164,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 166
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 166
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 166,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 167
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 167
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 167,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 61,
+      "row": 168
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 44,
+      "row": 168
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp/temp.rules\"",
+    "noqa_row": 168,
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 37,
+      "row": 169
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 169
+    },
+    "message": "Private member accessed: `_udev_manager`",
+    "noqa_row": 169,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN202",
+    "end_location": {
+      "column": 76,
+      "row": 183
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 96,
+            "row": 183
+          },
+          "location": {
+            "column": 96,
+            "row": 183
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 9,
+      "row": 183
+    },
+    "message": "Missing return type annotation for private function `test_linux_impl_internal_execute_helper_script_calls_subprocess_run`",
+    "noqa_row": 183,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-private-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 95,
+      "row": 183
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 77,
+      "row": 183
+    },
+    "message": "Missing type annotation for function argument `linux_impl_fixture`",
+    "noqa_row": 183,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 38,
+      "row": 184
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 184
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp/test.rules\"",
+    "noqa_row": 184,
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 36,
+      "row": 206
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 207
+          },
+          "location": {
+            "column": 1,
+            "row": 206
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 206
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 206,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 43,
+      "row": 208
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 209
+          },
+          "location": {
+            "column": 1,
+            "row": 208
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 208
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 208,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 74,
+      "row": 211
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 212
+          },
+          "location": {
+            "column": 1,
+            "row": 211
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 211
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 211,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ANN202",
+    "end_location": {
+      "column": 33,
+      "row": 221
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 221
+    },
+    "message": "Missing return type annotation for private function `path_side_effect`",
+    "noqa_row": 221,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-private-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 39,
+      "row": 221
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 34,
+      "row": 221
+    },
+    "message": "Missing type annotation for function argument `value`",
+    "noqa_row": 221,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 68,
+      "row": 235
+    },
+    "filename": "/app/tests/os_layer/test_linux.py",
+    "fix": null,
+    "location": {
+      "column": 22,
+      "row": 235
+    },
+    "message": "Private member accessed: `_execute_udev_helper_script`",
+    "noqa_row": 235,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 23,
+      "row": 13
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 13
+    },
+    "message": "Missing return type annotation for public function `macos_impl_fixture`",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 23,
+      "row": 13
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 13
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 26,
+      "row": 21
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 21
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 21,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 32,
+      "row": 25
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 52,
+            "row": 25
+          },
+          "location": {
+            "column": 52,
+            "row": 25
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 25
+    },
+    "message": "Missing return type annotation for public function `test_macos_impl_get_os_name`",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 32,
+      "row": 25
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 25
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 51,
+      "row": 25
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 33,
+      "row": 25
+    },
+    "message": "Missing type annotation for function argument `macos_impl_fixture`",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 36,
+      "row": 29
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 56,
+            "row": 29
+          },
+          "location": {
+            "column": 56,
+            "row": 29
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 29
+    },
+    "message": "Missing return type annotation for public function `test_macos_impl_get_hid_manager`",
+    "noqa_row": 29,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 36,
+      "row": 29
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 29
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 29,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 55,
+      "row": 29
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 37,
+      "row": 29
+    },
+    "message": "Missing type annotation for function argument `macos_impl_fixture`",
+    "noqa_row": 29,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 54,
+      "row": 33
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 23,
+      "row": 33
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 33,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 35,
+      "row": 36
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 55,
+            "row": 36
+          },
+          "location": {
+            "column": 55,
+            "row": 36
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 36
+    },
+    "message": "Missing return type annotation for public function `test_macos_impl_get_config_dir`",
+    "noqa_row": 36,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 35,
+      "row": 36
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 36
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 36,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 54,
+      "row": 36
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 36,
+      "row": 36
+    },
+    "message": "Missing type annotation for function argument `macos_impl_fixture`",
+    "noqa_row": 36,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 39,
+      "row": 41
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 59,
+            "row": 41
+          },
+          "location": {
+            "column": 59,
+            "row": 41
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 41
+    },
+    "message": "Missing return type annotation for public function `test_macos_impl_needs_device_setup`",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 39,
+      "row": 41
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 41
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 58,
+      "row": 41
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 40,
+      "row": 41
+    },
+    "message": "Missing type annotation for function argument `macos_impl_fixture`",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 41,
+      "row": 45
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 61,
+            "row": 45
+          },
+          "location": {
+            "column": 61,
+            "row": 45
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 45
+    },
+    "message": "Missing return type annotation for public function `test_macos_impl_perform_device_setup`",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 41,
+      "row": 45
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 45
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 60,
+      "row": 45
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": null,
+    "location": {
+      "column": 42,
+      "row": 45
+    },
+    "message": "Missing type annotation for function argument `macos_impl_fixture`",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 29,
+      "row": 49
+    },
+    "filename": "/app/tests/os_layer/test_macos.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 50
+          },
+          "location": {
+            "column": 1,
+            "row": 49
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `mock_dialog_instance`"
+    },
+    "location": {
+      "column": 9,
+      "row": 49
+    },
+    "message": "Local variable `mock_dialog_instance` is assigned to but never used",
+    "noqa_row": 49,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 25,
+      "row": 14
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 14
+    },
+    "message": "Missing return type annotation for public function `windows_impl_fixture`",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 25,
+      "row": 14
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 14
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 26,
+      "row": 22
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 22
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 22,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 34,
+      "row": 26
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 56,
+            "row": 26
+          },
+          "location": {
+            "column": 56,
+            "row": 26
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 26
+    },
+    "message": "Missing return type annotation for public function `test_windows_impl_get_os_name`",
+    "noqa_row": 26,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 34,
+      "row": 26
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 26
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 26,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 55,
+      "row": 26
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 35,
+      "row": 26
+    },
+    "message": "Missing type annotation for function argument `windows_impl_fixture`",
+    "noqa_row": 26,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 38,
+      "row": 30
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 60,
+            "row": 30
+          },
+          "location": {
+            "column": 60,
+            "row": 30
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 30
+    },
+    "message": "Missing return type annotation for public function `test_windows_impl_get_hid_manager`",
+    "noqa_row": 30,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 38,
+      "row": 30
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 30
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 30,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 59,
+      "row": 30
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 39,
+      "row": 30
+    },
+    "message": "Missing type annotation for function argument `windows_impl_fixture`",
+    "noqa_row": 30,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 56,
+      "row": 34
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 23,
+      "row": 34
+    },
+    "message": "Private member accessed: `_hid_manager`",
+    "noqa_row": 34,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "PT006",
+    "end_location": {
+      "column": 74,
+      "row": 38
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "(\"appdata_val\", \"expected_parent_name_segment\", \"expected_app_name_folder\")",
+          "end_location": {
+            "column": 74,
+            "row": 38
+          },
+          "location": {
+            "column": 5,
+            "row": 38
+          }
+        }
+      ],
+      "message": "Use a `tuple` for the first argument"
+    },
+    "location": {
+      "column": 5,
+      "row": 38
+    },
+    "message": "Wrong type passed to first argument of `pytest.mark.parametrize`; expected `tuple`",
+    "noqa_row": 38,
+    "url": "https://docs.astral.sh/ruff/rules/pytest-parametrize-names-wrong-type"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 37,
+      "row": 44
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 2,
+            "row": 49
+          },
+          "location": {
+            "column": 2,
+            "row": 49
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 44
+    },
+    "message": "Missing return type annotation for public function `test_windows_impl_get_config_dir`",
+    "noqa_row": 44,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 37,
+      "row": 44
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 44
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 44,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 25,
+      "row": 45
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 45
+    },
+    "message": "Missing type annotation for function argument `windows_impl_fixture`",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 16,
+      "row": 46
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 46
+    },
+    "message": "Missing type annotation for function argument `appdata_val`",
+    "noqa_row": 46,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 33,
+      "row": 47
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "Missing type annotation for function argument `expected_parent_name_segment`",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 33,
+      "row": 47
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "Unused function argument: `expected_parent_name_segment`",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 29,
+      "row": 48
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 48
+    },
+    "message": "Missing type annotation for function argument `expected_app_name_folder`",
+    "noqa_row": 48,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 41,
+      "row": 63
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 63,
+            "row": 63
+          },
+          "location": {
+            "column": 63,
+            "row": 63
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 63
+    },
+    "message": "Missing return type annotation for public function `test_windows_impl_needs_device_setup`",
+    "noqa_row": 63,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 41,
+      "row": 63
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 63
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 63,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 62,
+      "row": 63
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 42,
+      "row": 63
+    },
+    "message": "Missing type annotation for function argument `windows_impl_fixture`",
+    "noqa_row": 63,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 43,
+      "row": 67
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 65,
+            "row": 67
+          },
+          "location": {
+            "column": 65,
+            "row": 67
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 5,
+      "row": 67
+    },
+    "message": "Missing return type annotation for public function `test_windows_impl_perform_device_setup`",
+    "noqa_row": 67,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D103",
+    "end_location": {
+      "column": 43,
+      "row": 67
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 67
+    },
+    "message": "Missing docstring in public function",
+    "noqa_row": 67,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 64,
+      "row": 67
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": null,
+    "location": {
+      "column": 44,
+      "row": 67
+    },
+    "message": "Missing type annotation for function argument `windows_impl_fixture`",
+    "noqa_row": 67,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 29,
+      "row": 70
+    },
+    "filename": "/app/tests/os_layer/test_windows.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 71
+          },
+          "location": {
+            "column": 1,
+            "row": 70
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `mock_dialog_instance`"
+    },
+    "location": {
+      "column": 9,
+      "row": 70
+    },
+    "message": "Local variable `mock_dialog_instance` is assigned to but never used",
+    "noqa_row": 70,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 19,
+      "row": 41
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 41
+    },
+    "message": "Missing type annotation for function argument `self`",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 27,
+      "row": 56
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 57
+          },
+          "location": {
+            "column": 1,
+            "row": 56
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `temp_file_path`"
+    },
+    "location": {
+      "column": 13,
+      "row": 56
+    },
+    "message": "Local variable `temp_file_path` is assigned to but never used",
+    "noqa_row": 56,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 13,
+      "row": 63
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 63
+    },
+    "message": "Unused function argument: `self`",
+    "noqa_row": 63,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 13,
+      "row": 63
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 63
+    },
+    "message": "Missing type annotation for function argument `self`",
+    "noqa_row": 63,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ANN001",
+    "end_location": {
+      "column": 13,
+      "row": 123
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 123
+    },
+    "message": "Missing type annotation for function argument `self`",
+    "noqa_row": 123,
+    "url": "https://docs.astral.sh/ruff/rules/missing-type-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 13,
+      "row": 123
+    },
+    "filename": "/app/tests/test_app.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 123
+    },
+    "message": "Unused function argument: `self`",
+    "noqa_row": 123,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "D101",
+    "end_location": {
+      "column": 24,
+      "row": 21
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 7,
+      "row": 21
+    },
+    "message": "Missing docstring in public class",
+    "noqa_row": 21,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-class"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 14,
+      "row": 22
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 22
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 22,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 17,
+      "row": 49
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 49
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 49,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 43,
+      "row": 56
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 56
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 56,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 51,
+      "row": 97
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 97
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 97,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 36,
+      "row": 119
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 119
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 119,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 45,
+      "row": 129
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 27,
+      "row": 129
+    },
+    "message": "Private member accessed: `_load_json_file`",
+    "noqa_row": 129,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 41,
+      "row": 137
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 137
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 137,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "PT019",
+    "end_location": {
+      "column": 86,
+      "row": 137
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 48,
+      "row": 137
+    },
+    "message": "Fixture `_mock_json_load_raises` without value is injected as parameter, use `@pytest.mark.usefixtures` instead",
+    "noqa_row": 137,
+    "url": "https://docs.astral.sh/ruff/rules/pytest-fixture-param-without-value"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 45,
+      "row": 147
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 27,
+      "row": 147
+    },
+    "message": "Private member accessed: `_load_json_file`",
+    "noqa_row": 147,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 43,
+      "row": 154
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 154
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 154,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 45,
+      "row": 159
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 27,
+      "row": 159
+    },
+    "message": "Private member accessed: `_load_json_file`",
+    "noqa_row": 159,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 36,
+      "row": 163
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 163
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 163,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 171
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 171
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 171,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 172
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 172
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 172,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 31,
+      "row": 174
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 174
+    },
+    "message": "Private member accessed: `_save_json_file`",
+    "noqa_row": 174,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 45,
+      "row": 184
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 184
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 184,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 194
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 194
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 194,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 195
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 195
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 195,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 31,
+      "row": 197
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 197
+    },
+    "message": "Private member accessed: `_save_json_file`",
+    "noqa_row": 197,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 45,
+      "row": 203
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 203
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 203,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 213
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 213
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 213,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 214
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 214
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 214,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 31,
+      "row": 216
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 216
+    },
+    "message": "Private member accessed: `_save_json_file`",
+    "noqa_row": 216,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 25,
+      "row": 221
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 221
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 221,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 25,
+      "row": 224
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 224
+    },
+    "message": "Private member accessed: `_settings`",
+    "noqa_row": 224,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 76,
+      "row": 225
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 226
+          },
+          "location": {
+            "column": 1,
+            "row": 225
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 225
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 225,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 25,
+      "row": 231
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 231
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 231,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 35,
+      "row": 234
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 234
+    },
+    "message": "Private member accessed: `_settings_file_path`",
+    "noqa_row": 234,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 25,
+      "row": 235
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 235
+    },
+    "message": "Private member accessed: `_settings`",
+    "noqa_row": 235,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 62,
+      "row": 236
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 237
+          },
+          "location": {
+            "column": 1,
+            "row": 236
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 236
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 236,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 237
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 237
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 237,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 238
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 238
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 238,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 38,
+      "row": 244
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 244
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 244,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 33,
+      "row": 248
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 248
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 248,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 33,
+      "row": 255
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 255
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 255,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 33,
+      "row": 259
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 259
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 259,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 45,
+      "row": 263
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 263
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 263,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 33,
+      "row": 266
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 266
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 266,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "PGH003",
+    "end_location": {
+      "column": 84,
+      "row": 273
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 70,
+      "row": 273
+    },
+    "message": "Use specific rule codes when ignoring type issues",
+    "noqa_row": 273,
+    "url": "https://docs.astral.sh/ruff/rules/blanket-type-ignore"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 42,
+      "row": 276
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 276
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 276,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 43,
+      "row": 279
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 279
+    },
+    "message": "Private member accessed: `_custom_eq_curves_file_path`",
+    "noqa_row": 279,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 33,
+      "row": 280
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 280
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 280,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 281
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 281
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 281,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 282
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 282
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 282,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 36,
+      "row": 295
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 295
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 295,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 35,
+      "row": 298
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 298
+    },
+    "message": "Private member accessed: `_settings_file_path`",
+    "noqa_row": 298,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 43,
+      "row": 299
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 299
+    },
+    "message": "Private member accessed: `_custom_eq_curves_file_path`",
+    "noqa_row": 299,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 300
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 300
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 300,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 27,
+      "row": 301
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 301
+    },
+    "message": "Private member accessed: `_config_dir`",
+    "noqa_row": 301,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 33,
+      "row": 303
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 303
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 303,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 25,
+      "row": 309
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 309
+    },
+    "message": "Private member accessed: `_settings`",
+    "noqa_row": 309,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "PLR2004",
+    "end_location": {
+      "column": 46,
+      "row": 317
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 45,
+      "row": 317
+    },
+    "message": "Magic value used in comparison, consider replacing `2` with a constant variable",
+    "noqa_row": 317,
+    "url": "https://docs.astral.sh/ruff/rules/magic-value-comparison"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 21,
+      "row": 330
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 330
+    },
+    "message": "Private member accessed: `_settings`",
+    "noqa_row": 330,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 37,
+      "row": 341
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 341
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 341,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 37,
+      "row": 347
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 347
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 347,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 39,
+      "row": 353
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 353
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 353,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 39,
+      "row": 359
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 359
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 359,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 42,
+      "row": 365
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 365
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 365,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 42,
+      "row": 371
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 371
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 371,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "PLR2004",
+    "end_location": {
+      "column": 48,
+      "row": 377
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 47,
+      "row": 377
+    },
+    "message": "Magic value used in comparison, consider replacing `2` with a constant variable",
+    "noqa_row": 377,
+    "url": "https://docs.astral.sh/ruff/rules/magic-value-comparison"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 53,
+      "row": 379
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 379
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 379,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 32,
+      "row": 424
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 424
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 424,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 37,
+      "row": 434
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 434
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 434,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 41,
+      "row": 445
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 445
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 445,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 27,
+      "row": 456
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 30,
+            "row": 456
+          },
+          "location": {
+            "column": 13,
+            "row": 456
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `config_manager`"
+    },
+    "location": {
+      "column": 13,
+      "row": 456
+    },
+    "message": "Local variable `config_manager` is assigned to but never used",
+    "noqa_row": 456,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 127,
+      "row": 464
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 464
+    },
+    "message": "Line too long (126 > 120)",
+    "noqa_row": 464,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 70,
+      "row": 481
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 482
+          },
+          "location": {
+            "column": 1,
+            "row": 481
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 13,
+      "row": 481
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 481,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 144,
+      "row": 492
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 492
+    },
+    "message": "Line too long (143 > 120)",
+    "noqa_row": 492,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 130,
+      "row": 493
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 493
+    },
+    "message": "Line too long (129 > 120)",
+    "noqa_row": 493,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "ANN201",
+    "end_location": {
+      "column": 68,
+      "row": 494
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": " -> None",
+          "end_location": {
+            "column": 6,
+            "row": 496
+          },
+          "location": {
+            "column": 6,
+            "row": 496
+          }
+        }
+      ],
+      "message": "Add return type annotation: `None`"
+    },
+    "location": {
+      "column": 9,
+      "row": 494
+    },
+    "message": "Missing return type annotation for public function `test_init_default_eq_curves_not_saved_if_dir_creation_fails`",
+    "noqa_row": 494,
+    "url": "https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 68,
+      "row": 494
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 494
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 494,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "E501",
+    "end_location": {
+      "column": 163,
+      "row": 495
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 121,
+      "row": 495
+    },
+    "message": "Line too long (162 > 120)",
+    "noqa_row": 495,
+    "url": "https://docs.astral.sh/ruff/rules/line-too-long"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 99,
+      "row": 498
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 99,
+            "row": 498
+          },
+          "location": {
+            "column": 81,
+            "row": 498
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `mock_load_json`"
+    },
+    "location": {
+      "column": 85,
+      "row": 498
+    },
+    "message": "Local variable `mock_load_json` is assigned to but never used",
+    "noqa_row": 498,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 120,
+      "row": 504
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 120,
+            "row": 504
+          },
+          "location": {
+            "column": 93,
+            "row": 504
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `mock_path_exists_global`"
+    },
+    "location": {
+      "column": 97,
+      "row": 504
+    },
+    "message": "Local variable `mock_path_exists_global` is assigned to but never used",
+    "noqa_row": 504,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 40,
+      "row": 535
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 535
+    },
+    "message": "Private member accessed: `_custom_eq_curves`",
+    "noqa_row": 535,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 19,
+      "row": 550
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 551
+          },
+          "location": {
+            "column": 1,
+            "row": 550
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `save_calls`"
+    },
+    "location": {
+      "column": 9,
+      "row": 550
+    },
+    "message": "Local variable `save_calls` is assigned to but never used",
+    "noqa_row": 550,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 69,
+      "row": 561
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 562
+          },
+          "location": {
+            "column": 1,
+            "row": 561
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 9,
+      "row": 561
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 561,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 95,
+      "row": 562
+    },
+    "filename": "/app/tests/test_config_manager.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 563
+          },
+          "location": {
+            "column": 1,
+            "row": 562
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 9,
+      "row": 562
+    },
+    "message": "Found commented-out code",
+    "noqa_row": 562,
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "D100",
+    "end_location": {
+      "column": 1,
+      "row": 1
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Missing docstring in public module",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-module"
+  },
+  {
+    "cell": null,
+    "code": "D101",
+    "end_location": {
+      "column": 33,
+      "row": 23
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 7,
+      "row": 23
+    },
+    "message": "Missing docstring in public class",
+    "noqa_row": 23,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-class"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 14,
+      "row": 24
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 24
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 24,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 27,
+      "row": 70
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 70
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 70,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D101",
+    "end_location": {
+      "column": 44,
+      "row": 91
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 7,
+      "row": 91
+    },
+    "message": "Missing docstring in public class",
+    "noqa_row": 91,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-class"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 41,
+      "row": 92
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 92
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 92,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 58,
+      "row": 107
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 107
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 107,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 56,
+      "row": 120
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 120
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 120,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 39,
+      "row": 124
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 124
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 124,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 39,
+      "row": 134
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 134
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 134,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 42,
+      "row": 138
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 138
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 138,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 39,
+      "row": 142
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 142
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 142,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 33,
+      "row": 152
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 152
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 152,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 59,
+      "row": 162
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 162
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 162,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 44,
+      "row": 166
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 166
+    },
+    "message": "Private member accessed: `_get_parsed_status_hid`",
+    "noqa_row": 166,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 40,
+      "row": 171
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 171
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 171,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 53,
+      "row": 176
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 18,
+      "row": 176
+    },
+    "message": "Private member accessed: `_get_parsed_status_hid`",
+    "noqa_row": 176,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 52,
+      "row": 179
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 179
+    },
+    "message": "Private member accessed: `_last_hid_raw_read_data`",
+    "noqa_row": 179,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "SLF001",
+    "end_location": {
+      "column": 52,
+      "row": 180
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 180
+    },
+    "message": "Private member accessed: `_last_hid_parsed_status`",
+    "noqa_row": 180,
+    "url": "https://docs.astral.sh/ruff/rules/private-member-access"
+  },
+  {
+    "cell": null,
+    "code": "D101",
+    "end_location": {
+      "column": 33,
+      "row": 183
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 7,
+      "row": 183
+    },
+    "message": "Missing docstring in public class",
+    "noqa_row": 183,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-class"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 40,
+      "row": 184
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 184
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 184,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 53,
+      "row": 195
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 195
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 195,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 43,
+      "row": 201
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 201
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 201,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 42,
+      "row": 212
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 212
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 212,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 35,
+      "row": 220
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 220
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 220,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 38,
+      "row": 229
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 229
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 229,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  },
+  {
+    "cell": null,
+    "code": "D102",
+    "end_location": {
+      "column": 26,
+      "row": 238
+    },
+    "filename": "/app/tests/test_headset_service.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 238
+    },
+    "message": "Missing docstring in public method",
+    "noqa_row": 238,
+    "url": "https://docs.astral.sh/ruff/rules/undocumented-public-method"
+  }
+]
