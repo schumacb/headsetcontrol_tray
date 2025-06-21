@@ -155,8 +155,9 @@ class TestConfigManager(unittest.TestCase):
         assert loaded_data == expected_data
 
     @mock.patch("json.load", side_effect=json.JSONDecodeError("Error", "doc", 0))
-    def test_load_json_file_decode_error(self, mock_json_load_raises_param: mock.MagicMock) -> None: # Renamed _mock_json_load_raises
+    def test_load_json_file_decode_error(self, _mock_unused_param: mock.MagicMock) -> None: # ARG002, E501
         """Test handling of JSONDecodeError when loading a file."""
+        # Param _mock_unused_param is unused by design of this test.
         mock_file_path = mock.MagicMock(spec=Path)
         mock_file_path.exists.return_value = True
         mock_file_path.open = mock.mock_open()
@@ -299,7 +300,7 @@ class TestConfigManager(unittest.TestCase):
         ):  # Adding single quotes
             cm.save_custom_eq_curve("InvalidCurveShort", [0] * 5)
         with pytest.raises(ConfigError, match="Invalid EQ curve format for 'InvalidCurveType'."):
-            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore
+            cm.save_custom_eq_curve("InvalidCurveType", ["a"] * 10)  # type: ignore[arg-type]
 
     @mock.patch.object(ConfigManager, "_save_json_file")
     def test_save_custom_eq_curve_success(self, mock_save_json: mock.MagicMock) -> None:

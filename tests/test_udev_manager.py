@@ -136,8 +136,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "Could not write temporary udev rule file: %s",
-            unittest.mock.ANY,
+            "Could not write temporary udev rule file"
         )
 
     @patch("tempfile.NamedTemporaryFile")
@@ -155,8 +154,7 @@ class TestUDEVManager(unittest.TestCase):  # Removed class decorator
         assert self.manager.last_udev_setup_details is None
         # Updated to check for logger.exception and the specific message format
         self.mock_logger.exception.assert_called_once_with(
-            "An unexpected error occurred during temporary udev rule file creation: %s",
-            unittest.mock.ANY,
+            "An unexpected error occurred during temporary udev rule file creation"
         )
 
     def test_get_last_udev_setup_details_initially_none(
