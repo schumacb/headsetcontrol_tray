@@ -51,21 +51,6 @@ class WindowsImpl(OSInterface):
         # Fallback if APPDATA is not set, though highly unlikely on Windows
         return Path.home() / ".config" / app_config.APP_NAME.lower().replace(" ", "_")
 
-    def get_data_dir(self) -> Path:
-        """Gets the Windows-specific data directory for the application.
-
-        Uses %LOCALAPPDATA% environment variable. App name is appended.
-        Falls back to a Linux-like path if LOCALAPPDATA is not set.
-
-        Returns:
-            A Path object to the data directory.
-        """
-        local_appdata = os.getenv("LOCALAPPDATA")
-        if local_appdata:
-            return Path(local_appdata) / app_config.APP_NAME.replace(" ", "")
-        # Fallback
-        return Path.home() / ".local" / "share" / app_config.APP_NAME.lower().replace(" ", "_")
-
     def get_os_name(self) -> str:
         """Returns the identifier for the Windows operating system.
 

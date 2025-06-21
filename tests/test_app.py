@@ -8,6 +8,7 @@ from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 from PySide6.QtWidgets import QApplication, QMessageBox
+import PySide6.QtCore # Added for QCoreApplication
 
 # Third-party imports
 import pytest
@@ -50,19 +51,30 @@ def test_initial_dialog_shown_when_details_present(
     """Test that the initial udev help dialog is shown if udev details are present."""
     # qapp fixture provides QApplication instance.
 
+    print(f"QApplication.instance() before app init: {QApplication.instance()}")
+    print(f"type(QApplication.instance()) before app init: {type(QApplication.instance())}")
+    print(f"isinstance(QApplication.instance(), QApplication) before app init: {isinstance(QApplication.instance(), QApplication)}")
+    print(f"PySide6.QtCore.QCoreApplication.instance() before app init: {PySide6.QtCore.QCoreApplication.instance()}")
+
     # Use context managers for essential mocks if their setup is needed by __init__
     with patch("headsetcontrol_tray.app.hs_svc.HeadsetService") as mock_hs_svc, \
-         patch("headsetcontrol_tray.app.QMessageBox") as mock_qmessage_box:
+         patch("headsetcontrol_tray.app.QMessageBox") as _mock_qmessage_box: # Renamed to avoid confusion
 
         # Configure minimal behavior for mocks if needed by constructor
         mock_service_instance = mock_hs_svc.return_value
         mock_service_instance.is_device_connected.return_value = False # Simulate device not initially connected
         # Simulate that OSInterface.needs_device_setup() will be true
-        # This might require mocking the OSInterface used by SteelSeriesTrayApp if it's complex
+        # This might require mocking the OSInterface used by SteelSeriesTrayApp if it's complex.
         # For now, assume the above is_device_connected=False is enough to trigger the dialog path
-        # if os_interface.needs_device_setup() is also true (which it is for LinuxImpl by default if rules not present)
+        # if os_interface.needs_device_setup() is also true (which it is for LinuxImpl by default if rules not present).
 
         SteelSeriesTrayApp()  # Constructor called for side effects
+
+        print(f"QApplication.instance() after app init: {QApplication.instance()}")
+        print(f"type(QApplication.instance()) after app init: {type(QApplication.instance())}")
+        print(f"isinstance(QApplication.instance(), QApplication) after app init: {isinstance(QApplication.instance(), QApplication)}")
+        print(f"PySide6.QtCore.QCoreApplication.instance() after app init: {PySide6.QtCore.QCoreApplication.instance()}")
+
 
         # Most assertions are commented out as their mocks are not directly injected or configured for detailed checks
         # mock_qmessage_box_class.assert_called_once()

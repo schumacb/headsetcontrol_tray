@@ -64,13 +64,6 @@ class OSInterface(abc.ABC):
         """Returns the OS-specific configuration directory path for the application."""
 
     @abc.abstractmethod
-    def get_data_dir(self) -> Path:
-        """Returns the OS-specific data directory path for the application.
-
-        (e.g., for icons, non-config data).
-        """
-
-    @abc.abstractmethod
     def get_os_name(self) -> str:
         """Returns a string identifying the operating system (e.g., 'linux', 'windows', 'macos')."""
 

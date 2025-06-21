@@ -60,20 +60,6 @@ class LinuxImpl(OSInterface):
             return Path(config_home) / app_config.APP_NAME.lower().replace(" ", "_")
         return Path.home() / ".config" / app_config.APP_NAME.lower().replace(" ", "_")
 
-    def get_data_dir(self) -> Path:
-        """Gets the Linux-specific data directory for the application.
-
-        Follows XDG Base Directory Specification: uses $XDG_DATA_HOME if set,
-        otherwise defaults to ~/.local/share/. App name is appended.
-
-        Returns:
-            A Path object to the data directory.
-        """
-        data_home = os.getenv("XDG_DATA_HOME")
-        if data_home:
-            return Path(data_home) / app_config.APP_NAME.lower().replace(" ", "_")
-        return Path.home() / ".local" / "share" / app_config.APP_NAME.lower().replace(" ", "_")
-
     def get_os_name(self) -> str:
         """Returns the identifier for the Linux operating system.
 

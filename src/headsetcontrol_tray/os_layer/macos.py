@@ -46,17 +46,6 @@ class MacOSImpl(OSInterface):
         # Standard macOS config location
         return Path.home() / "Library" / "Application Support" / app_config.APP_NAME.replace(" ", "")
 
-    def get_data_dir(self) -> Path:
-        """Gets the macOS-specific data directory for the application.
-
-        Uses `~/Library/Application Support/<AppName>`.
-
-        Returns:
-            A Path object to the data directory.
-        """
-        # Can be same as config dir for macOS or a subfolder
-        return Path.home() / "Library" / "Application Support" / app_config.APP_NAME.replace(" ", "")
-
     def get_os_name(self) -> str:
         """Returns the identifier for the macOS operating system.
 
