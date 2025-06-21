@@ -224,7 +224,7 @@ class SteelSeriesTrayApp:
             if dialog.clickedButton() == auto_button:
                 logger.info("User chose to install udev rules automatically via OSInterface.")
                 success, proc_result, exec_error = self.os_interface.perform_device_setup(ui_parent=self.tray_icon)
-                self._show_udev_feedback_dialog(success, proc_result, exec_error)
+                self._show_udev_feedback_dialog(success=success, proc_result=proc_result, exec_error=exec_error)
 
             elif dialog.clickedButton() == manual_button:
                 manual_instructions_dialog = QMessageBox(None)
@@ -240,8 +240,10 @@ class SteelSeriesTrayApp:
                 )
                 manual_instructions_dialog.exec()
 
-                if isinstance(self.os_interface, LinuxImpl) and \
-                   not self.os_interface._udev_manager.get_last_udev_setup_details():  # noqa: SLF001 (see TODO below)
+                if (
+                    isinstance(self.os_interface, LinuxImpl)
+                    and not self.os_interface._udev_manager.get_last_udev_setup_details()  # noqa: SLF001 # Accessing internal state for conditional logic
+                ):
                     # TODO: Refactor LinuxImpl to have a method like ensure_udev_details_prepared()
                     # to avoid direct _udev_manager access from app.py. This SLF001 is acknowledged pending that.
                     self.os_interface._udev_manager.create_rules_interactive()  # noqa: SLF001

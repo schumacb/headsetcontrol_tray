@@ -4,6 +4,7 @@ This module contains pytest tests for the `MacOSImpl` class, focusing on
 macOS-specific behaviors such as directory path resolution and device setup flows
 (though currently minimal for macOS). Mocks are used to simulate dependencies.
 """
+
 from collections.abc import Iterator
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -41,7 +42,8 @@ def test_macos_impl_get_hid_manager(macos_impl_fixture: MacOSImpl) -> None:  # m
     # Check for a known attribute instead of exact MagicMock type due to autospec
     assert hasattr(hid_manager, "connect_device")
     assert isinstance(
-        macos_impl_fixture._hid_manager, HIDManagerInterface,  # noqa: SLF001 # Accessing mock for assertion
+        macos_impl_fixture._hid_manager,  # noqa: SLF001 # Accessing mock for assertion
+        HIDManagerInterface,
     )
 
 

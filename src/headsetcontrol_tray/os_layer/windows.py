@@ -5,6 +5,7 @@ operations such as determining standard configuration/data directory paths
 using environment variables like APPDATA and LOCALAPPDATA. Currently,
 device setup specific to Windows is not implemented.
 """
+
 import logging
 import os
 from pathlib import Path

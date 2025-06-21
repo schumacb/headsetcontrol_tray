@@ -5,6 +5,7 @@ including device connection, status retrieval (battery, chatmix, charging),
 and sending commands (sidetone, EQ, timeout). It uses unittest.mock
 extensively to isolate HeadsetService from actual HID hardware and dependencies.
 """
+
 # Ensure src is in path for imports
 # This path manipulation might not be ideal for all test runners.
 # Consider pytest path features or project structure if issues arise.

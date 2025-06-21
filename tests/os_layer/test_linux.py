@@ -5,11 +5,12 @@ such as directory path resolution, device setup checks (udev rules), and the
 execution flow of OS-specific setup processes like running helper scripts via pkexec.
 Mocks are heavily used to isolate `LinuxImpl` from actual system interactions.
 """
+
 from collections.abc import Iterator
 import os
 from pathlib import Path
 import subprocess
-from typing import Any
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -56,7 +57,8 @@ def test_linux_impl_get_hid_manager(linux_impl_fixture: LinuxImpl) -> None:  # m
     # Check for a known attribute instead of exact MagicMock type due to autospec
     assert hasattr(hid_manager, "connect_device")
     assert isinstance(
-        linux_impl_fixture._hid_manager, HIDManagerInterface,  # noqa: SLF001 # Accessing mocked attribute for assertion
+        linux_impl_fixture._hid_manager,  # noqa: SLF001 # Accessing mocked attribute for assertion
+        HIDManagerInterface,
     )
 
 
@@ -68,7 +70,10 @@ def test_linux_impl_get_hid_manager(linux_impl_fixture: LinuxImpl) -> None:  # m
     ],
 )
 def test_linux_impl_get_config_dir(
-    linux_impl_fixture: LinuxImpl, xdg_home: str | None, expected_parent: Path, expected_name_part: str,
+    linux_impl_fixture: LinuxImpl,
+    xdg_home: str | None,
+    expected_parent: Path,
+    expected_name_part: str,
 ) -> None:
     """Tests get_config_dir() with and without XDG_CONFIG_HOME environment variable."""
     env_vars = {}
@@ -83,13 +88,13 @@ def test_linux_impl_get_config_dir(
 
 def test_linux_impl_needs_device_setup_rules_not_installed(linux_impl_fixture: LinuxImpl) -> None:
     """Tests needs_device_setup() when udev rules are not installed."""
-    linux_impl_fixture._udev_manager.are_rules_installed.return_value = False  # noqa: SLF001 # Accessing/configuring mock
+    cast("MagicMock", linux_impl_fixture._udev_manager.are_rules_installed).return_value = False  # noqa: SLF001 # Accessing/configuring mock
     assert linux_impl_fixture.needs_device_setup() is True
 
 
 def test_linux_impl_needs_device_setup_rules_installed(linux_impl_fixture: LinuxImpl) -> None:
     """Tests needs_device_setup() when udev rules are already installed."""
-    linux_impl_fixture._udev_manager.are_rules_installed.return_value = True  # noqa: SLF001 # Accessing/configuring mock
+    cast("MagicMock", linux_impl_fixture._udev_manager.are_rules_installed).return_value = True  # noqa: SLF001 # Accessing/configuring mock
     assert linux_impl_fixture.needs_device_setup() is False
 
 
@@ -98,7 +103,7 @@ def test_linux_impl_needs_device_setup_rules_installed(linux_impl_fixture: Linux
 
 def test_linux_impl_perform_device_setup_prepare_fails(linux_impl_fixture: LinuxImpl) -> None:
     """Tests perform_device_setup() when udev rule preparation fails."""
-    linux_impl_fixture._udev_manager.create_rules_interactive.return_value = False  # noqa: SLF001 # Accessing/configuring mock
+    cast("MagicMock", linux_impl_fixture._udev_manager.create_rules_interactive).return_value = False  # noqa: SLF001 # Accessing/configuring mock
 
     success, proc_result, error = linux_impl_fixture.perform_device_setup()
     assert success is False
@@ -108,10 +113,10 @@ def test_linux_impl_perform_device_setup_prepare_fails(linux_impl_fixture: Linux
 
 def test_linux_impl_perform_device_setup_pkexec_success(linux_impl_fixture: LinuxImpl) -> None:  # mocker removed
     """Tests perform_device_setup() when pkexec helper script execution is successful."""
-    linux_impl_fixture._udev_manager.create_rules_interactive.return_value = True  # noqa: SLF001 # Accessing/configuring mock
+    cast("MagicMock", linux_impl_fixture._udev_manager.create_rules_interactive).return_value = True  # noqa: SLF001 # Accessing/configuring mock
     # Mock path, not creating actual temp file
     mock_udev_details = {"temp_file_path": "/tmp/temp.rules", "final_file_path": "/etc/final.rules"}  # noqa: S108 # Mock path, not a security risk.
-    linux_impl_fixture._udev_manager.get_last_udev_setup_details.return_value = mock_udev_details  # noqa: SLF001 # Accessing/configuring mock
+    cast("MagicMock", linux_impl_fixture._udev_manager.get_last_udev_setup_details).return_value = mock_udev_details  # noqa: SLF001 # Accessing/configuring mock
 
     mock_completed_process = subprocess.CompletedProcess(
         args=["pkexec", "/path/to/script.sh", "/tmp/temp.rules", "/etc/final.rules"],  # noqa: S108
@@ -143,14 +148,14 @@ def test_linux_impl_perform_device_setup_pkexec_success(linux_impl_fixture: Linu
 def test_linux_impl_perform_device_setup_pkexec_script_failures(
     linux_impl_fixture: LinuxImpl,
     pkexec_returncode: int,
-    *, # Ensures expected_success is keyword-only
+    *,  # Ensures expected_success is keyword-only
     expected_success: bool,
 ) -> None:  # mocker removed
     """Tests perform_device_setup() for various pkexec script failure scenarios."""
-    linux_impl_fixture._udev_manager.create_rules_interactive.return_value = True  # noqa: SLF001 # Mock setup
+    cast("MagicMock", linux_impl_fixture._udev_manager.create_rules_interactive).return_value = True  # noqa: SLF001 # Mock setup
     # Mock path, not creating actual temp file
     mock_udev_details = {"temp_file_path": "/tmp/temp.rules", "final_file_path": "/etc/final.rules"}  # noqa: S108 # Mock path, not a security risk.
-    linux_impl_fixture._udev_manager.get_last_udev_setup_details.return_value = mock_udev_details  # noqa: SLF001 # Mock setup
+    cast("MagicMock", linux_impl_fixture._udev_manager.get_last_udev_setup_details).return_value = mock_udev_details  # noqa: SLF001 # Mock setup
 
     mock_completed_process = subprocess.CompletedProcess(
         args=[],
@@ -184,11 +189,11 @@ def test_linux_impl_perform_device_setup_exceptions(
     expected_exception_type: type[Exception],
 ) -> None:  # mocker removed
     """Tests perform_device_setup() when _execute_udev_helper_script raises exceptions."""
-    linux_impl_fixture._udev_manager.create_rules_interactive.return_value = True  # noqa: SLF001 # Mock setup
-    linux_impl_fixture._udev_manager.create_rules_interactive.return_value = True  # noqa: SLF001 # Mock setup
+    cast("MagicMock", linux_impl_fixture._udev_manager.create_rules_interactive).return_value = True  # noqa: SLF001 # Mock setup
+    cast("MagicMock", linux_impl_fixture._udev_manager.create_rules_interactive).return_value = True  # noqa: SLF001 # Mock setup
     # Mock path, not creating actual temp file
     mock_udev_details = {"temp_file_path": "/tmp/temp.rules", "final_file_path": "/etc/final.rules"}  # noqa: S108 # Mock path, not a security risk.
-    linux_impl_fixture._udev_manager.get_last_udev_setup_details.return_value = mock_udev_details  # noqa: SLF001 # Mock setup
+    cast("MagicMock", linux_impl_fixture._udev_manager.get_last_udev_setup_details).return_value = mock_udev_details  # noqa: SLF001 # Mock setup
 
     with patch.object(
         linux_impl_fixture,
@@ -229,7 +234,7 @@ def test_linux_impl_perform_device_setup_exceptions(
             mock_file_dunder_path_obj.parent = MagicMock()
             mock_file_dunder_path_obj.parent.parent = MagicMock()
             scripts_dir_mock = MagicMock()  # Restored definition
-            scripts_dir_mock.resolve = MagicMock() # Ensure resolve is a mock for call
+            scripts_dir_mock.resolve = MagicMock()  # Ensure resolve is a mock for call
             # This chain simulates (Path(__file__).parent / ".." / ".." / "scripts")
             mock_file_dunder_path_obj.parent.parent.__truediv__.return_value = scripts_dir_mock
             scripts_dir_mock.resolve.return_value = scripts_dir_mock  # .resolve()

@@ -5,6 +5,7 @@ Windows-specific behaviors such as directory path resolution using environment
 variables (APPDATA) and device setup flows (currently minimal for Windows).
 Mocks are used to simulate dependencies.
 """
+
 from collections.abc import Iterator
 import os
 from pathlib import Path
@@ -43,7 +44,8 @@ def test_windows_impl_get_hid_manager(windows_impl_fixture: WindowsImpl) -> None
     # Check for a known attribute instead of exact MagicMock type due to autospec
     assert hasattr(hid_manager, "connect_device")
     assert isinstance(
-        windows_impl_fixture._hid_manager, HIDManagerInterface,  # noqa: SLF001 # Accessing mock for assertion
+        windows_impl_fixture._hid_manager,  # noqa: SLF001 # Accessing mock for assertion
+        HIDManagerInterface,
     )
 
 
@@ -82,7 +84,7 @@ def test_windows_impl_perform_device_setup(windows_impl_fixture: WindowsImpl) ->
     """Tests perform_device_setup() for Windows, expecting it to show an info dialog."""
     # Patch QMessageBox where it's looked up (PySide6.QtWidgets)
     with patch("PySide6.QtWidgets.QMessageBox", MagicMock(spec=QMessageBox)) as mock_qmessagebox_constructor:
-        _mock_dialog_instance = mock_qmessagebox_constructor.return_value # F841: Unused
+        _mock_dialog_instance = mock_qmessagebox_constructor.return_value  # F841: Unused
         mock_parent_widget = MagicMock()
 
         success, proc_result, error = windows_impl_fixture.perform_device_setup(ui_parent=mock_parent_widget)

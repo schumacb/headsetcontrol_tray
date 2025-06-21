@@ -4,6 +4,7 @@ It handles HID communication, status parsing, command encoding, and provides
 methods to get headset status (like battery, chatmix) and set parameters
 (like sidetone, EQ).
 """
+
 import logging
 from typing import Any
 

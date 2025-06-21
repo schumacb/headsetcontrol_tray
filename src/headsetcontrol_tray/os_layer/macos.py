@@ -5,6 +5,7 @@ operations such as determining standard configuration/data directory paths.
 Currently, device setup specific to macOS is not implemented and assumes
 generic HID functionality.
 """
+
 import logging
 from pathlib import Path
 import subprocess  # For CompletedProcess type hint

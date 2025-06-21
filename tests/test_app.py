@@ -1,14 +1,11 @@
 """Tests for the main application logic (SteelSeriesTrayApp)."""
 
 # Standard library imports
+from collections.abc import Iterator  # Moved import here
 import logging
 from pathlib import Path
 import sys
-from typing import Any
 from unittest.mock import MagicMock, Mock, patch
-
-from PySide6.QtWidgets import QApplication, QMessageBox
-import PySide6.QtCore # Added for QCoreApplication
 
 # Third-party imports
 import pytest
@@ -34,8 +31,9 @@ except ImportError:
 
 # Commented out class TestSteelSeriesTrayAppUdevDialog and its methods are removed.
 
+
 @pytest.fixture
-def _mock_system_tray_icon():
+def _mock_system_tray_icon() -> Iterator[MagicMock]:
     """Fixture to mock SystemTrayIcon for the duration of a test."""
     with patch("headsetcontrol_tray.app.sti.SystemTrayIcon") as mock_sti:
         yield mock_sti
@@ -51,18 +49,14 @@ def test_initial_dialog_shown_when_details_present(
     """Test that the initial udev help dialog is shown if udev details are present."""
     # qapp fixture provides QApplication instance.
 
-    print(f"QApplication.instance() before app init: {QApplication.instance()}")
-    print(f"type(QApplication.instance()) before app init: {type(QApplication.instance())}")
-    print(f"isinstance(QApplication.instance(), QApplication) before app init: {isinstance(QApplication.instance(), QApplication)}")
-    print(f"PySide6.QtCore.QCoreApplication.instance() before app init: {PySide6.QtCore.QCoreApplication.instance()}")
-
     # Use context managers for essential mocks if their setup is needed by __init__
-    with patch("headsetcontrol_tray.app.hs_svc.HeadsetService") as mock_hs_svc, \
-         patch("headsetcontrol_tray.app.QMessageBox") as _mock_qmessage_box: # Renamed to avoid confusion
-
+    with (
+        patch("headsetcontrol_tray.app.hs_svc.HeadsetService") as mock_hs_svc,
+        patch("headsetcontrol_tray.app.QMessageBox") as _mock_qmessage_box,
+    ):  # Renamed to avoid confusion
         # Configure minimal behavior for mocks if needed by constructor
         mock_service_instance = mock_hs_svc.return_value
-        mock_service_instance.is_device_connected.return_value = False # Simulate device not initially connected
+        mock_service_instance.is_device_connected.return_value = False  # Simulate device not initially connected
         # Simulate that OSInterface.needs_device_setup() will be true
         # This might require mocking the OSInterface used by SteelSeriesTrayApp if it's complex.
         # For now, assume the above is_device_connected=False is enough to trigger the dialog path
@@ -70,26 +64,10 @@ def test_initial_dialog_shown_when_details_present(
 
         SteelSeriesTrayApp()  # Constructor called for side effects
 
-        print(f"QApplication.instance() after app init: {QApplication.instance()}")
-        print(f"type(QApplication.instance()) after app init: {type(QApplication.instance())}")
-        print(f"isinstance(QApplication.instance(), QApplication) after app init: {isinstance(QApplication.instance(), QApplication)}")
-        print(f"PySide6.QtCore.QCoreApplication.instance() after app init: {PySide6.QtCore.QCoreApplication.instance()}")
-
-
-        # Most assertions are commented out as their mocks are not directly injected or configured for detailed checks
-        # mock_qmessage_box_class.assert_called_once()
-        # mock_dialog_instance = mock_qmessage_box_class.return_value
-        # mock_dialog_instance.exec.assert_called_once()
-        # mock_dialog_instance.setWindowTitle.assert_called_with(
-        #     "Headset Permissions Setup Required",
-        # )
-        # mock_dialog_instance.setText.assert_called_with(
-        #     "Could not connect to your SteelSeries headset. This may be due to missing udev permissions (udev rules).",
-        # )
-        # informative_text_call_args = mock_dialog_instance.setInformativeText.call_args[0][0]
-        # assert "To resolve this, you can use the 'Install Automatically' button" in informative_text_call_args
-        # assert "Show Manual Instructions Only" not in informative_text_call_args
-    # qapplication_patch.stop() # Patch removed
+        # Assertions related to dialogs are complex due to indirect calls and UI interaction.
+        # For this test, focus is on whether the app initializes.
+        # Detailed dialog interaction tests would require more specific mocking or a different approach.
+        # Placeholder for future assertions if needed.
 
 
 @patch("headsetcontrol_tray.app.QMessageBox")
@@ -111,4 +89,3 @@ def test_initial_dialog_not_shown_when_details_absent(
 
     SteelSeriesTrayApp()  # Constructor called for side effects
     mock_qmessage_box_class.assert_not_called()
-    # qapplication_patch.stop() # Patch removed

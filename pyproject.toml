@@ -30,6 +30,9 @@ dev = [
 [tool.ruff]
 line-length = 120
 indent-width = 4
+exclude = [
+    "vulture_whitelist.py",
+]
 
 [tool.ruff.lint]
 select = [
@@ -102,6 +105,11 @@ known-first-party = ["headsetcontrol_tray", "tests"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "tests/**/*.py" = ["S101"]
+
+[tool.mypy]
+exclude = [
+    "vulture_whitelist.py",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

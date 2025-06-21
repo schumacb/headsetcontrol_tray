@@ -5,6 +5,7 @@ the contracts for handling HID device interactions and OS-specific functionaliti
 respectively. Concrete implementations of these interfaces are provided in
 other modules within this package (e.g., `linux.py`, `windows.py`).
 """
+
 import abc
 from pathlib import Path
 import subprocess

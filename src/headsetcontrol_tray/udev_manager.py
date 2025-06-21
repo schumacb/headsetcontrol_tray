@@ -5,6 +5,7 @@ the content of udev rules, defining their target installation path,
 and checking if the rules seem to be installed. It also handles the
 creation of temporary rule files for manual or scripted installation.
 """
+
 import logging
 from pathlib import Path
 import tempfile

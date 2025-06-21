@@ -5,6 +5,7 @@ operations such as determining configuration/data directories according to
 XDG standards, managing udev rules for device permissions, and executing
 helper scripts with elevated privileges using pkexec.
 """
+
 import logging
 import os
 from pathlib import Path

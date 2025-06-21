@@ -4,6 +4,7 @@ This module provides the ConfigManager class, which handles loading and saving
 configuration data from JSON files. It supports general application settings
 and management of custom equalizer (EQ) curves.
 """
+
 import json
 import logging
 from pathlib import Path

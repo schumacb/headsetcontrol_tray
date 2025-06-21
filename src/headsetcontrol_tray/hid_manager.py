@@ -5,6 +5,7 @@ HIDManagerInterface. It is responsible for finding potential headset devices,
 sorting them based on preference (e.g., specific interface numbers, usage pages),
 establishing a connection, and providing access to the connected HID device.
 """
+
 import logging
 from typing import Any  # Ensure Tuple is imported
 
@@ -99,6 +100,7 @@ class HIDConnectionManager(HIDManagerInterface):  # Inherit from HIDManagerInter
         Returns:
             A new list containing the sorted HID device information dictionaries.
         """
+
         # Sort key based on interface number, usage page, and specific PIDs.
         # Higher preference (lower sort key value) for more specific matches.
         def sort_key(d_info: dict[str, Any]) -> int:

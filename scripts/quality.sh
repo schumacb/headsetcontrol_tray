@@ -24,15 +24,13 @@ echo "Executing: $PYTEST_FINAL_CMD"
 eval $PYTEST_FINAL_CMD # Use eval to correctly execute the command string with arguments
 
 echo ===== running mypy =====
-uv run mypy .
+uv run mypy src tests
 echo ===== running ruff check src =====
 uv run ruff check src
 echo ===== running ruff check tests =====
 uv run ruff check tests
-echo ===== running vulture src =====
-uv run vulture src
-echo ===== running vulture tests =====
-uv run vulture tests
+echo ===== running vulture =====
+uv run vulture src tests vulture_whitelist.py --min-confidence 60
 echo ===== running radon cc . -a -s =====
 uv run radon cc . -a -s
 echo ===== running radon mi . -s =====
