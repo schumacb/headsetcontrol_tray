@@ -21,6 +21,9 @@ TARGET_PIDS = [
     ARCTIS_NOVA_7P_WIRELESS_PID,  # This is 0x12db (decimal 4827)
 ]
 
+# Battery level representation
+BATTERY_LEVEL_FULL = 4  # Raw value from device (0-4) indicating full battery
+
 # Default settings
 DEFAULT_SIDETONE_LEVEL = 64  # Mid-range
 DEFAULT_INACTIVE_TIMEOUT = 15  # minutes
