@@ -3,8 +3,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from PySide6.QtCore import QRect  # Added QRect for assertions
-from PySide6.QtGui import QColor, QIcon, QPainter, Qt  # Added QColor, Qt for assertions
+from PySide6.QtCore import QRect
+from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap, Qt # Added QPixmap
 
 # Assuming tray_icon_painter is in src.headsetcontrol_tray.ui
 from headsetcontrol_tray.ui.tray_icon_painter import (
@@ -21,8 +21,16 @@ class TestTrayIconPainter(unittest.TestCase):
 
     def setUp(self) -> None:
         self.mock_base_icon = MagicMock(spec=QIcon)
-        self.mock_pixmap = MagicMock()
-        self.mock_base_icon.pixmap.return_value.copy.return_value = self.mock_pixmap
+
+        # Create a real QPixmap for .copy() to return, to satisfy QIcon constructor
+        self.real_pixmap_for_copy = QPixmap(ICON_DRAW_SIZE, ICON_DRAW_SIZE)
+        self.real_pixmap_for_copy.fill(Qt.GlobalColor.transparent) # Make it a valid pixmap
+
+        # Configure the chain of mocks for pixmap creation
+        mock_pixmap_from_base_icon = MagicMock(spec=QPixmap) # Mock for self._base_icon.pixmap()
+        mock_pixmap_from_base_icon.copy.return_value = self.real_pixmap_for_copy
+        self.mock_base_icon.pixmap.return_value = mock_pixmap_from_base_icon
+
         self.painter_instance = TrayIconPainter(base_icon=self.mock_base_icon)
 
     @patch("headsetcontrol_tray.ui.tray_icon_painter.QPainter")
@@ -39,7 +47,7 @@ class TestTrayIconPainter(unittest.TestCase):
         )
 
         self.mock_base_icon.pixmap.assert_called_once_with(ICON_DRAW_SIZE, ICON_DRAW_SIZE)
-        mock_qpainter_class.assert_called_once_with(self.mock_pixmap)
+        mock_qpainter_class.assert_called_once_with(self.real_pixmap_for_copy)
         mock_painter_obj.setRenderHint.assert_called_once_with(QPainter.RenderHint.Antialiasing)
         self.painter_instance._draw_disconnected_indicator.assert_called_once_with(mock_painter_obj)
         mock_painter_obj.end.assert_called_once()
@@ -161,7 +169,8 @@ class TestTrayIconPainter(unittest.TestCase):
         # Test when charging
         self.painter_instance._draw_charging_indicator(mock_painter, mock_rect, "BATTERY_CHARGING")
         mock_painter.drawPath.assert_called_once()
-        assert mock_painter.brush().color() == QColor(Qt.GlobalColor.yellow)  # Charging bolt fill
+        mock_painter.setBrush.assert_called_with(QColor(Qt.GlobalColor.yellow)) # Check setBrush was called with yellow
+        # We might also want to check setPen: mock_painter.setPen.assert_called_with(QColor(Qt.GlobalColor.transparent))
         mock_painter.reset_mock()
 
         # Test when not charging

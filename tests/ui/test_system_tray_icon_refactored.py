@@ -52,9 +52,19 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
         self.mock_base_theme_icon = MagicMock(spec=QIcon)
         mock_qicon_from_theme.fromTheme.return_value = self.mock_base_theme_icon
 
-        # Mock the menu returned by TrayMenuManager
-        self.mock_qmenu = MagicMock()
-        self.mock_menu_manager_instance.get_context_menu.return_value = self.mock_qmenu
+        # Store mock classes on self for use in tests
+        # Order matches @patch decorators from bottom up
+        self.mock_icon_painter_class_mock = mock_icon_painter_class
+        self.mock_tooltip_manager_class_mock = mock_tooltip_manager_class
+        self.mock_menu_manager_class_mock = mock_menu_manager_class
+        self.mock_polling_service_class_mock = mock_polling_service_class
+        self.mock_chatmix_manager_class_mock = mock_chatmix_manager_class
+        self.mock_settings_dialog_class_mock = mock_settings_dialog_class
+        self.mock_qicon_class_mock = mock_qicon_from_theme # This is the QIcon class itself
+
+        # Use a real QMenu instance for setContextMenu, as MagicMock(spec=QMenu) caused ValueError
+        self.real_qmenu_for_test = QMenu()
+        self.mock_menu_manager_instance.get_context_menu.return_value = self.real_qmenu_for_test
 
         self.tray_icon = SystemTrayIcon(
             headset_service=self.mock_headset_service,
@@ -62,9 +72,8 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
             application_quit_fn=self.mock_app_quit_fn,
             parent=None,
         )
-        # Mock the actual setIcon method of the QSystemTrayIcon instance
-        self.tray_icon.setIcon = MagicMock()
-        self.tray_icon.setToolTip = MagicMock()
+        # REMOVED: self.tray_icon.setIcon = MagicMock() - will be handled by @patch.object in specific tests
+        # REMOVED: self.tray_icon.setToolTip = MagicMock() - will be handled by @patch.object in specific tests
 
     def test_initialization(self) -> None:
         """Test initialization of SystemTrayIcon and its components."""
@@ -73,21 +82,23 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
             base_icon=self.mock_base_theme_icon,
         )  # Re-init with expected arg
 
-        self.tray_icon.icon_painter.__class__.assert_called_once_with(base_icon=self.mock_base_theme_icon)
-        self.tray_icon.tooltip_manager.__class__.assert_called_once_with(config_manager_getter=ANY)  # callable
-        self.tray_icon.menu_manager.__class__.assert_called_once_with(
+        # Assert on the mock classes passed to setUp (now stored on self)
+        self.mock_icon_painter_class_mock.assert_called_once_with(base_icon=self.mock_base_theme_icon)
+        self.mock_tooltip_manager_class_mock.assert_called_once_with(config_manager_getter=ANY)  # callable
+        self.mock_menu_manager_class_mock.assert_called_once_with(
             headset_service=self.mock_headset_service,
             config_manager=self.mock_config_manager,
             tray_icon_parent_widget=self.tray_icon,
             application_quit_fn=self.mock_app_quit_fn,
             open_settings_fn=self.tray_icon._open_settings_dialog,
         )
-        self.tray_icon.polling_service.__class__.assert_called_once_with(
+        self.mock_polling_service_class_mock.assert_called_once_with(
             headset_service=self.mock_headset_service, parent=self.tray_icon,
         )
-        self.tray_icon.chatmix_manager.__class__.assert_called_once_with(self.mock_config_manager)
+        self.mock_chatmix_manager_class_mock.assert_called_once_with(self.mock_config_manager)
 
-        self.tray_icon.setContextMenu.assert_called_once_with(self.mock_qmenu)
+        # Verify the context menu was set correctly on the real SystemTrayIcon instance
+        self.assertIs(self.tray_icon.contextMenu(), self.real_qmenu_for_test)
         self.mock_polling_service_instance.status_updated.connect.assert_called_once_with(
             self.tray_icon._on_status_updated,
         )
@@ -179,6 +190,8 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
 
     def test_handle_settings_dialog_change(self) -> None:
         """Test handling changes from the settings dialog."""
+        # Reset mock for _poll_status as it's called during initialization
+        self.mock_polling_service_instance._poll_status.reset_mock()
         self.tray_icon._handle_settings_dialog_change()
         # pylint: disable=protected-access
         self.mock_polling_service_instance._poll_status.assert_called_once()
@@ -189,12 +202,15 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
         self.tray_icon._on_activated(QSystemTrayIcon.ActivationReason.Trigger)
         mock_open_settings.assert_called_once()
 
-    @patch.object(QMenu, "popup")  # Mock the QMenu.popup method
-    def test_on_activated_context(self, _mock_qmenu_popup: MagicMock) -> None: # Renamed to indicate unused
+    @patch.object(QMenu, "popup")
+    def test_on_activated_context(self, mock_qmenu_popup_method: MagicMock) -> None:
         """Test right-click activation shows context menu."""
-        # self.tray_icon.context_menu is already the mocked QMenu from menu_manager
         self.tray_icon._on_activated(QSystemTrayIcon.ActivationReason.Context)
-        self.mock_qmenu.popup.assert_called_once_with(ANY)  # QCursor.pos()
+        # self.real_qmenu_for_test is the instance whose popup method should be patched
+        # by @patch.object(QMenu, "popup") and thus should be mock_qmenu_popup_method
+        # if it's an instance method patch on all QMenus.
+        # More directly, assert that the specific instance's popup was called.
+        self.real_qmenu_for_test.popup.assert_called_once_with(ANY)  # QCursor.pos()
 
     def test_set_initial_headset_settings_connected(self) -> None:
         """Test applying initial settings when device is connected."""
@@ -205,6 +221,12 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
         self.mock_config_manager.get_active_eq_type.return_value = EQ_TYPE_CUSTOM
         self.mock_config_manager.get_last_custom_eq_curve_name.return_value = "InitialEQ"
         self.mock_config_manager.get_custom_eq_curve.return_value = [0.1, 0.2]
+
+        # Reset mocks as set_initial_headset_settings is called during __init__
+        self.mock_headset_service.set_sidetone_level.reset_mock()
+        self.mock_headset_service.set_inactive_timeout.reset_mock()
+        self.mock_headset_service.set_eq_values.reset_mock()
+        self.mock_polling_service_instance._poll_status.reset_mock()
 
         self.tray_icon.set_initial_headset_settings()
 
@@ -218,6 +240,13 @@ class TestSystemTrayIconRefactored(unittest.TestCase):
         # pylint: disable=protected-access
         self.mock_polling_service_instance._is_currently_connected = False
         self.mock_headset_service.is_device_connected.return_value = False  # Service also reports not connected
+
+        # Reset mocks as set_initial_headset_settings might be (partially) called during __init__
+        # or previous tests if instance is reused (though unittest creates new instances)
+        # More importantly, we are testing this specific call's behavior.
+        self.mock_headset_service.set_sidetone_level.reset_mock()
+        self.mock_headset_service.set_inactive_timeout.reset_mock()
+        self.mock_headset_service.set_eq_values.reset_mock()
 
         self.tray_icon.set_initial_headset_settings()
 

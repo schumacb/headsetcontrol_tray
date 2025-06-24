@@ -24,6 +24,11 @@ TARGET_PIDS = [
 # Battery level representation
 BATTERY_LEVEL_FULL = 4  # Raw value from device (0-4) indicating full battery
 
+# ChatMix range constants
+CHATMIX_VALUE_FULL_GAME = 100  # Assuming 0-100 scale, where 100 is full game audio
+CHATMIX_VALUE_FULL_CHAT = 0    # Assuming 0-100 scale, where 0 is full chat audio
+CHATMIX_VALUE_BALANCED = 50    # Assuming 0-100 scale, where 50 is balanced
+
 # Default settings
 DEFAULT_SIDETONE_LEVEL = 64  # Mid-range
 DEFAULT_INACTIVE_TIMEOUT = 15  # minutes

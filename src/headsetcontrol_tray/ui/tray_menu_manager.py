@@ -91,7 +91,8 @@ class TrayMenuManager:
             app_config.SIDETONE_OPTIONS.items(),
             key=lambda item: item[1],
         ):
-            action = QAction(text, sidetone_menu, checkable=True)
+            action = QAction(text, sidetone_menu)
+            action.setCheckable(True)
             action.setData(level)
             # Connection is a bit tricky with lambda and loop var.
             # functools.partial is safer, or ensure correct capture.
@@ -102,7 +103,8 @@ class TrayMenuManager:
     def _create_timeout_menu(self) -> None:
         timeout_menu = self.context_menu.addMenu("Inactive Timeout")
         for text, minutes in app_config.INACTIVE_TIMEOUT_OPTIONS.items():
-            action = QAction(text, timeout_menu, checkable=True)
+            action = QAction(text, timeout_menu)
+            action.setCheckable(True)
             action.setData(minutes)
             action.triggered.connect(lambda checked=False, m=minutes: self._handle_timeout_selected(m))
             timeout_menu.addAction(action)
@@ -118,7 +120,8 @@ class TrayMenuManager:
         )
 
         for name in sorted_custom_names:
-            action = QAction(name, eq_menu, checkable=True)
+            action = QAction(name, eq_menu)
+            action.setCheckable(True)
             action.setData((EQ_TYPE_CUSTOM, name))
             action.triggered.connect(lambda checked=False, data=(EQ_TYPE_CUSTOM, name): self._handle_eq_selected(data))
             eq_menu.addAction(action)
@@ -129,7 +132,8 @@ class TrayMenuManager:
 
         for preset_id, name in app_config.HARDWARE_EQ_PRESET_NAMES.items():
             display_name = HW_PRESET_DISPLAY_PREFIX + name
-            action = QAction(display_name, eq_menu, checkable=True)
+            action = QAction(display_name, eq_menu)
+            action.setCheckable(True)
             action.setData((EQ_TYPE_HARDWARE, preset_id))
             action.triggered.connect(
                 lambda checked=False, data=(EQ_TYPE_HARDWARE, preset_id): self._handle_eq_selected(data),

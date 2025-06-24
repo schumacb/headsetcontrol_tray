@@ -197,7 +197,9 @@ class SystemTrayIcon(QSystemTrayIcon):
             self._open_settings_dialog()
         elif reason == QSystemTrayIcon.ActivationReason.Context:  # Typically right click
             # Menu is managed by menu_manager, ensure it's shown at cursor
-            self.context_menu.popup(QCursor.pos())
+            menu = self.contextMenu()
+            if menu:
+                menu.popup(QCursor.pos())
 
     def set_initial_headset_settings(self) -> None:
         """Applies stored settings to the headset upon application startup."""
