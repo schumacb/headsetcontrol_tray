@@ -3,32 +3,35 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-solution-strategy]]
 == Solution Strategy
 
+This section describes the overall solution strategy for the `headsetcontrol-tray` application.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-A short summary and explanation of the fundamental decisions and solution strategies, that shape system architecture. It includes
+=== Guiding Principles
 
-* technology decisions
-* decisions about the top-level decomposition of the system, e.g. usage of an architectural pattern or design pattern
-* decisions on how to achieve key quality goals
-* relevant organizational decisions, e.g. selecting a development process or delegating certain tasks to third parties.
+The design of the application is guided by the following principles:
 
-.Motivation
-These decisions form the cornerstones for your architecture. They are the foundation for many other detailed decisions or implementation rules.
+*   **Modularity:** The application is divided into distinct modules with well-defined responsibilities. This makes the codebase easier to understand, maintain, and extend.
+*   **Separation of Concerns:** The application's concerns are separated into different layers. For example, the user interface is separate from the business logic, and the hardware communication is separate from the core application logic.
+*   **Platform Abstraction:** Platform-specific code is isolated in a dedicated OS layer to improve portability and reduce code duplication.
+*   **Configuration over Code:** The application uses a configuration file to store user settings and headset-specific information. This makes it easier to customize the application without modifying the code.
 
-.Form
-Keep the explanations of such key decisions short.
+=== Key Design Choices
 
-Motivate what was decided and why it was decided that way,
-based upon problem statement, quality goals and key constraints.
-Refer to details in the following sections.
+The following are the key design choices that shape the architecture:
 
+*   **Desktop Application:** The application is a desktop application with a graphical user interface, rather than a command-line tool or a web application. This is because the target users are non-technical and prefer a visual interface.
+*   **System Tray Icon:** The application uses a system tray icon as the primary user interface. This allows the application to run in the background and provide quick access to essential features.
+*   **Direct HID Communication:** The application communicates with headsets directly using the HID protocol. This avoids the need for proprietary drivers or software and allows the application to support a wide range of devices.
+*   **Python and PySide6:** The application is written in Python with the PySide6 library for the user interface. Python was chosen for its readability, extensive libraries, and cross-platform support. PySide6 was chosen for its modern API and good integration with Python.
 
-.Further Information
+=== Technology Stack
 
-See https://docs.arc42.org/section-4/[Solution Strategy] in the arc42 documentation.
+The application is built using the following technologies:
 
-****
-endif::arc42help[]
+*   **Programming Language:** Python 3.10+
+*   **GUI Toolkit:** PySide6
+*   **HID Communication:** The `hidapi` library
+*   **Package Management:** `uv`
+*   **Build System:** `setuptools`
+*   **Testing:** `pytest`
+*   **Linting and Formatting:** `ruff`
+*   **Static Typing:** `mypy`

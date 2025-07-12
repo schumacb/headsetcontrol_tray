@@ -1,37 +1,29 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
-[[section-design-decisions]]
+[[section-architecture-decisions]]
 == Architecture Decisions
 
+This section records the important architectural decisions that have been made for the `headsetcontrol-tray` application.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Important, expensive, large scale or risky architecture decisions including rationales.
-With "decisions" we mean selecting one alternative based on given criteria.
+The following is a list of the architectural decision records (ADRs) for this project:
 
-Please use your judgement to decide whether an architectural decision should be documented
-here in this central section or whether you better document it locally
-(e.g. within the white box template of one building block).
+*   <<adr-0001,ADR 0001: Use Python for Application Development>>
+*   <<adr-0002,ADR 0002: Use PySide6 for GUI Toolkit>>
+*   <<adr-0003,ADR 0003: Use Direct HID Communication>>
 
-Avoid redundancy. 
-Refer to section 4, where you already captured the most important decisions of your architecture.
+The ADRs are stored in the `docs/architecture/adr` directory.
 
-.Motivation
-Stakeholders of your system should be able to comprehend and retrace your decisions.
+[[adr-0001]]
+=== ADR 0001: Use Python for Application Development
 
-.Form
-Various options:
+include::adr/0001-use-python-for-application-development.adoc[]
 
-* ADR (https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions[Documenting Architecture Decisions]) for every important decision
-* List or table, ordered by importance and consequences or:
-* more detailed in form of separate sections per decision
+[[adr-0002]]
+=== ADR 0002: Use PySide6 for GUI Toolkit
 
-.Further Information
+include::adr/0002-use-pyside6-for-gui-toolkit.adoc[]
 
-See https://docs.arc42.org/section-9/[Architecture Decisions] in the arc42 documentation.
-There you will find links and examples about ADR.
+[[adr-0003]]
+=== ADR 0003: Use Direct HID Communication
 
-****
-endif::arc42help[]
+include::adr/0003-use-direct-hid-communication.adoc[]

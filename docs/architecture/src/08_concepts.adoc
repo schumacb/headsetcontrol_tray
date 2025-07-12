@@ -1,74 +1,52 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
-[[section-concepts]]
+[[section-cross-cutting-concepts]]
 == Cross-cutting Concepts
 
+This section describes the cross-cutting concepts of the `headsetcontrol-tray` application.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-This section describes overall, principal regulations and solution ideas that are relevant in multiple parts (= cross-cutting) of your system.
-Such concepts are often related to multiple building blocks.
-They can include many different topics, such as
+=== Domain Model
 
-* models, especially domain models
-* architecture or design patterns
-* rules for using specific technology
-* principal, often technical decisions of an overarching (= cross-cutting) nature
-* implementation rules
+The domain model of the application is centered around the `Headset` entity. A `Headset` has a `VendorID`, a `ProductID`, and a set of `Features`. A `Feature` represents a controllable aspect of the headset, such as the equalizer, sidetone, or chatmix. Each `Feature` has a set of `Commands` that can be sent to the headset to control it.
 
+The domain model is implemented in the `headsetcontrol_tray.headset_status` and `headsetcontrol_tray.headset_service` modules.
 
-.Motivation
-Concepts form the basis for _conceptual integrity_ (consistency, homogeneity) of the architecture. 
-Thus, they are an important contribution to achieve inner qualities of your system.
+=== HID Communication
 
-Some of these concepts cannot be assigned to individual building blocks, e.g. security or safety. 
+The application communicates with headsets using the Human Interface Device (HID) protocol. HID is a standard protocol for communication between a host computer and a peripheral device, such as a keyboard, mouse, or headset.
 
+The application sends HID reports to the headset to control its features, such as changing the equalizer preset or adjusting the sidetone level. The headset sends HID reports back to the application to provide status updates, such as the current battery level or connection status.
 
-.Form
-The form can be varied:
+Each headset model has its own unique set of HID reports. The application uses a configuration file to define the HID reports for each supported headset model. The `HIDCommunicator` class in the `headsetcontrol_tray.hid_communicator` module is responsible for sending and receiving HID reports.
 
-* concept papers with any kind of structure
-* cross-cutting model excerpts or scenarios using notations of the architecture views
-* sample implementations, especially for technical concepts
-* reference to typical usage of standard frameworks (e.g. using Hibernate for object/relational mapping)
+=== OS Layer
 
-.Structure
-A potential (but not mandatory) structure for this section could be:
+The OS layer is an abstraction layer that isolates platform-specific code. It provides a consistent interface for interacting with the operating system's device management and other features.
 
-* Domain concepts
-* User Experience concepts (UX)
-* Safety and security concepts
-* Architecture and design patterns
-* "Under-the-hood"
-* development concepts
-* operational concepts
+The OS layer has three implementations: one for Windows, one for macOS, and one for Linux. The appropriate implementation is chosen at runtime based on the current operating system.
 
-Note: it might be difficult to assign individual concepts to one specific topic
-on this list.
+The OS layer is responsible for the following tasks:
 
-image::08-concepts-EN.drawio.png["Possible topics for crosscutting concepts"]
+*   Detecting connected HID devices.
+*   Opening and closing HID devices.
+*   Reading and writing HID reports.
+*   Managing `udev` rules on Linux.
 
+The OS layer is implemented in the `headsetcontrol_tray.os_layer` package.
 
-.Further Information
+=== Configuration Management
 
-See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
-****
-endif::arc42help[]
+The application uses a JSON file to store user settings and headset configurations. The configuration file is located in the user's configuration directory.
 
-=== _<Concept 1>_
+The configuration file has two main sections:
 
-_<explanation>_
+*   `settings`: This section contains the user's settings, such as the selected theme and the default equalizer preset.
+*   `headsets`: This section contains the configurations for each supported headset model. Each headset configuration defines the HID reports for the headset's features.
 
+The application loads the configuration file on startup and saves it on exit. The user can edit the configuration file to customize the application's behavior and add support for new headsets. The `ConfigManager` class in the `headsetcontrol_tray.config_manager` module is responsible for managing the configuration.
 
+=== Concurrency
 
-=== _<Concept 2>_
+The application uses a single thread for the GUI and a separate thread for communicating with the headset. This is to prevent the GUI from freezing while waiting for a response from the headset.
 
-_<explanation>_
-
-...
-
-=== _<Concept n>_
-
-_<explanation>_
+The `HeadsetService` runs in a separate thread and communicates with the GUI using signals and slots. This ensures that the GUI is always responsive, even when the application is communicating with the headset.

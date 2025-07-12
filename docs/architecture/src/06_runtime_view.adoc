@@ -3,51 +3,46 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-runtime-view]]
 == Runtime View
 
+This section describes the behavior of the `headsetcontrol-tray` application at runtime.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-The runtime view describes concrete behavior and interactions of the system’s building blocks in form of scenarios from the following areas:
+=== User Changes Equalizer Preset
 
-* important use cases or features: how do building blocks execute them?
-* interactions at critical external interfaces: how do building blocks cooperate with users and neighboring systems?
-* operation and administration: launch, start-up, stop
-* error and exception scenarios
+The following sequence diagram shows a typical user interaction: changing the equalizer preset.
 
-Remark: The main criterion for the choice of possible scenarios (sequences, workflows) is their *architectural relevance*. It is *not* important to describe a large number of scenarios. You should rather document a representative selection.
+[mermaid, target="runtime-sequence", format="svg"]
+....
+sequenceDiagram
+    participant User
+    participant SystemTrayIcon
+    participant SettingsDialog
+    participant HeadsetService
+    participant HIDManager
+    participant Headset
 
-.Motivation
-You should understand how (instances of) building blocks of your system perform their job and communicate at runtime.
-You will mainly capture scenarios in your documentation to communicate your architecture to stakeholders that are less willing or able to read and understand the static models (building block view, deployment view).
+    User->>SystemTrayIcon: Clicks "Settings"
+    SystemTrayIcon->>SettingsDialog: Shows dialog
+    User->>SettingsDialog: Selects new equalizer preset
+    SettingsDialog->>HeadsetService: set_equalizer_preset(preset)
+    HeadsetService->>HIDManager: send_command(command)
+    HIDManager->>Headset: Writes HID report
+    Headset-->>HIDManager: Returns status
+    HIDManager-->>HeadsetService: Returns status
+    HeadsetService-->>SettingsDialog: Updates UI
+....
 
-.Form
-There are many notations for describing scenarios, e.g.
+This diagram illustrates the flow of control when a user changes the equalizer preset. The user interacts with the `SettingsDialog`, which in turn calls the `HeadsetService` to apply the change. The `HeadsetService` then uses the `HIDManager` to send the command to the headset. The response from the headset is propagated back up the call stack, and the UI is updated to reflect the new state.
 
-* numbered list of steps (in natural language)
-* activity diagrams or flow charts
-* sequence diagrams
-* BPMN or EPCs (event process chains)
-* state machines
-* ...
+=== Application Startup
 
+When the application starts, the following sequence of events occurs:
 
-.Further Information
+1.  The `App` class is instantiated.
+2.  The `ConfigManager` is initialized, and the user's settings are loaded.
+3.  The `OSLayer` is instantiated for the current operating system.
+4.  The `HIDManager` is initialized, and it starts scanning for connected headsets.
+5.  The `HeadsetService` is initialized.
+6.  The `SystemTrayIcon` is created and displayed.
+7.  If a headset is detected, the `HeadsetService` establishes a connection and retrieves the current status.
+8.  The `SystemTrayIcon` is updated with the headset's status.
 
-See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
-=== <Runtime Scenario 1>
-
-
-* _<insert runtime diagram or textual description of the scenario>_
-* _<insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.>_
-
-=== <Runtime Scenario 2>
-
-=== ...
-
-=== <Runtime Scenario n>
+The application then enters the main event loop and waits for user interaction.

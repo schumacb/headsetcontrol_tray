@@ -3,21 +3,11 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-introduction-and-goals]]
 == Introduction and Goals
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Describes the relevant requirements and the driving forces that software architects and development team must consider. 
-These include
-
-* underlying business goals, 
-* essential features, 
-* essential functional requirements, 
-* quality goals for the architecture and
-* relevant stakeholders and their expectations
-****
-endif::arc42help[]
-
 === Requirements Overview
+
+This document outlines the architecture of the `headsetcontrol-tray` application. The application is a system tray utility for controlling SteelSeries headsets, and potentially other brands, through direct HID communication. It provides a graphical user interface for features commonly found in command-line tools like `headsetcontrol`.
+
+The primary goal of this project is to offer a user-friendly, cross-platform tool for managing headset settings, such as equalizer presets, chatmix, and sidetone, without relying on official manufacturer software, which is often proprietary and not available on all operating systems.
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -47,6 +37,12 @@ endif::arc42help[]
 
 === Quality Goals
 
+The top quality goals for the architecture are:
+
+*   **Usability:** The application must be intuitive and easy to use for non-technical users. The system tray icon should provide quick access to essential features, and the settings dialog should be well-organized and self-explanatory.
+*   **Extensibility:** The architecture should make it easy to add support for new headset models and new features. This will be achieved through a modular design, with clear separation between the core application logic, the user interface, and the hardware-specific communication protocols.
+*   **Portability:** The application must be able to run on Windows, macOS, and Linux. The code should be written in a platform-agnostic way whenever possible, with any platform-specific code isolated in a dedicated OS layer.
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -71,6 +67,15 @@ endif::arc42help[]
 
 === Stakeholders
 
+[options="header",cols="1,2,2"]
+|===
+|Role/Name|Contact|Expectations
+|End Users|N/A|A stable, easy-to-use application to control their headset features on their preferred operating system.
+|Developers|N/A|A well-documented, maintainable codebase that is easy to contribute to. Clear separation of concerns and a consistent coding style are important.
+|Maintainers|N/A|A robust architecture that minimizes technical debt and allows for easy updates and bug fixes. The documentation should be up-to-date and comprehensive.
+| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
+| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+|===
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -92,10 +97,3 @@ These stakeholders determine the extent and the level of detail of your work and
 Table with role names, person names, and their expectations with respect to the architecture and its documentation.
 ****
 endif::arc42help[]
-
-[options="header",cols="1,2,2"]
-|===
-|Role/Name|Contact|Expectations
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
-|===

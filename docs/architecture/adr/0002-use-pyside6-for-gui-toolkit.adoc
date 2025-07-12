@@ -1,0 +1,27 @@
+# ADR 0002: Use PySide6 for GUI Toolkit
+
+## Status
+
+Accepted
+
+## Context
+
+We need to choose a GUI toolkit for the `headsetcontrol-tray` application. The toolkit should be cross-platform, have good integration with Python, and provide a modern look and feel.
+
+## Decision
+
+We have decided to use PySide6 as the GUI toolkit.
+
+## Consequences
+
+### Positive
+
+*   **Cross-platform:** PySide6 is a cross-platform toolkit, which means that the same code can be used to create a native-looking user interface on Windows, macOS, and Linux.
+*   **Modern Look and Feel:** PySide6 provides a modern look and feel that is consistent with the latest design trends.
+*   **Good Integration with Python:** PySide6 has excellent integration with Python, which makes it easy to develop GUI applications in Python.
+*   **LGPL License:** PySide6 is licensed under the LGPL, which means that it can be used in commercial applications.
+
+### Negative
+
+*   **Large Size:** PySide6 is a large library, which can increase the size of the application.
+*   **Learning Curve:** PySide6 has a steep learning curve, especially for developers who are not familiar with the Qt framework.

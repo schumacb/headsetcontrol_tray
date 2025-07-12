@@ -1,0 +1,26 @@
+# ADR 0003: Use Direct HID Communication
+
+## Status
+
+Accepted
+
+## Context
+
+We need to choose a method for communicating with headsets. The method should be cross-platform and not rely on proprietary drivers or software.
+
+## Decision
+
+We have decided to use direct HID communication.
+
+## Consequences
+
+### Positive
+
+*   **Cross-platform:** HID is a standard protocol that is supported by all major operating systems.
+*   **No Proprietary Drivers:** Direct HID communication does not require any proprietary drivers or software.
+*   **Wide Device Support:** Direct HID communication can be used to communicate with a wide range of devices, including headsets, keyboards, and mice.
+
+### Negative
+
+*   **Low-Level:** HID is a low-level protocol, which means that it can be more complex to work with than a higher-level API.
+*   **Device-Specific:** Each headset model has its own unique set of HID reports, which means that the application needs to be updated to support new models.

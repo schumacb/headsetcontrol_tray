@@ -3,42 +3,20 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-glossary]]
 == Glossary
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-The most important domain and technical terms that your stakeholders use when discussing the system.
+This section defines the key terms used in the `headsetcontrol-tray` project.
 
-You can also see the glossary as source for translations if you work in multi-language teams.
-
-.Motivation
-You should clearly define your terms, so that all stakeholders
-
-* have an identical understanding of these terms
-* do not use synonyms and homonyms
-
-
-.Form
-
-A table with columns <Term> and <Definition>.
-
-Potentially more columns in case you need translations.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-12/[Glossary] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
-[cols="e,2e" options="header"]
-|===
-|Term |Definition
-
-|<Term-1>
-|<definition-1>
-
-|<Term-2>
-|<definition-2>
-|===
+[glossary]
+ADR:: Architecture Decision Record. A document that captures an important architectural decision, including the context, decision, and consequences.
+API:: Application Programming Interface. A set of rules and specifications that software programs can follow to communicate with each other.
+Chatmix:: A feature that allows the user to balance the audio between the game and the chat.
+Equalizer:: A feature that allows the user to adjust the frequency response of the audio.
+GUI:: Graphical User Interface. A type of user interface that allows users to interact with electronic devices through graphical icons and visual indicators.
+HID:: Human Interface Device. A standard protocol for communication between a host computer and a peripheral device, such as a keyboard, mouse, or headset.
+HID Report:: A data packet that is sent between a host computer and a HID device.
+OS:: Operating System. The software that manages all of the hardware and software resources of a computer.
+PySide6:: A Python binding for the Qt GUI toolkit.
+Qt:: A cross-platform GUI toolkit.
+Sidetone:: A feature that allows the user to hear their own voice in the headset.
+System Tray:: A part of the desktop environment that is used to display icons for system and program features that are not part of the main desktop.
+`udev`:: A device manager for the Linux kernel.
+`uv`:: A fast Python package installer and resolver.

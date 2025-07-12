@@ -1,0 +1,28 @@
+# ADR 0001: Use Python for Application Development
+
+## Status
+
+Accepted
+
+## Context
+
+We need to choose a programming language for the `headsetcontrol-tray` application. The language should be cross-platform, have good support for GUI development and HID communication, and be easy to learn and use.
+
+## Decision
+
+We have decided to use Python for application development.
+
+## Consequences
+
+### Positive
+
+*   **Cross-platform:** Python is a cross-platform language, which means that the same code can be run on Windows, macOS, and Linux.
+*   **GUI Development:** Python has several libraries for GUI development, including PySide6, which we have chosen for this project.
+*   **HID Communication:** The `hidapi` library provides a simple and effective way to communicate with HID devices in Python.
+*   **Readability:** Python's clean syntax and focus on readability make it easy to write and maintain code.
+*   **Large Community:** Python has a large and active community, which means that there are many resources available for learning and troubleshooting.
+
+### Negative
+
+*   **Performance:** Python is an interpreted language, which means that it can be slower than compiled languages like C++ or Rust. However, for a GUI application like this, performance is not a critical concern.
+*   **Packaging:** Packaging Python applications for distribution can be more complex than for compiled languages. However, tools like PyInstaller can help to simplify this process.

@@ -3,27 +3,27 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-architecture-constraints]]
 == Architecture Constraints
 
+This section describes the constraints that have influenced the design of the `headsetcontrol-tray` application.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Any requirement that constraints software architects in their freedom of design and implementation decisions or decision about the development process. These constraints sometimes go beyond individual systems and are valid for whole organizations and companies.
+=== Technical Constraints
 
-.Motivation
-Architects should know exactly where they are free in their design decisions and where they must adhere to constraints.
-Constraints must always be dealt with; they may be negotiable, though.
+[options="header",cols="1,2"]
+|===
+|Constraint|Description
+|Python 3.10+|The application must be written in Python 3.10 or a later version. This is specified in the `pyproject.toml` file.
+|PySide6|The graphical user interface must be built using the PySide6 library. This is a key dependency of the project.
+|Direct HID Access|The application must communicate with headsets using direct HID (Human Interface Device) communication. This is a fundamental requirement of the project.
+|Cross-Platform|The application must support Windows, macOS, and Linux. This requires careful consideration of platform-specific APIs and behaviors.
+|`uv` for package management|The project uses `uv` for dependency management and environment setup.
+|MIT License|The project is licensed under the MIT License, which is a permissive open-source license.
+|===
 
-.Form
-Simple tables of constraints with explanations.
-If needed you can subdivide them into
-technical constraints, organizational and political constraints and
-conventions (e.g. programming or versioning guidelines, documentation or naming conventions)
+=== Organizational Constraints
 
-
-.Further Information
-
-See https://docs.arc42.org/section-2/[Architecture Constraints] in the arc42 documentation.
-
-****
-endif::arc42help[]
+[options="header",cols="1,2"]
+|===
+|Constraint|Description
+|Open Source|The project is open source and developed by a community of volunteers. This means that decisions are made collaboratively and the codebase is publicly available.
+|Community-Driven|The project's features and priorities are driven by the needs of the community.
+|Limited Resources|As a volunteer-driven project, there are no dedicated resources for development, testing, or support.
+|===

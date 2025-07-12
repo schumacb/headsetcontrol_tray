@@ -1,27 +1,16 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-technical-risks]]
-== Risks and Technical Debts
+== Technical Risks
 
+This section identifies and documents the technical risks for the `headsetcontrol-tray` application.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-A list of identified technical risks or technical debts, ordered by priority
-
-.Motivation
-“Risk management is project management for grown-ups” (Tim Lister, Atlantic Systems Guild.) 
-
-This should be your motto for systematic detection and evaluation of risks and technical debts in the architecture, which will be needed by management stakeholders (e.g. project managers, product owners) as part of the overall risk analysis and measurement planning.
-
-.Form
-List of risks and/or technical debts, probably including suggested measures to minimize, mitigate or avoid risks or reduce technical debts.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-11/[Risks and Technical Debt] in the arc42 documentation.
-
-****
-endif::arc42help[]
+[options="header",cols="1,2,2"]
+|===
+|Risk|Description|Mitigation
+|Device Compatibility|Each headset model has its own unique set of HID reports. If a headset is not supported, the application will not be able to communicate with it.|The application uses a configuration file to define the HID reports for each supported headset model. This makes it easy to add support for new models without modifying the code. The application also provides a clear error message to the user if a headset is not supported.
+|Platform-Specific Issues|The application needs to run on Windows, macOS, and Linux. There may be platform-specific issues that are difficult to debug and fix.|The application uses an OS layer to isolate platform-specific code. This makes it easier to debug and fix platform-specific issues. The application is also tested on all three platforms to ensure that it works correctly.
+|HID API Changes|The `hidapi` library may change in the future, which could break the application.|The application uses a wrapper around the `hidapi` library to isolate the low-level HID communication code. This makes it easier to update the code if the `hidapi` library changes.
+|GUI Toolkit Issues|The PySide6 library may have bugs or limitations that affect the application.|The application is tested thoroughly to ensure that it works correctly with the PySide6 library. If any issues are found, they are reported to the PySide6 developers.
+|Community Contributions|The project relies on community contributions for development and maintenance. If the community loses interest, the project may become stagnant.|The project is well-documented and has a clear contribution process. This makes it easy for new contributors to get involved. The project also has a core team of maintainers who are committed to the long-term success of the project.
+|===
