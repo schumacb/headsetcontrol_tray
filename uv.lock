@@ -137,11 +137,11 @@ dev = [
 
 [[package]]
 name = "hid"
-version = "1.0.7"
+version = "1.0.8"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d3/9c/6f33de7dbf6f9054ebf312c01b3440040526fb133f3e7de2b5fe81184163/hid-1.0.7.tar.gz", hash = "sha256:3f809e292ab52c4435ad1442c8ef205be4c9ca4eeb80fb47c7d98e0c75527b2a", size = 4897, upload-time = "2025-02-01T15:56:54.308Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/42/9cd3eab530ffae5e0ff880c575fd18cfdfe292b71f1e9872c392329f35fd/hid-1.0.8.tar.gz", hash = "sha256:5ca129a7b9434ace5e3e429c1092a16792feffaf067a46b666e9c586872cdcfe", size = 4967, upload-time = "2025-06-28T16:20:27.576Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/00/e830f0ecfe43bbc7f30509fb7cd97945a4a23eab8b8afdcd0865c417a18e/hid-1.0.7-py3-none-any.whl", hash = "sha256:8a4f1b081202599018564c4fbc4805d9b97b9c2495f2be177a1ed9600940436d", size = 4887, upload-time = "2025-02-02T22:45:15.243Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/52/24bfaee85a5e25f2d1a389944a3576d408ab3ca935176e892cbef47b92b6/hid-1.0.8-py3-none-any.whl", hash = "sha256:9b6fac92098322ae5d8d839c2bb30620b7533284bcf5f3e6aedcc0483c388046", size = 4949, upload-time = "2025-06-28T16:20:26.745Z" },
 ]
 
 [[package]]
